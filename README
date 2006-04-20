@@ -1,0 +1,24 @@
+ruby-oai
+--------
+
+DESCRIPTION
+
+ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH) 
+client library for Ruby. If you're not familiar with OAI-PMH it is the 
+most used protocol for sharing metadata between digital library repositories.
+
+The OAI-PMH spec defines six verbs (Identify, ListIdentifiers, ListRecords, 
+GetRecords, ListSets, ListMetadataFormat) which translate into methods you 
+can call on a OAI::Client object.
+
+SYNOPSIS
+
+  client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+
+  for record in client.list_records 
+    puts record.metadata
+  end
+
+BUGS/SUGGESTIONS
+
+- Ed Summers <ehs@pobox>

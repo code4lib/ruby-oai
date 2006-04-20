@@ -13,8 +13,10 @@ can call on a OAI::Client object.
 
 SYNOPSIS
 
-  client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+  # do a ListRecords request and print out the REXML::Element objects
+  # for each record
 
+  client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
   for record in client.list_records 
     puts record.metadata
   end

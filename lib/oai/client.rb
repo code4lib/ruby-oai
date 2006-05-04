@@ -9,7 +9,7 @@ module OAI
   # a OAI-PMH server. The 6 OAI-PMH verbs translate directly to methods you 
   # can call on a OAI::Client object. Verb arguments are passed as a hash:
   #
-  #   client = OAI::Harvester.new ''http://www.pubmedcentral.gov/oai/oai.cgi'
+  #   client = OAI::Client.new ''http://www.pubmedcentral.gov/oai/oai.cgi'
   #   client.list_identifiers :metadata_prefix => 'oai_dc'
   #
   # It is worth noting that the api uses methods and parameter names with 

@@ -18,11 +18,4 @@ class ExceptionTest < Test::Unit::TestCase
       assert_match /response not well formed XML/, e.to_s, 'xml error'
     end
   end
-
-  # some oai providers have been known to respond with redirects!
-  def test_redirect
-    client = OAI::Client.new('http://citebase.eprints.org/cgi-bin/oai2')
-    assert_nothing_thrown(client.get_record(
-      :identifier => 'oai:arXiv.org:nlin/0101014'))
-  end
 end

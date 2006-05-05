@@ -128,8 +128,8 @@ module OAI
       begin
         xml = Net::HTTP.get(uri)
         return REXML::Document.new(xml)
-      rescue
-        raise OAI::Exception, 'error during oai operation', caller
+      rescue Object => e
+        raise OAI::Exception, 'error during oai operation: '+e, caller
       end
     end
 

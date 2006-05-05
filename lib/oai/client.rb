@@ -32,9 +32,14 @@ module OAI
     # service:
     #
     #   client = OAI::Harvseter.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    #
+    # If you want to see debugging messages on STDERR use:
+    #
+    #   client = OAI::Harvester.new 'http://example.com', :debug => true
     
-    def initialize(base_url)
+    def initialize(base_url, options={})
       @base = URI.parse base_url
+      @debug = options[:debug]
     end
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
@@ -122,14 +127,18 @@ module OAI
         end
         "#{key}=#{value}"
       end
-      uri.query = parts.join('&')
+      uri.query = parts.join('&') if @debug
+      debug("doing request: #{uri.to_s}")
 
       # fire off the request and return an REXML::Document object
       begin
         xml = Net::HTTP.get(uri)
+        debug("got response: #{xml}")
         return REXML::Document.new(xml)
-      rescue Object => e
-        raise OAI::Exception, 'error during oai operation: '+e, caller
+      rescue REXML::ParseException => e
+        raise OAI::Exception, 'response not well formed XML: '+e, caller
+      rescue SystemCallError=> e
+        raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
       end
     end
 
@@ -158,6 +167,10 @@ module OAI
           raise OAI::Exception.new("invalid option #{opt} in #{opts['verb']}")
         end
       end
+    end
+
+    def debug(msg)
+      $stderr.print("#{msg}\n") if @debug
     end
   end
 end

@@ -2,6 +2,7 @@ require 'uri'
 require 'net/http'
 require 'rexml/document'
 require 'cgi'
+require 'date'
 
 module OAI
 

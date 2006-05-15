@@ -128,7 +128,7 @@ module OAI
         end
         "#{key}=#{value}"
       end
-      uri.query = parts.join('&') if @debug
+      uri.query = parts.join('&')
       debug("doing request: #{uri.to_s}")
 
       # fire off the request and return an REXML::Document object

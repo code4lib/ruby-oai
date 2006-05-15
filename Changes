@@ -1,2 +1,7 @@
+v0.0.2 Mon May 15 13:59:33 EST 2006
+- added debug support to OAI::Client
+- added more expressive exceptions to distinguish XML parse errors from 
+  HTTP level errors
+
 v0.0.1 Thu Apr 20 16:42:33 CDT 2006
 - initial release

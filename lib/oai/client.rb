@@ -1,6 +1,6 @@
 require 'uri'
 require 'net/http'
-require 'rexml/document'
+#require 'rexml/document'
 require 'cgi'
 require 'date'
 
@@ -38,9 +38,10 @@ module OAI
     #
     #   client = OAI::Harvester.new 'http://example.com', :debug => true
     
-    def initialize(base_url, options={})
+    def initialize(base_url, options={:parser => ''})
       @base = URI.parse base_url
       @debug = options[:debug]
+      $parser = options[:parser]
     end
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
@@ -134,13 +135,36 @@ module OAI
       # fire off the request and return an REXML::Document object
       begin
         xml = Net::HTTP.get(uri)
+	xml = xml.gsub(/xmlns=\".*\"/, '')
         debug("got response: #{xml}")
-        return REXML::Document.new(xml)
-      rescue REXML::ParseException => e
-        raise OAI::Exception, 'response not well formed XML: '+e, caller
+	return load_document(xml)
       rescue SystemCallError=> e
         raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
       end
+    end
+
+    #loads the document and returns the 
+    #necessary document type
+    def load_document(xml)
+       case $parser
+	  when 'libxml'
+	    require 'rubygems'
+            require 'xml/libxml'
+	    begin
+              xparser = XML::Parser.new()
+              xparser.string = xml
+              return  xparser.parse
+	    rescue XML::Parser::ParseError => e
+	      raise OAI::Exception, 'response not well formed XML: '+e, caller
+	    end
+ 	  else
+	    require 'rexml/document'
+	    begin
+	       return REXML::Document.new(xml)
+            rescue REXML::ParseException => e
+               raise OAI::Exception, 'response not well formed XML: '+e, caller
+            end
+       end
     end
 
     # convert foo_bar to fooBar thus allowing our ruby code to use

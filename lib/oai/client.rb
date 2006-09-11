@@ -1,6 +1,5 @@
 require 'uri'
 require 'net/http'
-#require 'rexml/document'
 require 'cgi'
 require 'date'
 
@@ -38,10 +37,25 @@ module OAI
     #
     #   client = OAI::Harvester.new 'http://example.com', :debug => true
     
-    def initialize(base_url, options={:parser => ''})
+    def initialize(base_url, options={})
       @base = URI.parse base_url
-      @debug = options[:debug]
-      $parser = options[:parser]
+      @debug = options.fetch(:debug, false)
+      @parser = options.fetch(:parser, 'rexml')
+      
+      # load appropriate parser
+      case @parser
+      when 'libxml'
+        begin
+          require 'xml/libxml'
+        rescue
+          raise OAI::Exception.new("xml/libxml not available")
+        end
+      when 'rexml'
+        require 'rexml/document'
+        require 'rexml/xpath'
+      else
+        raise OAI::Exception.new("unknown parser: #{@parser}")
+      end
     end
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
@@ -135,36 +149,31 @@ module OAI
       # fire off the request and return an REXML::Document object
       begin
         xml = Net::HTTP.get(uri)
-	xml = xml.gsub(/xmlns=\".*\"/, '')
+        xml = xml.gsub(/xmlns=\".*?\"/, '')
         debug("got response: #{xml}")
-	return load_document(xml)
+        return load_document(xml)
       rescue SystemCallError=> e
         raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
       end
     end
 
-    #loads the document and returns the 
-    #necessary document type
     def load_document(xml)
-       case $parser
-	  when 'libxml'
-	    require 'rubygems'
-            require 'xml/libxml'
-	    begin
-              xparser = XML::Parser.new()
-              xparser.string = xml
-              return  xparser.parse
-	    rescue XML::Parser::ParseError => e
-	      raise OAI::Exception, 'response not well formed XML: '+e, caller
-	    end
- 	  else
-	    require 'rexml/document'
-	    begin
-	       return REXML::Document.new(xml)
-            rescue REXML::ParseException => e
-               raise OAI::Exception, 'response not well formed XML: '+e, caller
-            end
-       end
+      case @parser
+      when 'libxml'
+        begin
+          parser = XML::Parser.new()
+          parser.string = xml
+          return parser.parse
+        rescue XML::Parser::ParseError => e
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
+        end
+      when 'rexml'
+        begin
+          return REXML::Document.new(xml)
+        rescue REXML::ParseException => e
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
+        end
+      end
     end
 
     # convert foo_bar to fooBar thus allowing our ruby code to use

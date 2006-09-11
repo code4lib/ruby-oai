@@ -1,36 +1,51 @@
 module OAI
   module XPath
+
+    # get all matching nodes
     def xpath_all(doc, path)
-      case $parser
-	 when 'libxml'
-	    require 'rubygems'
-	    require 'xml/libxml'
-	    return doc.find( path)
-	 else
-	    require 'rexml/xpath'
-            return REXML::XPath.match(doc, path)
-       end
+      case parser_type(doc)
+      when 'libxml'
+        return doc.find(path)
+      when 'rexml'
+        return REXML::XPath.match(doc, path)
+      end
+      return []
     end
 
+    # get first matching node
     def xpath_first(doc, path)
       elements = xpath_all(doc, path)
       return elements[0] if elements != nil
       return nil
     end
 
+    # get text for first matching node
     def xpath(doc, path)
-      e = xpath_first(doc, path)
-      case $parser
-	when 'libxml'
-	  begin
-	     return e.content
-          rescue
-	     return nil
-	  end
-        else
-	  return e.text if e != nil
-	  return nil
-       end  
+      el = xpath_first(doc, path)
+      return unless el
+      case parser_type(doc)
+      when 'libxml'
+        return el.content
+      when 'rexml'
+        return el.text 
+      end
+      return nil
+    end
+
+    private 
+   
+    # figure out what sort of object we should do xpath on
+    def parser_type(x)
+      case x.class.to_s
+      when 'XML::Document'
+        return 'libxml'
+      when 'XML::Element'
+        return 'libxml'
+      when 'REXML::Element'
+        return 'rexml'
+      when 'REXML::Document'
+        return 'rexml'
+      end
     end
   end
 end

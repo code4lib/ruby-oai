@@ -39,8 +39,10 @@ module OAI
       case x.class.to_s
       when 'XML::Document'
         return 'libxml'
-      when 'XML::Element'
+      when 'XML::Node'
         return 'libxml'
+      when 'XML::Node::Set'
+	return 'libxml'
       when 'REXML::Element'
         return 'rexml'
       when 'REXML::Document'

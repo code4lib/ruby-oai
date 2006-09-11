@@ -46,6 +46,7 @@ module OAI
       case @parser
       when 'libxml'
         begin
+	  require 'rubygems'
           require 'xml/libxml'
         rescue
           raise OAI::Exception.new("xml/libxml not available")
@@ -149,7 +150,8 @@ module OAI
       # fire off the request and return an REXML::Document object
       begin
         xml = Net::HTTP.get(uri)
-        xml = xml.gsub(/xmlns=\".*?\"/, '')
+	if @parser == 'libxml': xml = xml.gsub(/xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') end
+        #xml = xml.gsub(/xmlns=\".*?\"/, '')
         debug("got response: #{xml}")
         return load_document(xml)
       rescue SystemCallError=> e

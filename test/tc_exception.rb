@@ -6,12 +6,12 @@ class ExceptionTest < Test::Unit::TestCase
       client.identify
       flunk 'did not throw expected exception'
     rescue OAI::Exception => e
-      assert_match /Connection refused/, e.to_s, 'include error message'
+      assert_match /^HTTP level error/, e.to_s, 'include error message'
     end
   end
 
   def test_xml_error
-    client = OAI::Client.new 'http://www.google.com'
+    client = OAI::Client.new 'http://www.yahoo.com'
     begin 
       client.identify
     rescue OAI::Exception => e

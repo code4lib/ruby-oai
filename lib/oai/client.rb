@@ -147,15 +147,16 @@ module OAI
       uri.query = parts.join('&')
       debug("doing request: #{uri.to_s}")
 
-      # fire off the request and return an REXML::Document object
+      # fire off the request and return appropriate DOM object
       begin
         xml = Net::HTTP.get(uri)
 	if @parser == 'libxml': xml = xml.gsub(/xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') end
-        #xml = xml.gsub(/xmlns=\".*?\"/, '')
         debug("got response: #{xml}")
         return load_document(xml)
-      rescue SystemCallError=> e
+      rescue StandardError => e
         raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
+      #rescue EOFError => e
+      #  raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
       end
     end
 

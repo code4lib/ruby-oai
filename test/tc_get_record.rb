@@ -24,4 +24,10 @@ class GetRecordTest < Test::Unit::TestCase
       assert_match /The request includes illegal arguments/, e.to_s
     end
   end
+
+  def test_deleted_record
+    client = OAI::Client.new 'http://ir.library.oregonstate.edu/dspace-oai/request'
+    record = client.get_record :identifier => 'oai:ir.library.oregonstate.edu:1957/19' 
+    assert record.deleted?
+  end
 end

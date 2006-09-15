@@ -13,5 +13,11 @@ module OAI
       @header = OAI::Header.new xpath_first(element, './/header')
       @metadata = xpath_first(element, './/metadata')
     end
+
+    # a convenience method which digs into the header status attribute
+    # and returns true if the value is set to 'deleted'
+    def deleted?
+      return @header.deleted?
+    end
   end
 end

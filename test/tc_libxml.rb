@@ -1,27 +1,40 @@
 class LibXMLTest < Test::Unit::TestCase
 
-  def test_get_record
+  def test_oai_exception
     return unless have_libxml
+
     uri = 'http://www.pubmedcentral.gov/oai/oai.cgi'
-    client = OAI::Client.new(uri, :parser => 'libxml')
-    response = client.get_record :identifier => 'oai:pubmedcentral.gov:13901'
-    assert_kind_of OAI::GetRecordResponse, response
-    assert_kind_of OAI::Record, response.record
-    assert_kind_of XML::Node, response.record.metadata
+    client = OAI::Client.new uri, :parser => 'libxml'
+    assert_raises(OAI::Exception) {client.get_record(:identifier => 'nosuchid')}
   end
 
-  def atest_list_records
+  def test_list_records
     return unless have_libxml
-    uri = 'http://digitalcollections.library.oregonstate.edu/cgi-bin/oai.exe'
-    client = OAI::Client.new uri, :parser => 'libxml'
-    records = client.list_records(
-      :set              => 'archives', 
-      :metadata_prefix  => 'oai_dc', 
-      :from             => Date.new(2006,8,1))
-    records.each do |record|
-      assert_match /oregonstate.edu:archives\/\d+$/, record.header.identifier
-      assert_kind_of XML::Node, record.metadata
+
+    # since there is regex magic going on to remove default oai namespaces 
+    # it's worth trying a few different oai targets
+    oai_targets = %w{
+      http://etd.caltech.edu:80/ETD-db/OAI/oai
+      http://ir.library.oregonstate.edu/dspace-oai/request
+      http://libeprints.open.ac.uk/perl/oai2
+      http://memory.loc.gov/cgi-bin/oai2_0
+    }
+
+    oai_targets.each do |uri|
+      client = OAI::Client.new uri, :parser => 'libxml'
+      records = client.list_records
+      records.each do |record|
+        assert record.header.identifier
+        next unless record.deleted?
+        assert_kind_of XML::Node, record.metadata
+      end
     end
+  end
+
+  def test_deleted_record
+    uri = 'http://ir.library.oregonstate.edu/dspace-oai/request'
+    client = OAI::Client.new(uri, :parser => 'libxml')
+    record = client.get_record :identifier => 'oai:ir.library.oregonstate.edu:1957/19' 
   end
 
   private

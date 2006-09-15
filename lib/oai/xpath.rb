@@ -32,6 +32,17 @@ module OAI
       return nil
     end
 
+    # figure out an attribute
+    def get_attribute(node, attr_name)
+      case node.class.to_s
+      when 'REXML::Element'
+        return node.attribute(attr_name)
+      when 'XML::Node'
+        return node.property(attr_name)
+      end
+      return nil
+    end
+
     private 
    
     # figure out what sort of object we should do xpath on

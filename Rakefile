@@ -1,4 +1,4 @@
-VERSION = '0.0.2'
+RUBY_OAI_VERSION = '0.0.3'
 
 require 'rubygems'
 require 'rake'
@@ -18,7 +18,7 @@ end
 
 spec = Gem::Specification.new do |s|
     s.name = 'oai'
-    s.version = VERSION
+    s.version = RUBY_OAI_VERSION
     s.author = 'Ed Summers'
     s.email = 'ehs@pobox.com'
     s.homepage = 'http://www.textualize.com/ruby-marc'

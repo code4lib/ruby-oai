@@ -21,6 +21,8 @@ module OAI
     end
 
     # returns REXML::Element nodes for each description section
+    # if the OAI::Client was configured to use libxml then you will
+    # instead get a XML::Node object.
     def descriptions
       return xpath_all(doc, './/Identify/description')
     end

@@ -38,6 +38,13 @@ module OAI
     # If you want to see debugging messages on STDERR use:
     #
     #   client = OAI::Harvester.new 'http://example.com', :debug => true
+    #
+    # By default OAI verbs called on the client will return REXML::Element
+    # objects for metadata records, however if you wish you can use the
+    # :parser option to indicate you want to use 'libxml' instead, and get
+    # back XML::Node objects
+    #
+    #   client = OAI::Harvester.new 'http://example.com', :parser => 'libxml'
     
     def initialize(base_url, options={})
       @base = URI.parse base_url
@@ -63,7 +70,8 @@ module OAI
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
     # object which is essentially just a wrapper around a REXML::Document 
-    # for the response.
+    # for the response. If you are created your client using the libxml 
+    # parser then you will get an XML::Node object instead.
     
     def identify
       return IdentifyResponse.new(do_request(:verb => 'Identify'))

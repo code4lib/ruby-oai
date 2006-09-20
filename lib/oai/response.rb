@@ -9,11 +9,17 @@ module OAI
 
       # throw an exception if there was an error
       error = xpath_first(doc, './/error')
-      if error
-        message = error.text
-        code = error.attributes['code']
-        raise OAI::Exception.new("#{message} [#{code}]")
+      return unless error
+
+      case error.class.to_s
+        when 'REXML::Element'
+          message = error.text
+          code = error.attributes['code']
+        when 'XML::Node'
+          message = error.content
+          code = error.property('code')
       end
+      raise OAI::Exception.new("#{message} [#{code}]")
     end
 
   end

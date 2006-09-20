@@ -1,6 +1,5 @@
 require 'uri'
 require 'net/http'
-require 'rexml/document'
 require 'cgi'
 require 'date'
 
@@ -10,8 +9,10 @@ module OAI
   # a OAI-PMH server. The 6 OAI-PMH verbs translate directly to methods you 
   # can call on a OAI::Client object. Verb arguments are passed as a hash:
   #
-  #   client = OAI::Client.new ''http://www.pubmedcentral.gov/oai/oai.cgi'
-  #   client.list_identifiers :metadata_prefix => 'oai_dc'
+  #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+  #   record = client.get_record :identifier => 'oai:pubmedcentral.gov:13901'
+  #   for identifier in client.list_identifiers :metadata_prefix => 'oai_dc'
+  #     puts identifier.
   #
   # It is worth noting that the api uses methods and parameter names with 
   # underscores in them rather than studly caps. So above list_identifiers 
@@ -37,15 +38,40 @@ module OAI
     # If you want to see debugging messages on STDERR use:
     #
     #   client = OAI::Harvester.new 'http://example.com', :debug => true
+    #
+    # By default OAI verbs called on the client will return REXML::Element
+    # objects for metadata records, however if you wish you can use the
+    # :parser option to indicate you want to use 'libxml' instead, and get
+    # back XML::Node objects
+    #
+    #   client = OAI::Harvester.new 'http://example.com', :parser => 'libxml'
     
     def initialize(base_url, options={})
       @base = URI.parse base_url
-      @debug = options[:debug]
+      @debug = options.fetch(:debug, false)
+      @parser = options.fetch(:parser, 'rexml')
+      
+      # load appropriate parser
+      case @parser
+      when 'libxml'
+        begin
+	  require 'rubygems'
+          require 'xml/libxml'
+        rescue
+          raise OAI::Exception.new("xml/libxml not available")
+        end
+      when 'rexml'
+        require 'rexml/document'
+        require 'rexml/xpath'
+      else
+        raise OAI::Exception.new("unknown parser: #{@parser}")
+      end
     end
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
     # object which is essentially just a wrapper around a REXML::Document 
-    # for the response.
+    # for the response. If you are created your client using the libxml 
+    # parser then you will get an XML::Node object instead.
     
     def identify
       return IdentifyResponse.new(do_request(:verb => 'Identify'))
@@ -55,8 +81,7 @@ module OAI
     # object is returned to you. 
     
     def list_metadata_formats(opts={})
-      opts[:verb] = 'ListMetadataFormats'
-      verify_verb_arguments opts, [:verb, :identifier]
+      sanitize_verb_arguments 'ListMetadataFormats', opts, [:verb, :identifier]
       return ListMetadataFormatsResponse.new(do_request(opts))
     end
 
@@ -65,9 +90,9 @@ module OAI
     # supported by the server.
     
     def list_identifiers(opts={})
-      opts[:verb] = 'ListIdentifiers'
+      sanitize_verb_arguments 'ListIdentifiers', opts, 
+        [:verb, :from, :until, :metadata_prefix, :set, :resumption_token]
       add_default_metadata_prefix opts
-      verify_verb_arguments opts, [:verb, :from, :until, :metadata_prefix, :set,         :resumption_token]
       return ListIdentifiersResponse.new(do_request(opts)) 
     end
 
@@ -76,9 +101,9 @@ module OAI
     # which you can extract a OAI::Record object from.
     
     def get_record(opts={})
-      opts[:verb] = 'GetRecord'
+      sanitize_verb_arguments 'GetRecord', opts, 
+        [:verb, :identifier, :metadata_prefix]
       add_default_metadata_prefix opts
-      verify_verb_arguments opts, [:verb, :identifier, :metadata_prefix]
       return GetRecordResponse.new(do_request(opts))
     end
 
@@ -90,10 +115,9 @@ module OAI
     #   end
     
     def list_records(opts={})
-      opts[:verb] = 'ListRecords'
-      add_default_metadata_prefix opts
-      verify_verb_arguments opts, [:verb, :from, :until, :set, 
+      sanitize_verb_arguments 'ListRecords', opts, [:verb, :from, :until, :set, 
         :resumption_token, :metadata_prefix]
+      add_default_metadata_prefix opts
       return ListRecordsResponse.new(do_request(opts))
     end
 
@@ -106,8 +130,7 @@ module OAI
     #   end
     
     def list_sets(opts={})
-      opts[:verb] = 'ListSets'
-      verify_verb_arguments opts, [:verb, :resumptionToken]
+      sanitize_verb_arguments 'ListSets', opts, [:verb, :resumptionToken]
       return ListSetsResponse.new(do_request(opts))
     end
 
@@ -131,15 +154,38 @@ module OAI
       uri.query = parts.join('&')
       debug("doing request: #{uri.to_s}")
 
-      # fire off the request and return an REXML::Document object
+      # fire off the request and return appropriate DOM object
       begin
         xml = Net::HTTP.get(uri)
-        debug("got response: #{xml}")
-        return REXML::Document.new(xml)
-      rescue REXML::ParseException => e
-        raise OAI::Exception, 'response not well formed XML: '+e, caller
-      rescue SystemCallError=> e
+	if @parser == 'libxml' 
+          # remove default namespace for oai-pmh since libxml
+          # isn't able to use our xpaths to get at them 
+          # if you know a way around thins please let me know
+          xml = xml.gsub(
+            /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
+        end
+        return load_document(xml)
+      rescue StandardError => e
         raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
+      end
+    end
+
+    def load_document(xml)
+      case @parser
+      when 'libxml'
+        begin
+          parser = XML::Parser.new()
+          parser.string = xml
+          return parser.parse
+        rescue XML::Parser::ParseError => e
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
+        end
+      when 'rexml'
+        begin
+          return REXML::Document.new(xml)
+        rescue REXML::ParseException => e
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
+        end
       end
     end
 
@@ -160,7 +206,17 @@ module OAI
       end
     end
 
-    def verify_verb_arguments(opts, valid_opts)
+    def sanitize_verb_arguments(verb, opts, valid_opts)
+      # opts could mistakenly not be a hash if the method was called wrong
+      # client.get_record(12) instead of client.get_record(:identifier => 12)
+      unless opts.kind_of?(Hash)
+        raise OAI::Exception.new("method options must be passed as a hash") 
+      end
+
+      # add the verb
+      opts[:verb] = verb
+
+      # make sure options aren't using studly caps, and that they're legit
       opts.keys.each do |opt|
         if opt =~ /[A-Z]/
           raise OAI::Exception.new("#{opt} should use underscores")

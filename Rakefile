@@ -35,3 +35,9 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_zip = true
   pkg.need_tar = true
 end
+
+Rake::RDocTask.new('doc') do |rd|
+  rd.rdoc_files.include("lib/**/*.rb")
+  rd.main = 'OAI::Client'
+  rd.rdoc_dir = 'doc'
+end

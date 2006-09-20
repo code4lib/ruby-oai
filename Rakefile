@@ -1,7 +1,24 @@
+RUBY_OAI_VERSION = '0.0.3'
+
 require 'rubygems'
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
+require 'rake/packagetask'
+require 'rake/gempackagetask'
+
+task :default => [:test]
+
+Rake::TestTask.new('test') do |t|
+  t.libs << 'lib'
+  t.pattern = 'test/tc_*.rb'
+  t.verbose = true
+  t.ruby_opts = ['-r oai', '-r test/unit']
+end
+
 spec = Gem::Specification.new do |s|
     s.name = 'oai'
-    s.version = '0.0.2'
+    s.version = RUBY_OAI_VERSION
     s.author = 'Ed Summers'
     s.email = 'ehs@pobox.com'
     s.homepage = 'http://www.textualize.com/ruby-marc'
@@ -11,12 +28,10 @@ spec = Gem::Specification.new do |s|
     s.require_path = 'lib'
     s.autorequire = 'oai'
     s.has_rdoc = true
-    s.test_file = 'test.rb'
     s.bindir = 'bin'
 end
 
-if $0 == __FILE__
-    Gem::manage_gems
-    Gem::Builder.new(spec).build
+Rake::GemPackageTask.new(spec) do |pkg|
+  pkg.need_zip = true
+  pkg.need_tar = true
 end
-

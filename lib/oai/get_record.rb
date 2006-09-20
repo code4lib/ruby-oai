@@ -5,7 +5,11 @@ module OAI
 
     def initialize(doc)
       super doc
-      @record = OAI::Record.new(xpath_first(doc, './/record'))
+      @record = OAI::Record.new(xpath_first(doc, './/GetRecord/record'))
+    end
+
+    def deleted?
+      return @record.deleted?
     end
   end
 end

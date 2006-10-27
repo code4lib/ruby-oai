@@ -1,3 +1,6 @@
+v0.0.4
+- modified test/libxml_test.rb to actually work when libxml isn't installed
+
 v0.0.3 Fri Sep 15 06:53:10 EDT 2006
 - added Rakefile and removed standalone gemspec and test.rb
 - added deleted? convenience method to OAI::Record and OAI::Header

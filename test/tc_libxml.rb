@@ -32,6 +32,8 @@ class LibXMLTest < Test::Unit::TestCase
   end
 
   def test_deleted_record
+    return unless have_libxml
+
     uri = 'http://ir.library.oregonstate.edu/dspace-oai/request'
     client = OAI::Client.new(uri, :parser => 'libxml')
     record = client.get_record :identifier => 'oai:ir.library.oregonstate.edu:1957/19' 
@@ -43,7 +45,7 @@ class LibXMLTest < Test::Unit::TestCase
     begin
       require 'xml/libxml'
       return true
-    rescue
+    rescue LoadError
       return false
     end
   end

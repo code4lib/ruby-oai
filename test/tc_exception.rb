@@ -20,7 +20,7 @@ class ExceptionTest < Test::Unit::TestCase
   end
 
   def test_oai_error
-    client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    client = OAI::Client.new 'http://www.pubmedcentral.nih.gov/oai/oai.cgi'
     assert_raises(OAI::Exception) do
       client.list_identifiers :resumption_token => 'bogus'
     end
@@ -28,7 +28,7 @@ class ExceptionTest < Test::Unit::TestCase
 
   # must pass in options as a hash 
   def test_parameter_error
-    client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    client = OAI::Client.new 'http://www.pubmedcentral.nih.gov/oai/oai.cgi'
     assert_raises(OAI::Exception) {client.get_record('foo')}
     assert_raises(OAI::Exception) {client.list_identifiers('foo')}
     assert_raises(OAI::Exception) {client.list_records('foo')}

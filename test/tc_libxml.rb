@@ -16,9 +16,10 @@ class LibXMLTest < Test::Unit::TestCase
     oai_targets = %w{
       http://etd.caltech.edu:80/ETD-db/OAI/oai
       http://ir.library.oregonstate.edu/dspace-oai/request
-      http://libeprints.open.ac.uk/perl/oai2
       http://memory.loc.gov/cgi-bin/oai2_0
     }
+
+    #http://libeprints.open.ac.uk/perl/oai2
 
     oai_targets.each do |uri|
       client = OAI::Client.new uri, :parser => 'libxml'

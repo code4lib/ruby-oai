@@ -7,12 +7,14 @@ module OAI
     include OAI::XPath
     attr_accessor :name, :spec, :description
 
-    def initialize(element)
-      @name = xpath(element, './/setName')
-      @spec = xpath(element, './/setSpec')
-      @description = xpath_first(element, './/setDescription')
+    def self.parse(element)
+      set = self.new
+      set.name = set.xpath(element, './/setName')
+      set.spec = set.xpath(element, './/setSpec')
+      set.description = set.xpath_first(element, './/setDescription')
+      set
     end
-
+    
     def to_s
       "#{@name} [#{@spec}]"
     end

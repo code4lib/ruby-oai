@@ -1,6 +1,6 @@
 class ListMetadataFormatsTest < Test::Unit::TestCase
   def test_list
-    client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi' 
+    client = OAI::Client.new 'http://www.pubmedcentral.nih.gov/oai/oai.cgi' 
     response = client.list_metadata_formats
     assert_kind_of OAI::ListMetadataFormatsResponse, response
     assert response.entries.size > 0

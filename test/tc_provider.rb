@@ -42,9 +42,9 @@ class OaiTest < Test::Unit::TestCase
   def test_list_records
     assert_nothing_raised { REXML::Document.new(@simple_provider.list_records) }
     doc = REXML::Document.new(@simple_provider.list_records)
-    assert_equal 5, doc.elements['OAI-PMH/ListRecords'].to_a.size
+    assert_equal 7, doc.elements['OAI-PMH/ListRecords'].to_a.size
     doc = REXML::Document.new(@simple_provider.list_records(:set => 'A'))
-    assert_equal 5, doc.elements['OAI-PMH/ListRecords'].to_a.size
+    assert_equal 7, doc.elements['OAI-PMH/ListRecords'].to_a.size
     doc = REXML::Document.new(@simple_provider.list_records(:set => 'A:B'))
     assert_equal 2, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
@@ -52,9 +52,9 @@ class OaiTest < Test::Unit::TestCase
   def test_list_identifiers
     assert_nothing_raised { REXML::Document.new(@simple_provider.list_identifiers) }
     doc = REXML::Document.new(@simple_provider.list_identifiers)
-    assert_equal 5, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
+    assert_equal 7, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
     doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A'))
-    assert_equal 5, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
+    assert_equal 7, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
     doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A:B'))
     assert_equal 2, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
   end
@@ -76,6 +76,13 @@ class OaiTest < Test::Unit::TestCase
   def test_verb_exception
     doc = REXML::Document.new(@simple_provider.process_verb('NoVerb'))
     assert doc.elements["/OAI-PMH/error"].attributes["code"] == 'badVerb'
+  end
+  
+  def test_deleted
+    assert_nothing_raised { REXML::Document.new(@simple_provider.get_record('oai:test/6')) }
+    doc = REXML::Document.new(@simple_provider.get_record('oai:test/6'))
+    assert_equal 'oai:test/6', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
+    assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
   end
   
 end

@@ -14,6 +14,7 @@
 # finding all matches.  opts is a hash of query parameters.  Valid parameters
 # include :from, :until, :set, :token, and :prefix.  Any errors in the
 # parameters should raise a OaiPmh::ArgumentException.
+# * deleted? - if you want to support deletions
 #
 module OAI
   module Model
@@ -28,6 +29,10 @@ module OAI
     
     def self.oai_find(selector, opts={})
       []
+    end
+    
+    def deleted?
+      false
     end
     
   end

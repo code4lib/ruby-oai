@@ -258,13 +258,13 @@ module OAI
     end
     
     def list_sets_response
-      raise OAI::SetException.new unless @model && @model.oai_sets
+      raise OAI::SetException.new unless @model && @model.respond_to?(:oai_sets)
       @xml.ListSets do |ls|
-        @model.oai_sets.each do |ms|
-          @xml.set do |set|
-            @xml.setSpec ms.spec
-            @xml.setName ms.name
-            @xml.setDescription(ms.description) if ms.respond_to?(:description)
+        @model.oai_sets.each do |set|
+          @xml.set do
+            @xml.setSpec set.spec
+            @xml.setName set.name
+            @xml.setDescription(set.description) if set.respond_to?(:description)
           end
         end
       end
@@ -330,7 +330,7 @@ module OAI
         records.each do |record|
           @xml.record do 
             metadata_header record
-            metadata record
+            metadata record unless deleted?(record)
           end
         end  
       end  
@@ -381,7 +381,9 @@ module OAI
       
     # emit record header
     def metadata_header(record)
-      @xml.header do 
+      param = Hash.new
+      param[:status] = 'deleted' if deleted?(record)
+      @xml.header param do 
         @xml.identifier "#{@config[:prefix]}/#{record.id}"
         @xml.datestamp record.updated_at.utc.xmlschema
         record.sets.each do |set|
@@ -454,6 +456,15 @@ module OAI
     
     def supported_format?(prefix)
       AVAILABLE_FORMATS.include?(prefix)
+    end
+    
+    def deleted?(record)
+      if record.respond_to?(:deleted_at)
+        return record.deleted_at
+      elsif record.respond_to?(:deleted)
+        return record.deleted
+      end
+      false
     end
 
   end

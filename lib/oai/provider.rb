@@ -340,14 +340,11 @@ module OAI
       return nil unless @model
       
       # Try oai finder methods first
-      begin
+      if @model.respond_to?(:oai_find)
         return @model.oai_find(selector, @opts)
-      rescue NoMethodError
-        begin
-          # Try an ActiveRecord finder call
-          return @model.find(selector, build_scope_hash)
-        rescue 
-        end
+      elsif @model.respond_to?(:find)
+        # Assume ActiveRecord finder call
+        return @model.find(selector, :conditions => build_active_record_conditions)
       end
       nil
     end

@@ -60,6 +60,7 @@ module OAI
         client = OAI::Client.new(url, :parser => @parser)
         file = Tempfile.new('oai_data')
         gz = Zlib::GzipWriter.new(file)
+        gz << "<? xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
         gz << "<records>"
 
         response = client.list_records(options)

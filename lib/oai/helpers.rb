@@ -20,12 +20,16 @@ module OAI
       @xml.request(@url, {:verb => verb}.merge(opts))
     end
   
-    def build_scope_hash
-      params = {}
-      params[:from] = parse_date(@opts[:from]) if @opts[:from]
-      params[:until] = parse_date(@opts[:until]) if @opts[:until]
-      params[:set] = @opts[:set] if @opts[:set]
-      params
+    def build_active_record_conditions
+      sql = []
+      sql << "updated_at >= ?" if @opts[:from]
+      sql << "updated_at <= ?" if @opts[:until]
+      sql << "set = ?" if @opts[:set]
+      
+      esc_values = [sql.join(" AND ")]
+      esc_values << @opts[:from] if @opts[:from]
+      esc_values << @opts[:until] if @opts[:until]
+      esc_values << @opts[:set] if @opts[:set]
     end
 
     # Use of Chronic here is mostly for human interactions.  It's
@@ -46,24 +50,25 @@ module OAI
       # Not sure if this check is really even required, the user will still
       # recieve an error, and consult the docs.
       raise OAI::Exception.new("Bad options") unless opts.respond_to?(:keys)
-      
+
+      realopts = {}
       # Internalize the hash
       opts.keys.each do |key|
-        opts[key.to_s.downcase.gsub(/[A-Z]/,"_\1").intern] = opts.delete(key)
+        realopts[key.to_s.gsub(/([A-Z])/, '_\1').downcase.intern] = opts.delete(key)
       end
       
-      return opts if is_resumption?(opts)
+      return realopts if is_resumption?(realopts)
       
       # add in a default metadataPrefix if none exists
       if(Const::VERBS[verb].include?(:metadata_prefix))
-        opts[:metadata_prefix] ||= 'oai_dc'
+        realopts[:metadata_prefix] ||= 'oai_dc'
       end
 
       # check for any bad options
-      unless (opts.keys - OAI::Const::VERBS[verb]).empty?
+      unless (realopts.keys - OAI::Const::VERBS[verb]).empty?
         raise OAI::ArgumentException.new
       end
-      opts
+      realopts
     end
     
     def is_resumption?(opts)

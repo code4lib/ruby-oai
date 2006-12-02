@@ -13,11 +13,18 @@ class SimpleProvider < OAI::Provider
   model SimpleModel
 end
 
+class BigProvider < OAI::Provider
+  name 'Another Provider'
+  prefix 'oai:test'
+  model BigModel
+end
+
 class OaiTest < Test::Unit::TestCase
 
   def setup
     @simple_provider = SimpleProvider.new
     @mapped_provider = MappedProvider.new
+    @big_provider = BigProvider.new
   end
   
   def test_indentify
@@ -83,6 +90,42 @@ class OaiTest < Test::Unit::TestCase
     doc = REXML::Document.new(@simple_provider.get_record('oai:test/6'))
     assert_equal 'oai:test/6', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
     assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
+  end
+  
+  def test_from
+    assert_nothing_raised { REXML::Document.new(@big_provider.list_records) }
+    doc = REXML::Document.new(
+      @big_provider.list_records(:from => Chronic.parse("February 1 2001"))
+      )
+    assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
+
+    doc = REXML::Document.new(
+      @big_provider.list_records(:from => Chronic.parse("January 1 2001"))
+      )
+    assert_equal 200, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+  
+  def test_until
+    assert_nothing_raised { REXML::Document.new(@big_provider.list_records) }
+    doc = REXML::Document.new(
+      @big_provider.list_records(:until => Chronic.parse("November 1 2000"))
+      )
+    assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+  
+  def test_from_and_until
+    assert_nothing_raised { REXML::Document.new(@big_provider.list_records) }
+    doc = REXML::Document.new(
+      @big_provider.list_records(:from => Chronic.parse("November 1 2000"),
+        :until => Chronic.parse("November 30 2000"))
+      )
+    assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
+
+    doc = REXML::Document.new(
+      @big_provider.list_records(:from => Chronic.parse("December 1 2000"),
+      :until => Chronic.parse("December 31 2000"))
+      )
+    assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
   
 end

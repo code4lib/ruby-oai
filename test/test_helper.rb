@@ -4,14 +4,21 @@ require File.dirname(__FILE__) + '/../lib/oai'
 class Record
   attr_accessor :id, :titles, :creator, :tags, :sets, :updated_at, :deleted
   
-  def initialize(id, titles, creator, tags, sets, deleted)
+  def initialize(id, 
+      titles = 'title', 
+      creator = 'creator', 
+      tags = 'tag', 
+      sets = [OneSet.new], 
+      deleted = false,
+      updated_at = Time.new.utc)
+      
     @id = id;
     @titles = titles
     @creator = creator
     @tags = tags
     @sets = sets
     @deleted = deleted
-    @updated_at = Time.new.utc
+    @updated_at = updated_at
   end
   
   # Override Object.id
@@ -61,7 +68,7 @@ class SimpleModel
     
   class << self
     def oai_earliest
-      Time.parse("2006-10-31T00:00:00Z")
+      Time.parse("2000-11-30T00:00:00Z")
     end
     
     def oai_sets
@@ -70,17 +77,28 @@ class SimpleModel
     
     def oai_find(selector, opts = {})
       if selector == :all
-        if opts[:set]
-          return RECORDS.select { |rec| rec.in_set(opts[:set]) }
-        else
-          return RECORDS
+        recs = findall(opts[:set])
+
+        recs.each do |r|
+          recs.delete(r) if opts[:from] && opts[:from] >= r.updated_at
+          recs.delete(r) if opts[:until] && opts[:until] <= r.updated_at
         end
+        
+        return recs
       else
         RECORDS.each do |record|
           return record if record.id.to_s == selector
         end
       end
     end
+    
+    private 
+    
+    def findall(set = nil)
+      return RECORDS unless set
+      RECORDS.select { |rec| rec.in_set(set) }
+    end
+    
   end
 end
 
@@ -92,3 +110,70 @@ class MappedModel < SimpleModel
 
 end
 
+class BigModel < SimpleModel
+  include OAI::Model
+  
+  RECORDS = []
+    
+  class << self
+    def oai_earliest
+      Time.parse("2000-09-01T00:00:00Z")
+    end
+    
+    def oai_sets
+      [OneSet.new, TwoSet.new]
+    end
+    
+    def oai_find(selector, opts = {})
+      if selector == :all
+        RECORDS.select do |rec|
+          ((opts[:set].nil? || rec.in_set) && 
+          (opts[:from].nil? || rec.updated_at > opts[:from]) &&
+          (opts[:until].nil? || rec.updated_at < opts[:until]))
+        end
+      else
+        RECORDS.each do |record|
+          return record if record.id.to_s == selector
+        end
+      end
+    end
+    
+  end
+  
+  october = Chronic.parse("October 2 2000")
+  november = Chronic.parse("November 2 2000")
+  december = Chronic.parse("December 2 2000")
+  january = Chronic.parse("January 2 2001")
+  february = Chronic.parse("February 2 2001")
+  
+  100.times do |id| 
+    rec = Record.new(id)
+    rec.updated_at = october
+    RECORDS << rec
+  end
+  
+  (101..200).each do |id|
+    rec = Record.new(id)
+    rec.updated_at = november
+    RECORDS << rec
+  end
+    
+  (201..300).each do |id|
+    rec = Record.new(id)
+    rec.updated_at = december
+    RECORDS << rec
+  end
+
+  (301..400).each do |id|
+    rec = Record.new(id)
+    rec.updated_at = january
+    RECORDS << rec
+  end
+
+  (401..500).each do |id|
+    rec = Record.new(id)
+    rec.updated_at = february
+    RECORDS << rec
+  end
+  
+end

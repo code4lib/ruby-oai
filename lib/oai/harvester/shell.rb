@@ -140,14 +140,19 @@ module OAI
           site['prefix'] = prefix
 
           # Sets
-          sets = sets(site['url']).push('all')
-          site['set'] = 'all' unless site['set'] # default to all sets
-          report "Repository supports [#{sets.join(', ')}] metadata sets."
-          set = prompt("set", site['set'])
-          while(not sets.include?(site['set']))
+          sets = ['all']
+          begin
+            sets.concat sets(site['url'])
+            site['set'] = 'all' unless site['set'] # default to all sets
+            report "Repository supports [#{sets.join(', ')}] metadata sets."
             set = prompt("set", site['set'])
+            while(not sets.include?(site['set']))
+              set = prompt("set", site['set'])
+            end
+            site['set'] = set
+          rescue
+            site['set'] = 'all'
           end
-          site['set'] = set
 
           # Period
           period = expand_period(prompt("period", "daily"))

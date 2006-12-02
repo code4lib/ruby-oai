@@ -24,7 +24,6 @@ spec = Gem::Specification.new do |s|
     s.homepage = 'http://www.textualize.com/ruby_oai_0'
     s.platform = Gem::Platform::RUBY
     s.summary = 'A ruby library for working with the Open Archive Initiative Protocol for Metadata Harvesting (OAI-PMH)'
-    s.files = Dir.glob("{lib,test}/**/*")
     s.require_path = 'lib'
     s.autorequire = 'oai'
     s.has_rdoc = true
@@ -34,11 +33,16 @@ spec = Gem::Specification.new do |s|
     s.add_dependency('activesupport', '>=1.3.1')
     s.add_dependency('chronic', '>=0.0.3')
     s.add_dependency('builder', '>=2.0.0')
+    
+    s.files = %w(README Rakefile) +
+      Dir.glob("{bin,test,lib}/**/*") + 
+      Dir.glob("examples/**/*.rb")
 end
 
 Rake::GemPackageTask.new(spec) do |pkg|
   pkg.need_zip = true
   pkg.need_tar = true
+  pkg.gem_spec = spec
 end
 
 Rake::RDocTask.new('doc') do |rd|

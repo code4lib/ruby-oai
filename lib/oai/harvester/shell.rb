@@ -57,8 +57,9 @@ module OAI
                 puts "Couldn't parse the date supplied"
                 return
               end
+            else 
+              date = nil
             end
-            puts date
             harvester = Harvest.new(@conf, @conf.storage, date)
             harvester.start(site, true)
             puts "done"

@@ -10,6 +10,7 @@ module OAI
         @config = config || Config.load
         @directory = directory || @config.storage
         @from = date
+        @from.freeze
         @parser = defined?(XML::Document) ? 'libxml' : 'rexml'
       end
     
@@ -49,7 +50,7 @@ module OAI
           dir = File.join(@directory, date_based_directory(harvest_time))
           FileUtils.mkdir_p dir
           FileUtils.mv(file.path, 
-            File.join(dir, "#{site}-#{filename(Time.parse(@from), 
+            File.join(dir, "#{site}-#{filename(Time.parse(opts[:from]), 
             harvest_time)}.xml.gz"))
           @config.sites[site]['last'] = harvest_time
         rescue
@@ -59,7 +60,10 @@ module OAI
         end
       end
     
-      def call(url, options)
+      def call(url, opts)
+        # Preserve original options
+        options = opts.dup
+        
         records = 0;
         client = OAI::Client.new(url, :parser => @parser)
         provider_config = client.identify
@@ -97,9 +101,6 @@ module OAI
 
             gz << "</records>"
             
-        rescue
-          puts $!
-          puts $!.backtrace.join("\n")
         ensure
           gz.close
           file.close

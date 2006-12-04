@@ -126,6 +126,7 @@ module OAI
           # URL
           url = prompt("url", site['url'])
           while(not verify(url))
+            puts "Trouble contacting provider, bad url?"
             url = prompt("url", site['url'])
           end
           site['url'] = url
@@ -165,7 +166,7 @@ module OAI
       
           return [name, site]
         rescue 
-          nil
+          puts "Problem adding/updating provider, aborting. (#{$!})"
         end
       end
     
@@ -202,6 +203,10 @@ module OAI
         puts "\n#{str}"
         str.size.times { print "-" }
         puts "\n"
+      end
+      
+      def report(str)
+        puts "\n#{str}\n"
       end
 
       def indent(number)

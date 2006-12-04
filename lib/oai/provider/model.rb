@@ -6,7 +6,7 @@
 #
 #
 # Implementing a model from scratch requires overridding three methods from
-# OaiPmh::Model
+# OAI::Model
 #
 # * oai_earliest - should provide the earliest possible timestamp
 # * oai_sets - if you want to support sets

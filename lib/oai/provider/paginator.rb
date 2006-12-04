@@ -1,4 +1,7 @@
-# = response_set.rb
+# = paginator.rb
+#
+# Large response sets can be broken down into smaller sub documents thru the use
+# of resumption tokens.
 #
 # Will Groppe mailto: wfg@artstor.org
 #

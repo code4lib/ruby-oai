@@ -4,6 +4,8 @@
 
 module OAI
   module Harvester
+
+    LOW_RESOLUTION = "YYYY-MM-DD"
   
     class Config < OpenStruct
     

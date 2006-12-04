@@ -9,14 +9,14 @@ module OAI
       alias_method :orig_init, :initialize
     
       def initialize(config = nil, directory = nil, date = nil)
-        orig_init
+        orig_init(config, directory, date)
         @summary = []
-        @logger = Logger.new(File.join(config.logfile, "harvester.log"), 
-          shift_age = 'weekly') if config.logfile
+        @logger = Logger.new(File.join(@config.logfile, "harvester.log"), 
+          shift_age = 'weekly') if @config.logfile
         @logger.datetime_format = "%Y-%m-%d %H:%M"
       
         # Turn off logging if no logging directory is specified.
-        @logger.level = Logger::FATAL unless config.logfile
+        @logger.level = Logger::FATAL unless @config.logfile
       end
     
       def start(sites = nil, interactive = false)

@@ -33,8 +33,11 @@ module OAI
         opts[:until] = harvest_time.xmlschema
       
         # Allow a from date to be passed in
-        opts[:from] = @from if @from
-        opts[:from] = earliest(opts[:url]) unless opts[:from]
+        if(@from)
+          opts[:from] = @from
+        else 
+          opts[:from] = earliest(opts[:url])
+        end
       
         opts.delete(:set) if 'all' == opts[:set]
 
@@ -46,10 +49,11 @@ module OAI
           dir = File.join(@directory, date_based_directory(harvest_time))
           FileUtils.mkdir_p dir
           FileUtils.mv(file.path, 
-            File.join(dir, "#{site}-#{filename(Time.parse(opts[:from]), 
+            File.join(dir, "#{site}-#{filename(Time.parse(@from), 
             harvest_time)}.xml.gz"))
           @config.sites[site]['last'] = harvest_time
         rescue
+          raise $! unless $!.respond_to?(:code)
           raise $! if not @interactive || "noRecordsMatch" != $!.code
           puts "No new records available"
         end
@@ -58,35 +62,48 @@ module OAI
       def call(url, options)
         records = 0;
         client = OAI::Client.new(url, :parser => @parser)
+        provider_config = client.identify
+        
+        if Harvester::LOW_RESOLUTION == provider_config.granularity
+          options[:from] = Time.parse(options[:from]).strftime("%Y-%m-%d")
+          options[:until] = Time.parse(options[:until]).strftime("%Y-%m-%d")
+        end
+        
         file = Tempfile.new('oai_data')
         gz = Zlib::GzipWriter.new(file)
         gz << "<? xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
         gz << "<records>"
-
-        response = client.list_records(options)
-        get_records(response.doc).each do |rec|
-          gz << rec
-          records += 1
-        end
-        puts "#{records} records retrieved" if @interactive
-
-        # Get a full response by iterating with the resumption tokens.  
-        # Not very Ruby like.  Should fix OAI::Client to handle resumption
-        # tokens internally.
-        while(response.resumption_token and not response.resumption_token.empty?)
-          puts "\nresumption token recieved, continuing" if @interactive
-          response = client.list_records(:resumption_token => 
-            response.resumption_token)
+        begin
+          response = client.list_records(options)
           get_records(response.doc).each do |rec|
             gz << rec
             records += 1
           end
           puts "#{records} records retrieved" if @interactive
-        end
 
-        gz << "</records>"
-      
-        gz.close
+          # Get a full response by iterating with the resumption tokens.  
+          # Not very Ruby like.  Should fix OAI::Client to handle resumption
+          # tokens internally.
+          while(response.resumption_token and not response.resumption_token.empty?)
+            puts "\nresumption token recieved, continuing" if @interactive
+            response = client.list_records(:resumption_token => 
+              response.resumption_token)
+              get_records(response.doc).each do |rec|
+                gz << rec
+                records += 1
+              end
+            puts "#{records} records retrieved" if @interactive
+          end
+
+            gz << "</records>"
+            
+        rescue
+          puts $!
+          puts $!.backtrace.join("\n")
+        ensure
+          gz.close
+          file.close
+        end
 
         [file, records]
       end

@@ -58,6 +58,7 @@ module OAI
                 return
               end
             end
+            puts date
             harvester = Harvest.new(@conf, @conf.storage, date)
             harvester.start(site, true)
             puts "done"

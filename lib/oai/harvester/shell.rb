@@ -127,11 +127,10 @@ module OAI
       
           # URL
           url = prompt("url", site['url'])
-          while(not verify(url))
+          while(not (site['url'] = verify(url)))
             puts "Trouble contacting provider, bad url?"
             url = prompt("url", site['url'])
           end
-          site['url'] = url
       
           # Metadata formats
           formats = metadata(site['url'])
@@ -227,12 +226,17 @@ module OAI
     
       def verify(url)
         begin
-          client = OAI::Client.new(url)
+          client = OAI::Client.new(url, :redirects => false)
           identify = client.identify
           puts "Repository name \"#{identify.repository_name}\""
-          return identify.base_url
+          return url
         rescue
-          puts "Error selecting repository: #{$!}"
+          if $!.to_s =~ /^Permanently Redirected to \[(.*)\?.*\]/
+            report "Provider redirected to: #{$1}"
+            verify($1)
+          else
+            puts "Error selecting repository: #{$!}"
+          end
         end
       end
     

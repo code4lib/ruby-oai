@@ -21,7 +21,8 @@ module OAI
       :prefix => 'oai:localhost',
       :email => 'nobody@localhost',
       :deletes => 'no',
-      :granularity => 'YYYY-MM-DDThh:mm:ssZ'
+      :granularity => 'YYYY-MM-DDThh:mm:ssZ',
+      :paginator => nil
     }.freeze
   end
   

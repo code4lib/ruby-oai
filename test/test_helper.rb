@@ -77,14 +77,11 @@ class SimpleModel
     
     def oai_find(selector, opts = {})
       if selector == :all
-        recs = findall(opts[:set])
-
-        recs.each do |r|
-          recs.delete(r) if opts[:from] && opts[:from] >= r.updated_at
-          recs.delete(r) if opts[:until] && opts[:until] <= r.updated_at
+        RECORDS.select do |rec|
+          ((opts[:set].nil? || rec.in_set(opts[:set])) && 
+          (opts[:from].nil? || rec.updated_at > opts[:from]) &&
+          (opts[:until].nil? || rec.updated_at < opts[:until]))
         end
-        
-        return recs
       else
         RECORDS.each do |record|
           return record if record.id.to_s == selector
@@ -127,7 +124,7 @@ class BigModel < SimpleModel
     def oai_find(selector, opts = {})
       if selector == :all
         RECORDS.select do |rec|
-          ((opts[:set].nil? || rec.in_set) && 
+          ((opts[:set].nil? || rec.in_set(opts[:set])) && 
           (opts[:from].nil? || rec.updated_at > opts[:from]) &&
           (opts[:until].nil? || rec.updated_at < opts[:until]))
         end

@@ -17,7 +17,7 @@ end
 require 'oai/metadata_format/oai_dc'
 
 # Localize requires so user can select a subset of functionality
-libs = %w{model}
+libs = %w{model paginator}
 
 libs.each { |lib| require "oai/provider/#{lib}" }
 
@@ -226,7 +226,7 @@ module OAI
           
           echo_params(verb, opts)
           @opts = validate_options(verb, opts)
-
+          
           # Rubify the verb for calling method
           call = verb.gsub(/[A-Z]/) {|m| "_#{m.downcase}"}.sub(/^\_/,'')
           send("#{call}_response")
@@ -283,11 +283,11 @@ module OAI
     end
     
     def list_identifiers_response
-      unless supported_format? @opts[:metadata_prefix]
+      unless supported_format?
         raise OAI::FormatException.new
       end
 
-      records = find :all
+      records, token = find :all
 
       raise OAI::NoMatchException.new if records.nil? || records.empty?
 
@@ -296,10 +296,11 @@ module OAI
           metadata_header record
         end
       end
+      output_token(token) if token
     end
     
     def get_record_response
-      unless supported_format? @opts[:metadata_prefix]
+      unless supported_format?
         raise OAI::FormatException.new
       end
       
@@ -318,14 +319,16 @@ module OAI
     end
     
     def list_records_response
-      unless supported_format? @opts[:metadata_prefix]
+      unless supported_format?
         raise OAI::FormatException.new
       end
 
-      records = find :all
+      records, token = find :all
 
       raise OAI::NoMatchException.new if records.nil? || records.empty?
-
+      
+      format = token ? token.split(/\./)[0] : @opts[:metadata_prefix]
+      
       @xml.ListRecords do
         records.each do |record|
           @xml.record do 
@@ -333,12 +336,36 @@ module OAI
             metadata record unless deleted?(record)
           end
         end  
-      end  
+      end
+      
+      output_token(token) if token
     end
     
+    private
+    
     def find(selector)
-      return nil unless @model
+      return nil, nil unless @model
       
+      return model_find(selector) if :all != selector
+      return model_find(selector), nil unless paginator
+
+      # Pagination ahead
+      #
+      # If we got a resumption token, use it.
+      return paginator.get_chunk(token) if token
+      
+      # Create a hash key for storing this query
+      key = query_key(@opts)
+      
+      # Is this query already in the cache?
+      if paginator.query_cached?(key)
+        return paginator.get_chunk("#{key}:0")
+      else 
+        return paginator.paginate(key, model_find(selector))
+      end
+    end
+    
+    def model_find(selector)
       # Try oai finder methods first
       if @model.respond_to?(:oai_find)
         return @model.oai_find(selector, @opts)
@@ -348,6 +375,7 @@ module OAI
       end
       nil
     end
+    
     
     def earliest
       return DateTime.new unless @model
@@ -389,22 +417,27 @@ module OAI
       end
     end
 
+    # emit resumption token
+    def output_token(token)
+      @xml.resumptionToken token
+    end
 
     # metadata - core routine for delivering metadata records
     #
     def metadata(record)
-      if record.respond_to?("to_#{@opts[:metadata_prefix]}")
+      format = extract_format
+      if record.respond_to?("to_#{format}")
         @xml.metadata do
-          str = record.send("to_#{@opts[:metadata_prefix]}")
+          str = record.send("to_#{format}")
           # Strip off the xml header if we got one.
           str.sub!(/<\?xml.*?\?>/, '')
           @xml << str
         end
       else
-        map = @model.respond_to?("map_#{@opts[:metadata_prefix]}") ? 
-          @model.send("map_#{@opts[:metadata_prefix]}") : {}
+        map = @model.respond_to?("map_#{format}") ? 
+          @model.send("map_#{format}") : {}
 
-        mdformat = AVAILABLE_FORMATS[@opts[:metadata_prefix]]
+        mdformat = AVAILABLE_FORMATS[format]
         @xml.metadata do
           mdformat.header(@xml) do 
             mdformat.fields.each do |field|
@@ -451,8 +484,34 @@ module OAI
       []
     end
     
-    def supported_format?(prefix)
-      AVAILABLE_FORMATS.include?(prefix)
+    def supported_format?
+      AVAILABLE_FORMATS.include?(extract_format)
+    end
+    
+    def query_key(opts)
+      key = opts[:metadata_prefix]
+      key << ".#{opts[:set]}" if opts[:set]
+      key << ".#{opts[:from]}" if opts[:from]
+      key << ".#{opts[:until]}" if opts[:until]
+      key
+    end
+    
+    def paginator
+      @config[:paginator]
+    end
+    
+    def extract_format
+      token ? parse_token_format : @opts[:metadata_prefix] rescue nil
+    end
+    
+    # We can extract the metadata format from any resumption token by splitng on '.'
+    # and taking the first result.
+    def parse_token_format
+      return token.split(/:/)[0].split(/\./)[0]
+    end
+    
+    def token
+      @opts[:resumption_token]
     end
     
     def deleted?(record)

@@ -5,27 +5,27 @@
 #
 # Will Groppe mailto: wfg@artstor.org
 #
+require 'enumerator'
 
 module OAI
   
   class Paginator
-    attr_reader :model, :chunk_size, :query, :last_requested
+    attr_reader :chunk_size, :last_requested
     
-    def initialize(model, query, chunk_size = nil)
-      @model = model
-      @query = query
+    def initialize(chunk_size = 25)
       @chunk_size = chunk_size
-      requested
     end
     
-    def paginate(records)
+    def paginate(query, records)
       requested
-      return nil, records unless chunk_size
-      paginate_response(records)
+      paginate_response(query, records)
     end
     
-    def self.get_chunk(token)
-      requested
+    def get_chunk(token)
+      raise NotImplementedError.new
+    end
+    
+    def query_cached?(query)
       raise NotImplementedError.new
     end
 
@@ -50,3 +50,5 @@ module OAI
   end
 
 end
+
+require 'oai/provider/paginator/simple_paginator'

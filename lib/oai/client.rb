@@ -72,6 +72,7 @@ module OAI
       @base = URI.parse base_url
       @debug = options.fetch(:debug, false)
       @parser = options.fetch(:parser, 'rexml')
+      @follow_redirects = options.fetch(:redirects, true)
       
       # load appropriate parser
       case @parser
@@ -150,21 +151,15 @@ module OAI
     def do_request(verb, opts = nil)
       # fire off the request and return appropriate DOM object
       uri = build_uri(verb, opts)
-      begin
-        xml = Net::HTTP.get(uri)
-        if @parser == 'libxml' 
-          # remove default namespace for oai-pmh since libxml
-          # isn't able to use our xpaths to get at them 
-          # if you know a way around thins please let me know
-          xml = xml.gsub(
-            /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
-        end
-        return load_document(xml)
-      rescue StandardError => e
-        puts e.message
-        puts e.backtrace.join("\n")
-        raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
+      xml = get(uri)
+      if @parser == 'libxml' 
+        # remove default namespace for oai-pmh since libxml
+        # isn't able to use our xpaths to get at them 
+        # if you know a way around thins please let me know
+        xml = xml.gsub(
+          /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
       end
+      return load_document(xml)
     end
     
     def build_uri(verb, opts)
@@ -209,6 +204,25 @@ module OAI
       s.gsub(/_(\w)/) do |match|
         match.sub! '_', ''
         match.upcase
+      end
+    end
+    
+    # Do the actual HTTP get, following any temporary redirects
+    def get(uri)
+      response = Net::HTTP.get_response(uri)
+      case response
+      when Net::HTTPSuccess
+        return response.body
+      when Net::HTTPMovedPermanently
+        if @follow_redirects
+          response = get(URI.parse(response['location']))
+        else
+          raise ArgumentError, "Permanently Redirected to [#{response['location']}]"
+        end
+      when Net::HTTPTemporaryRedirect
+        response = get(URI.parse(response['location']))
+      else
+        raise ArgumentError, "#{response.code_type} [#{response.code}]"
       end
     end
 

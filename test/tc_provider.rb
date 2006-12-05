@@ -19,12 +19,21 @@ class BigProvider < OAI::Provider
   model BigModel
 end
 
+class TokenProvider < OAI::Provider
+  name 'Token Provider'
+  prefix 'oai:test'
+  model BigModel
+  paginator OAI::SimplePaginator.new(25)
+end
+
+
 class OaiTest < Test::Unit::TestCase
 
   def setup
     @simple_provider = SimpleProvider.new
     @mapped_provider = MappedProvider.new
     @big_provider = BigProvider.new
+    @token_provider = TokenProvider.new
   end
   
   def test_indentify
@@ -126,6 +135,17 @@ class OaiTest < Test::Unit::TestCase
       :until => Chronic.parse("December 31 2000"))
       )
     assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+  
+  def test_resumption_tokens
+    assert_nothing_raised { REXML::Document.new(@token_provider.list_records) }
+    doc = REXML::Document.new(@token_provider.list_records)
+    assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    token = doc.elements["/OAI-PMH/resumptionToken"].text
+    doc = REXML::Document.new(@token_provider.list_records(:resumption_token => token))
+    assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
   end
   
 end

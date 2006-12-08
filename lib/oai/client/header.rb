@@ -1,7 +1,7 @@
 module OAI
   class Header
     include OAI::XPath
-    attr_accessor :identifier, :datestamp, :set_spec
+    attr_accessor :status, :identifier, :datestamp, :set_spec
 
     def initialize(element)
       @status = get_attribute(element, 'status')
@@ -11,7 +11,7 @@ module OAI
     end
 
     def deleted?
-      return true unless @status == 'deleted'
+      return true if @status.to_s == "deleted"
     end
 
   end

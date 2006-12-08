@@ -1,6 +1,6 @@
 class ListMetadataFormatsTest < Test::Unit::TestCase
   def test_list
-    client = OAI::Client.new 'http://www.pubmedcentral.nih.gov/oai/oai.cgi' 
+    client = OAI::Client.new 'http://localhost:3333/oai' 
     response = client.list_metadata_formats
     assert_kind_of OAI::ListMetadataFormatsResponse, response
     assert response.entries.size > 0
@@ -11,5 +11,10 @@ class ListMetadataFormatsTest < Test::Unit::TestCase
     assert_equal 'http://www.openarchives.org/OAI/2.0/oai_dc.xsd', format.schema
     assert_equal 'http://www.openarchives.org/OAI/2.0/oai_dc/', format.namespace
   end
+  
+  def setup
+    ProviderServer.start
+  end
+  
 end
 

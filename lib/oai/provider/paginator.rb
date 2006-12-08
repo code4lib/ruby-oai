@@ -12,8 +12,8 @@ module OAI
   class Paginator
     attr_reader :chunk_size, :last_requested
     
-    def initialize(chunk_size = 25)
-      @chunk_size = chunk_size
+    def initialize(page_size = 25)
+      @chunk_size = page_size
     end
     
     def paginate(query, records)

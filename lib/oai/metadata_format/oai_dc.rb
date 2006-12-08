@@ -43,7 +43,7 @@ module OAI
       # Defaults
       DEFAULTS = {:prefix => 'oai_dc',
                   :schema => 'http://www.openarchives.org/OAI/2.0/oai_dc.xsd',
-                  :namespace =>  'http://www.language-archives.org/OLAC/0.2/',
+                  :namespace =>  'http://www.openarchives.org/OAI/2.0/oai_dc/',
                   :element_ns => 'dc',
                   :fields => %w(title creator subject description publisher
                                 contributor date type format identifier

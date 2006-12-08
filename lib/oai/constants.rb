@@ -6,7 +6,7 @@ module OAI
       'Identify' => [],
       'ListMetadataFormats' => [],
       'ListSets' => [:token],
-      'GetRecord' => [:identifier, :from, :until, :set, :metadata_prefix, :resumption_token],
+      'GetRecord' => [:identifier, :from, :until, :set, :metadata_prefix],
       'ListIdentifiers' => [:from, :until, :set, :metadata_prefix, :resumption_token],
       'ListRecords' => [:from, :until, :set, :metadata_prefix, :resumption_token]
       }.freeze

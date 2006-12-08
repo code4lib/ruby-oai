@@ -10,10 +10,10 @@ require 'rake/gempackagetask'
 task :default => [:test]
 
 Rake::TestTask.new('test') do |t|
-  t.libs << 'lib'
+  t.libs << ['lib', 'test/helpers']
   t.pattern = 'test/tc_*.rb'
   t.verbose = true
-  t.ruby_opts = ['-r oai', '-r test/unit']
+  t.ruby_opts = ['-r oai', '-r test/unit', '-r test/test_helper.rb']
 end
 
 spec = Gem::Specification.new do |s|

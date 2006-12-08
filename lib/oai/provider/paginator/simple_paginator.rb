@@ -26,10 +26,9 @@ module OAI
 
   class SimplePaginator < Paginator
   
-    CACHE = {}
-    
-    def initialize(chunk_size = 25)
-      super(chunk_size)
+    def initialize(page_size = 25)
+      super(page_size)
+      @cache = {}
       @mutex = Mutex.new
     end
   
@@ -37,10 +36,10 @@ module OAI
       begin
         query, num = token.split(/:/)
         index = num.to_i
-        if index < CACHE[query].size
-          return CACHE[query].chunk(index), "#{query}:#{(index)+1}"
+        if index < (@cache[query].size - 1)
+          return @cache[query].chunk(index), "#{query}:#{(index)+1}"
         else
-          return CACHE[query].chunk(index), nil
+          return @cache[query].chunk(index), nil
         end
       rescue
         raise ResumptionTokenException.new
@@ -49,7 +48,7 @@ module OAI
 
     def query_cached?(query)
       #sweep_cache
-      CACHE.keys.include?(query)
+      @cache.keys.include?(query)
     end
 
     protected 
@@ -60,14 +59,14 @@ module OAI
       unless query_cached?(query)
         groups = generate_chunks(records)
         @mutex.synchronize do
-          CACHE[query] = OAI::Paginate::Entry.new(groups)
+          @cache[query] = OAI::Paginate::Entry.new(groups)
         end
       end
       
-      if records.size > @chunk_size
-        return CACHE[query].chunk(0), "#{query}:1"
+      if records.size > chunk_size
+        return @cache[query].chunk(0), "#{query}:1"
       else
-        return CACHE[query].chunk(0), nil
+        return @cache[query].chunk(0), nil
       end
       
     end
@@ -76,11 +75,11 @@ module OAI
     
     def sweep_cache
       now = Time.now.utc
-      CACHE.keys.each do |key|
-        entry = CACHE[key]
+      @cache.keys.each do |key|
+        entry = @cache[key]
         if entry.expiration && entry.expiration < now
           @mutex.synchronize do
-            CACHE.delete(key)
+            @cache.delete(key)
           end
         end
       end

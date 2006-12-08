@@ -164,7 +164,7 @@ module OAI
         self.options ||={}
         self.options[:model] = value
       end
-
+      
       def register_metadata_format(format)
         AVAILABLE_FORMATS[format.prefix] = format
       end
@@ -258,7 +258,8 @@ module OAI
     end
     
     def list_sets_response
-      raise OAI::SetException.new unless @model && @model.respond_to?(:oai_sets)
+      raise OAI::SetException.new unless sets_supported
+        
       @xml.ListSets do |ls|
         @model.oai_sets.each do |set|
           @xml.set do
@@ -304,7 +305,9 @@ module OAI
         raise OAI::FormatException.new
       end
       
-      rec = @opts[:identifier].gsub("#{@config[:prefix]}/", "")
+      raise OAI::ArgumentException.new unless @opts[:identifier]
+      
+      rec = @opts[:identifier].gsub("#{@config[:prefix]}/", "") rescue nil
 
       record = find rec
 
@@ -313,7 +316,7 @@ module OAI
       @xml.GetRecord do
         @xml.record do 
           metadata_header record
-          metadata record
+          metadata record unless deleted?(record)
         end
       end
     end
@@ -326,8 +329,6 @@ module OAI
       records, token = find :all
 
       raise OAI::NoMatchException.new if records.nil? || records.empty?
-      
-      format = token ? token.split(/\./)[0] : @opts[:metadata_prefix]
       
       @xml.ListRecords do
         records.each do |record|
@@ -411,9 +412,13 @@ module OAI
       @xml.header param do 
         @xml.identifier "#{@config[:prefix]}/#{record.id}"
         @xml.datestamp record.updated_at.utc.xmlschema
-        record.sets.each do |set|
-          @xml.setSpec set.spec
-        end if record.respond_to?(:sets)
+        if record.respond_to?(:sets) && record.sets
+          if record.sets.respond_to?(:each) # Belongs to multiple sets
+            record.sets.each {|set| @xml.setSpec set.spec }
+          else # Belongs to one set
+            @xml.setSpec record.sets
+          end
+        end
       end
     end
 
@@ -489,10 +494,10 @@ module OAI
     end
     
     def query_key(opts)
-      key = opts[:metadata_prefix]
+      key = opts[:metadata_prefix].dup
       key << ".#{opts[:set]}" if opts[:set]
-      key << ".#{opts[:from]}" if opts[:from]
-      key << ".#{opts[:until]}" if opts[:until]
+      key << %{.#{opts[:from].strftime("%Y-%m-%d-%H-%M-%S")}} if opts[:from]
+      key << %{.#{opts[:until].strftime("%Y-%m-%d-%H-%M-%S")}} if opts[:until]
       key
     end
     
@@ -501,17 +506,24 @@ module OAI
     end
     
     def extract_format
-      token ? parse_token_format : @opts[:metadata_prefix] rescue nil
+      token.nil? ? @opts[:metadata_prefix] : parse_token_format rescue nil
     end
     
     # We can extract the metadata format from any resumption token by splitng on '.'
     # and taking the first result.
     def parse_token_format
-      return token.split(/:/)[0].split(/\./)[0]
+      token.split(/:/)[0].split(/\./)[0]
     end
     
     def token
       @opts[:resumption_token]
+    end
+    
+    def sets_supported
+      @model && 
+      @model.respond_to?(:oai_sets) && 
+      @model.oai_sets && 
+      !@model.oai_sets.empty?
     end
     
     def deleted?(record)

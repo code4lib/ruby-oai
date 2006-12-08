@@ -1,7 +1,7 @@
 class ListIdentifiersTest < Test::Unit::TestCase
 
   def test_list_with_resumption_token
-    client = OAI::Client.new 'http://www.pubmedcentral.nih.gov/oai/oai.cgi' 
+    client = OAI::Client.new 'http://localhost:3333/oai' 
 
     # get a list of identifier headers
     response = client.list_identifiers :metadata_prefix => 'oai_dc' 
@@ -26,25 +26,29 @@ class ListIdentifiersTest < Test::Unit::TestCase
   end
 
   def test_list_with_date_range
-    client = OAI::Client.new 'http://memory.loc.gov/cgi-bin/oai2_0'
-    from_date = Date.new(2004,1,1)
-    until_date  = Date.new(2006,1,1)
+    client = OAI::Client.new 'http://localhost:3333/oai'
+    from_date = Date.new(1998,1,1)
+    until_date  = Date.new(2002,1,1)
     response = client.list_identifiers :from => from_date, :until => until_date
     assert response.entries.size > 0
   end
 
   def test_list_with_datetime_range
     # xtcat should support higher granularity
-    client = OAI::Client.new 'http://memory.loc.gov/cgi-bin/oai2_0'
-    from_date = DateTime.new(2004,1,1)
+    client = OAI::Client.new 'http://localhost:3333/oai'
+    from_date = DateTime.new(2001,1,1)
     until_date = DateTime.now
     response = client.list_identifiers :from => from_date, :until => until_date
     assert response.entries.size > 0
   end
 
   def test_invalid_argument
-    client = OAI::Client.new 'http://arXiv.org/oai2'
+    client = OAI::Client.new 'http://localhost:3333/oai'
     assert_raise(OAI::ArgumentException) {client.list_identifiers :foo => 'bar'}
+  end
+  
+  def setup
+    ProviderServer.start
   end
 
 end

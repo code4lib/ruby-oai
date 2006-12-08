@@ -3,7 +3,7 @@ class LibXMLTest < Test::Unit::TestCase
   def test_oai_exception
     return unless have_libxml
 
-    uri = 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    uri = 'http://localhost:3333/oai'
     client = OAI::Client.new uri, :parser => 'libxml'
     assert_raises(OAI::Exception) {client.get_record(:identifier => 'nosuchid')}
   end
@@ -14,19 +14,23 @@ class LibXMLTest < Test::Unit::TestCase
     # since there is regex magic going on to remove default oai namespaces 
     # it's worth trying a few different oai targets
     oai_targets = %w{
-      http://etd.caltech.edu:80/ETD-db/OAI/oai
-      http://ir.library.oregonstate.edu/dspace-oai/request
-      http://memory.loc.gov/cgi-bin/oai2_0
+      http://localhost:3333/oai
     }
 
-    #http://libeprints.open.ac.uk/perl/oai2
+    #oai_targets = %w{
+    #  http://etd.caltech.edu:80/ETD-db/OAI/oai
+    #  http://ir.library.oregonstate.edu/dspace-oai/request
+    #  http://memory.loc.gov/cgi-bin/oai2_0
+    #  http://libeprints.open.ac.uk/perl/oai2
+    #}
+
 
     oai_targets.each do |uri|
       client = OAI::Client.new uri, :parser => 'libxml'
       records = client.list_records
       records.each do |record|
         assert record.header.identifier
-        next unless record.deleted?
+        next if record.deleted?
         assert_kind_of XML::Node, record.metadata
       end
     end
@@ -35,9 +39,10 @@ class LibXMLTest < Test::Unit::TestCase
   def test_deleted_record
     return unless have_libxml
 
-    uri = 'http://ir.library.oregonstate.edu/dspace-oai/request'
+    uri = 'http://localhost:3333/oai'
     client = OAI::Client.new(uri, :parser => 'libxml')
-    record = client.get_record :identifier => 'oai:ir.library.oregonstate.edu:1957/19' 
+    response = client.get_record :identifier => 'oai:test/275'
+    assert response.record.deleted?
   end
 
   private

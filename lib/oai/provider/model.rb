@@ -19,15 +19,15 @@
 module OAI
   module Model
     
-    def self.oai_earliest
+    def oai_earliest
       Time.now.utc
     end
     
-    def self.oai_sets
+    def oai_sets
       nil
     end
     
-    def self.oai_find(selector, opts={})
+    def oai_find(selector, opts={})
       []
     end
     

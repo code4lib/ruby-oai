@@ -31,15 +31,6 @@ module OAI
       esc_values << @opts[:until] if @opts[:until]
       esc_values << @opts[:set] if @opts[:set]
     end
-
-    # Use of Chronic here is mostly for human interactions.  It's
-    # nice to be able to say '?verb=ListRecords&from=October&until=November'
-    def parse_date(dt_string)
-      # Oddly Chronic doesn't parse an UTC encoded datetime.  
-      # Luckily Time does
-      dt = Chronic.parse(dt_string) || Time.parse(dt_string)
-      dt.utc.xmlschema
-    end
   
     # Massage the standard OAI options to make them a bit more palatable.
     def validate_options(verb, opts = {})
@@ -49,7 +40,7 @@ module OAI
       
       # Not sure if this check is really even required, the user will still
       # recieve an error, and consult the docs.
-      raise OAI::Exception.new("Bad options") unless opts.respond_to?(:keys)
+      raise OAI::ArgumentException.new unless opts.respond_to?(:keys)
 
       realopts = {}
       # Internalize the hash
@@ -63,6 +54,10 @@ module OAI
       if(Const::VERBS[verb].include?(:metadata_prefix))
         realopts[:metadata_prefix] ||= 'oai_dc'
       end
+      
+      # Convert date formated strings in dates.
+      realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
+      realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
 
       # check for any bad options
       unless (realopts.keys - OAI::Const::VERBS[verb]).empty?
@@ -82,7 +77,17 @@ module OAI
     def externalize(value)
       value.to_s.gsub(/_[a-z]/) { |m| m.sub("_", '').capitalize }
     end
-
+    
+    def parse_date(value)
+      return value if value.respond_to?(:strftime)
+      
+      # Oddly Chronic doesn't parse an UTC encoded datetime.  
+      # Luckily Time does
+      dt = Chronic.parse(value) || Time.parse(value)
+      raise OAI::ArgumentError.new unless dt
+      
+      dt.utc
+    end
   
   end
 end

@@ -44,6 +44,10 @@ class LibXMLTest < Test::Unit::TestCase
     response = client.get_record :identifier => 'oai:test/275'
     assert response.record.deleted?
   end
+  
+  def setup
+    ProviderServer.start
+  end
 
   private
 

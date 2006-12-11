@@ -143,5 +143,5 @@ class OaiTest < Test::Unit::TestCase
     assert_nil doc.elements["/OAI-PMH/resumptionToken"]
     assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
   end
-  
+    
 end

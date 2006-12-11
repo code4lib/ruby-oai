@@ -12,6 +12,10 @@ class ListSetsTest < Test::Unit::TestCase
       assert_kind_of OAI::Set, set
     end
   end
+  
+  def setup
+    ProviderServer.start
+  end
 
 end
 

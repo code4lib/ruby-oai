@@ -14,6 +14,7 @@ include OAI::Harvester
 conf = OAI::Harvester::Config.load
 
 startup = :interactive
+
 rexml = false
 
 opts = OptionParser.new do |opts|
@@ -47,7 +48,7 @@ end
 unless rexml
   begin # Try to load libxml to speed up harvesting
     require 'xml/libxml'
-  rescue
+  rescue LoadError
   end
 end
 

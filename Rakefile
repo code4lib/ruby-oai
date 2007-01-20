@@ -9,12 +9,7 @@ require 'rake/gempackagetask'
 
 task :default => [:test]
 
-Rake::TestTask.new('test') do |t|
-  t.libs << ['lib', 'test/helpers']
-  t.pattern = 'test/tc_*.rb'
-  t.verbose = true
-  t.ruby_opts = ['-r oai', '-r test/unit', '-r test/test_helper.rb']
-end
+task :test => [:provider, :ar_provider, :client]
 
 spec = Gem::Specification.new do |s|
     s.name = 'oai'
@@ -45,8 +40,79 @@ Rake::GemPackageTask.new(spec) do |pkg|
   pkg.gem_spec = spec
 end
 
+Rake::TestTask.new('client') do |t|
+  t.libs << ['lib', 'test/client/helpers']
+  t.pattern = 'test/client/tc_*.rb'
+  t.verbose = true
+  t.ruby_opts = ['-r oai', '-r test/unit', '-r test_wrapper']
+end
+
+Rake::TestTask.new('provider') do |t|
+  t.libs << ['lib', 'test/provider']
+  t.pattern = 'test/provider/tc_*.rb'
+  t.verbose = true
+  t.ruby_opts = ['-r oai', '-r test/unit', '-r test_helper.rb']
+end
+
+desc "Active Record base Provider Tests"
+Rake::TestTask.new('ar_provider') do |t|
+  t.libs << ['lib', 'test/activerecord_provider']
+  t.pattern = 'test/activerecord_provider/tc_*.rb'
+  t.verbose = true
+  t.ruby_opts = ['-r oai', '-r rubygems', '-r test/unit', 
+    '-r helpers/providers']
+end
+
+task :ar_provider => :create_database
+
+task :environment do 
+  unless defined? OAI_PATH
+    OAI_PATH = File.dirname(__FILE__) + '/lib/oai'
+    $LOAD_PATH << OAI_PATH
+    $LOAD_PATH << File.dirname(__FILE__) + '/test'
+  end
+end
+
+task :drop_database => :environment do
+  %w{rubygems active_record yaml}.each { |lib| require lib }
+  require 'activerecord_provider/database/ar_migration'
+  require 'activerecord_provider/config/connection'
+  begin
+    OAIPMHTables.down
+  rescue
+  end
+end
+
+task :create_database => :drop_database do
+  OAIPMHTables.up
+end
+
+task :load_fixtures => :create_database do
+  require 'test/activerecord_provider/models/dc_field'
+  fixtures = YAML.load_file(
+    File.join('test', 'activerecord_provider', 'fixtures', 'dc.yml')
+  )
+  fixtures.keys.sort.each do |key|
+    DCField.create(fixtures[key])
+  end
+end
+  
 Rake::RDocTask.new('doc') do |rd|
   rd.rdoc_files.include("lib/**/*.rb")
-  rd.main = 'OAI::Client'
+  rd.main = 'OAI'
   rd.rdoc_dir = 'doc'
 end
+
+namespace :test do
+  desc 'Measures test coverage'
+  # borrowed from here: http://clarkware.com/cgi/blosxom/2007/01/05#RcovRakeTask
+  task :coverage do
+    rm_f "coverage"
+    rm_f "coverage.data"
+    system("rcov --aggregate coverage.data --text-summary -Ilib:test/functional test/functional/*_test.rb")
+    system("rcov --aggregate coverage.data --text-summary -Ilib:test/unit test/unit/*_test.rb")
+    system("open coverage/index.html") if PLATFORM['darwin']
+  end
+
+end
+

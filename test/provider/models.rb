@@ -34,31 +34,59 @@ class Record
   
 end
 
-class Model
-  include OAI::Model
+class TestModel < OAI::Model
   
-  def initialize
+  def initialize(limit = nil)
+    super(limit)
     @records = []
     @sets = []
     @earliest = Time.now
   end
   
-  def oai_earliest
-    @earliest
+  def earliest
+    (@records.min {|a,b| a.updated_at <=> b.updated_at }).updated_at
+  end
+  
+  def latest
+    @records.max {|a,b| a.updated_at <=> b.updated_at }.updated_at
   end
 
-  def oai_sets
+  def sets
     @sets
   end
   
-  def oai_find(selector, opts = {})
+  def find(selector, opts={})
     return nil unless selector
-    
-    if selector == :all
-      @records.select do |rec|
-        ((opts[:set].nil? || rec.in_set(opts[:set])) && 
-        (opts[:from].nil? || rec.updated_at > opts[:from]) &&
-        (opts[:until].nil? || rec.updated_at < opts[:until]))
+
+    case selector
+    when :all
+      if opts[:resumption_token]
+        raise OAI::ResumptionTokenException.new unless @limit
+        begin
+          token, offset = extract_token_and_offset(opts[:resumption_token])
+
+          if offset < @groups.size - 1
+            OAI::PartialResult.new(@groups[offset], 
+              OAI::ResumptionToken.new("#{token}:#{offset+1}"))
+          else
+            @groups[offset]
+          end
+        rescue => err
+          raise OAI::ResumptionTokenException.new
+        end
+      else
+        records = @records.select do |rec|
+          ((opts[:set].nil? || rec.in_set(opts[:set])) && 
+          (opts[:from].nil? || rec.updated_at > opts[:from]) &&
+          (opts[:until].nil? || rec.updated_at < opts[:until]))
+        end
+
+        if @limit && records.size > @limit
+          @groups = generate_chunks(records, @limit)
+          return OAI::PartialResult.new(@groups[0], 
+            OAI::ResumptionToken.new("#{generate_token(opts)}:1"))
+        end
+        return records
       end
     else
       begin
@@ -70,7 +98,7 @@ class Model
       nil
     end
   end
-    
+      
   def generate_records(number, timestamp = Time.now, sets = [], deleted = false)
     @earliest = timestamp.dup if @earliest.nil? || timestamp < @earliest
     
@@ -92,7 +120,7 @@ class Model
     
 end
 
-class SimpleModel < Model
+class SimpleModel < TestModel
   
   def initialize
     super
@@ -114,10 +142,10 @@ class SimpleModel < Model
 
 end
 
-class BigModel < Model
+class BigModel < TestModel
   
-  def initialize
-    super
+  def initialize(limit = nil)
+    super(limit)
     generate_records(100, Chronic.parse("October 2 2000"))
     generate_records(100, Chronic.parse("November 2 2000"))
     generate_records(100, Chronic.parse("December 2 2000"))
@@ -127,7 +155,7 @@ class BigModel < Model
   
 end
 
-class MappedModel < Model
+class MappedModel < TestModel
 
   def initialize
     super
@@ -145,10 +173,10 @@ class MappedModel < Model
 
 end
 
-class ComplexModel < Model
+class ComplexModel < TestModel
   
-  def initialize
-    super
+  def initialize(limit = nil)
+    super(limit)
     # Create a couple of sets
     set_one = OAI::Set.new
     set_one.name = "Set One"
@@ -182,10 +210,11 @@ class ComplexModel < Model
 
     generate_records(250, Chronic.parse("May 2 1998"), [set_one, set_one_two])
     generate_records(50, Chronic.parse("June 2 1998"), [set_one, set_one_two], true)
+    generate_records(50, Chronic.parse("October 10 1998"), [set_three, set_three_four], true)
     generate_records(250, Chronic.parse("July 2 2002"), [set_two, set_one_two])
     
     generate_records(250, Chronic.parse("September 15 2004"), [set_three, set_three_four])
-    generate_records(50, Chronic.parse("October 10 1998"), [set_three, set_three_four], true)
+    generate_records(50, Chronic.parse("October 10 2004"), [set_three, set_three_four], true)
     generate_records(250, Chronic.parse("December 25 2005"), [set_four, set_three_four])
   end
   

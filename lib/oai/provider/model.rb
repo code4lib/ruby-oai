@@ -1,3 +1,5 @@
+require File.dirname(__FILE__)+'/resumption_tokens'
+
 # = model.rb
 #
 # Copyright (C) 2006 William Groppe
@@ -5,30 +7,48 @@
 # Will Groppe mailto: wfg@artstor.org
 #
 #
-# Implementing a model from scratch requires overridding three methods from
+# Implementing a model from scratch requires overridding two methods from
 # OAI::Model
 #
-# * oai_earliest - should provide the earliest possible timestamp
-# * oai_sets - if you want to support sets
-# * oai_find(selector, opts) - selector can be either a record id, or :all for
-# finding all matches.  opts is a hash of query parameters.  Valid parameters
-# include :from, :until, :set, :token, and :prefix.  Any errors in the
-# parameters should raise a OaiPmh::ArgumentException.
+# * earliest - should provide the earliest possible timestamp
+# * find(selector, opts) - selector can be either a record id, or :all for
+# finding all matches.  opts is a hash of query parameters.  
+# Valid parameters include:
+#   :from => Time for beginning of selection
+#   :until => Time for end of selection
+#   :set => String for requested set
+#   :prefix => String for metadata prefix
+#
+#  Any errors in the parameters should raise a OaiPmh::ArgumentException.
+#
+# Optional methods
+#
+# * sets - if you want to support sets
 # * deleted? - if you want to support deletions
 #
 module OAI
-  module Model
+
+  class Model
+    include ResumptionHelpers
     
-    def oai_earliest
-      Time.now.utc
+    def initialize(limit = nil)
+      @limit = limit
     end
     
-    def oai_sets
+    def earliest
+      raise NotImplementedError.new
+    end
+    
+    def latest
+      raise NotImplementedError.new
+    end
+  
+    def sets
       nil
     end
-    
-    def oai_find(selector, opts={})
-      []
+  
+    def find(selector, opts={})
+      raise NotImplementedError.new
     end
     
     def deleted?
@@ -36,4 +56,5 @@ module OAI
     end
     
   end
+  
 end

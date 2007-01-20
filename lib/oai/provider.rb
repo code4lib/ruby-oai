@@ -5,7 +5,6 @@ require 'chronic'
 
 if not defined?(OAI::Const::VERBS)
   # Shared stuff
-  
   require 'oai/exception'
   require 'oai/constants'
   require 'oai/helpers'
@@ -17,7 +16,7 @@ end
 require 'oai/metadata_format/oai_dc'
 
 # Localize requires so user can select a subset of functionality
-libs = %w{model paginator}
+libs = %w{model partial_result}
 
 libs.each { |lib| require "oai/provider/#{lib}" }
 
@@ -131,7 +130,7 @@ libs.each { |lib| require "oai/provider/#{lib}" }
 #  provider.identify
 #  provider.list_sets
 #  provider.list_metadata_formats
-# # these verbs require a working model
+#  # these verbs require a working model
 #  provider.list_identifiers
 #  provider.list_records
 #  provider.get_record('oai:localhost/1')
@@ -231,11 +230,11 @@ module OAI
           call = verb.gsub(/[A-Z]/) {|m| "_#{m.downcase}"}.sub(/^\_/,'')
           send("#{call}_response")
           
-        rescue
-          if $!.respond_to?(:code)
-            @xml.error $!.to_s, :code => $!.code
+        rescue => err
+          if err.respond_to?(:code)
+            @xml.error err.to_s, :code => err.code
           else
-            raise $!
+            raise err
           end
         end
       end
@@ -261,7 +260,7 @@ module OAI
       raise OAI::SetException.new unless sets_supported
         
       @xml.ListSets do |ls|
-        @model.oai_sets.each do |set|
+        @model.sets.each do |set|
           @xml.set do
             @xml.setSpec set.spec
             @xml.setName set.name
@@ -284,11 +283,12 @@ module OAI
     end
     
     def list_identifiers_response
-      unless supported_format?
+      unless supported_format? || resumption_token
         raise OAI::FormatException.new
-      end
+      end 
 
-      records, token = find :all
+      response = @model.find(:all, @opts)
+      records = response.respond_to?(:token) ? response.records : response
 
       raise OAI::NoMatchException.new if records.nil? || records.empty?
 
@@ -297,7 +297,8 @@ module OAI
           metadata_header record
         end
       end
-      output_token(token) if token
+      
+      response.token.to_xml(@xml) if response.respond_to?(:token)
     end
     
     def get_record_response
@@ -309,7 +310,7 @@ module OAI
       
       rec = @opts[:identifier].gsub("#{@config[:prefix]}/", "") rescue nil
 
-      record = find rec
+      record = @model.find(rec, @opts)
 
       raise OAI::IdException.new unless record
 
@@ -322,14 +323,15 @@ module OAI
     end
     
     def list_records_response
-      unless supported_format?
+      unless supported_format? || resumption_token
         raise OAI::FormatException.new
       end
 
-      records, token = find :all
+      response = @model.find(:all, @opts)
+      records = response.respond_to?(:token) ? response.records : response
 
       raise OAI::NoMatchException.new if records.nil? || records.empty?
-      
+
       @xml.ListRecords do
         records.each do |record|
           @xml.record do 
@@ -338,70 +340,19 @@ module OAI
           end
         end  
       end
-      
-      output_token(token) if token
+
+      response.token.to_xml(@xml) if response.respond_to?(:token)
     end
     
     private
     
-    def find(selector)
-      return nil, nil unless @model
-      
-      return model_find(selector) if :all != selector
-      return model_find(selector), nil unless paginator
-
-      # Pagination ahead
-      #
-      # If we got a resumption token, use it.
-      return paginator.get_chunk(token) if token
-      
-      # Create a hash key for storing this query
-      key = query_key(@opts)
-      
-      # Is this query already in the cache?
-      if paginator.query_cached?(key)
-        return paginator.get_chunk("#{key}:0")
-      else 
-        return paginator.paginate(key, model_find(selector))
-      end
-    end
-    
-    def model_find(selector)
-      # Try oai finder methods first
-      if @model.respond_to?(:oai_find)
-        return @model.oai_find(selector, @opts)
-      elsif @model.respond_to?(:find)
-        # Assume ActiveRecord finder call
-        return @model.find(selector, :conditions => build_active_record_conditions)
-      end
-      nil
-    end
-    
-    
     def earliest
-      return DateTime.new unless @model
-      
-      # Try oai finder methods first
-      begin
-        return @model.oai_earliest
-      rescue NoMethodError
-        begin
-          # Try an ActiveRecord finder call
-          return @model.find(:first, :order => "updated_at asc").updated_at
-        rescue 
-        end
-      end
+      return @model.earliest if @model.respond_to?(:earliest)
       nil
     end
 
     def sets
-      return nil unless @model
-      
-      # Try oai finder methods first
-      begin
-        return @model.oai_sets
-      rescue NoMethodError
-      end
+      return @model.sets if @model.respond_to?(:sets)
       nil
     end
       
@@ -420,11 +371,6 @@ module OAI
           end
         end
       end
-    end
-
-    # emit resumption token
-    def output_token(token)
-      @xml.resumptionToken token
     end
 
     # metadata - core routine for delivering metadata records
@@ -493,37 +439,17 @@ module OAI
       AVAILABLE_FORMATS.include?(extract_format)
     end
     
-    def query_key(opts)
-      key = opts[:metadata_prefix].dup
-      key << ".#{opts[:set]}" if opts[:set]
-      key << %{.#{opts[:from].strftime("%Y-%m-%d-%H-%M-%S")}} if opts[:from]
-      key << %{.#{opts[:until].strftime("%Y-%m-%d-%H-%M-%S")}} if opts[:until]
-      key
-    end
-    
-    def paginator
-      @config[:paginator]
-    end
-    
     def extract_format
-      token.nil? ? @opts[:metadata_prefix] : parse_token_format rescue nil
+      return @opts[:metadata_prefix] unless resumption_token
+      @model.metadata_format(resumption_token) rescue nil
     end
     
-    # We can extract the metadata format from any resumption token by splitng on '.'
-    # and taking the first result.
-    def parse_token_format
-      token.split(/:/)[0].split(/\./)[0]
-    end
-    
-    def token
+    def resumption_token
       @opts[:resumption_token]
     end
     
     def sets_supported
-      @model && 
-      @model.respond_to?(:oai_sets) && 
-      @model.oai_sets && 
-      !@model.oai_sets.empty?
+      @model.sets && !@model.sets.empty? rescue nil
     end
     
     def deleted?(record)
@@ -533,7 +459,7 @@ module OAI
         return record.deleted
       end
       false
-    end
+    end    
 
   end
   

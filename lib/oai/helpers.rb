@@ -19,19 +19,7 @@ module OAI
     def echo_params(verb, opts)
       @xml.request(@url, {:verb => verb}.merge(opts))
     end
-  
-    def build_active_record_conditions
-      sql = []
-      sql << "updated_at >= ?" if @opts[:from]
-      sql << "updated_at <= ?" if @opts[:until]
-      sql << "set = ?" if @opts[:set]
-      
-      esc_values = [sql.join(" AND ")]
-      esc_values << @opts[:from] if @opts[:from]
-      esc_values << @opts[:until] if @opts[:until]
-      esc_values << @opts[:set] if @opts[:set]
-    end
-  
+    
     # Massage the standard OAI options to make them a bit more palatable.
     def validate_options(verb, opts = {})
       raise OAI::VerbException.new unless Const::VERBS.keys.include?(verb)
@@ -72,7 +60,7 @@ module OAI
         raise OAI::ArgumentException.new
       end
     end
-    
+        
     # Convert our internal representations back into standard OAI options
     def externalize(value)
       value.to_s.gsub(/_[a-z]/) { |m| m.sub("_", '').capitalize }

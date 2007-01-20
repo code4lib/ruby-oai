@@ -55,7 +55,6 @@ module OAI
         class_eval %{ def self.#{proc}; DEFAULTS[:#{proc}]; end }
         class_eval %{ def self.#{proc}=(value); DEFAULTS[:#{proc}]=value; end }
       end
-        
     
       class << self
         def header(xml)

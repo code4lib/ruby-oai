@@ -7,6 +7,13 @@ module OAI
     include OAI::XPath
     attr_accessor :name, :spec, :description
 
+    def initialize(values = {})
+      @name = values.delete(:name)
+      @spec = values.delete(:spec)
+      @description = values.delete(:description)
+      raise ArgumentException, "Invalid options" unless values.empty?
+    end
+    
     def self.parse(element)
       set = self.new
       set.name = set.xpath(element, './/setName')

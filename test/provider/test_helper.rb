@@ -1,33 +1,33 @@
 require 'models'
+include OAI
 
-class SimpleProvider < OAI::Provider
-  name 'Test Provider'
-  prefix 'oai:test'
-  model SimpleModel.new
+class SimpleProvider < Provider::Base
+  repository_name 'Test Provider'
+  record_prefix 'oai:test'
+  source_model SimpleModel.new
 end
 
-class BigProvider < OAI::Provider
-  name 'Another Provider'
-  prefix 'oai:test'
-  model BigModel.new
+class BigProvider < Provider::Base
+  repository_name 'Another Provider'
+  record_prefix 'oai:test'
+  source_model BigModel.new
 end
 
-class TokenProvider < OAI::Provider
-  name 'Token Provider'
-  prefix 'oai:test'
-  model BigModel.new(25)
+class TokenProvider < Provider::Base
+  repository_name 'Token Provider'
+  record_prefix 'oai:test'
+  source_model BigModel.new(25)
 end
 
-class MappedProvider < OAI::Provider
-  name 'Mapped Provider'
-  prefix 'oai:test'
-  model MappedModel.new
+class MappedProvider < Provider::Base
+  repository_name 'Mapped Provider'
+  record_prefix 'oai:test'
+  source_model MappedModel.new
 end
 
-class ComplexProvider < OAI::Provider
-  name 'Complex Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model ComplexModel.new(100)
+class ComplexProvider < Provider::Base
+  repository_name 'Complex Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ComplexModel.new(100)
 end
-

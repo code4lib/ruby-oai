@@ -1,5 +1,5 @@
 # Extend ActiveRecordModel to support sets
-class SetModel < OAI::ActiveRecordWrapper
+class SetModel < OAI::Provider::ActiveRecordWrapper
   
   # Return all available sets
   def sets
@@ -10,7 +10,6 @@ class SetModel < OAI::ActiveRecordWrapper
   def find(selector, opts={})
     if opts[:set]
       set = DCSet.find_by_spec(opts.delete(:set))
-      constrain_from_until(opts)
       conditions = sql_conditions(opts)
 
       if :all == selector
@@ -29,9 +28,9 @@ class SetModel < OAI::ActiveRecordWrapper
         
 end
 
-class ARSetProvider < OAI::Provider
-  name 'ActiveRecord Set Based Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model SetModel.new(DCField)
+class ARSetProvider < OAI::Provider::Base
+  repository_name 'ActiveRecord Set Based Provider'
+  repository_url 'http://localhost'
+  record_prefix = 'oai:test'
+  source_model SetModel.new(DCField)
 end

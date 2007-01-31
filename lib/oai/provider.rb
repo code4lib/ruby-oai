@@ -7,18 +7,15 @@ if not defined?(OAI::Const::VERBS)
   # Shared stuff
   require 'oai/exception'
   require 'oai/constants'
-  require 'oai/helpers'
   require 'oai/xpath'
-  require 'oai/metadata_format'
   require 'oai/set'
 end
 
-require 'oai/metadata_format/oai_dc'
-
-# Localize requires so user can select a subset of functionality
-libs = %w{model partial_result}
-
-libs.each { |lib| require "oai/provider/#{lib}" }
+%w{ response metadata_format resumption_token model partial_result
+    response/record_response response/identify response/get_record
+    response/list_identifiers response/list_records 
+    response/list_metadata_formats response/list_sets response/error
+  }.each { |lib| require File.dirname(__FILE__) + "/provider/#{lib}" }
 
 # = provider.rb
 #
@@ -38,11 +35,8 @@ libs.each { |lib| require "oai/provider/#{lib}" }
 #
 #
 # === Current shortcomings
-# * No resumption tokens
 # * Doesn't validate metadata
-# * No deletion support
 # * Many others I can't think of right now. :-)
-#
 #
 # === ActiveRecord integration
 #
@@ -149,67 +143,76 @@ libs.each { |lib| require "oai/provider/#{lib}" }
 #  end
 #
 # 
-module OAI
+module OAI::Provider
 
-  class Provider
-    include Helpers
+  class Base
+    include OAI::Provider
     
-    AVAILABLE_FORMATS = { 'oai_dc' => OAI::Metadata::OaiDc }
-
     class << self
-      attr_accessor :options
+      attr_reader :formats
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model
 
-      def model(value)
-        self.options ||={}
-        self.options[:model] = value
+      def register_format(format)
+        @formats ||= {}
+        @formats[format.prefix] = format
       end
       
-      def register_metadata_format(format)
-        AVAILABLE_FORMATS[format.prefix] = format
+      def format_supported?(prefix)
+        @formats.keys.include?(prefix)
       end
       
-    end
-    
-    OAI::Const::PROVIDER_DEFAULTS.keys.each do |field|
-       class_eval %{
-         def self.#{field}(value)
-           self.options ||={}
-           self.options[:#{field}] = value
-         end
-       }
-    end
-
-    def initialize
-      if self.class.options
-        @config = OAI::Const::PROVIDER_DEFAULTS.merge(self.class.options)
-      else
-        @config = OAI::Const::PROVIDER_DEFAULTS
+      def format(prefix)
+        @formats[prefix]
       end
-      @model = @config[:model]
-    end
-    
-    def identify
-      process_verb 'Identify'
+      
+      def inherited(klass)
+        self.instance_variables.each do |iv|
+          klass.instance_variable_set(iv, self.instance_variable_get(iv))
+        end
+      end
+
+      alias_method :repository_name,    :name=
+      alias_method :repository_url,     :url=
+      alias_method :record_prefix,      :prefix=
+      alias_method :admin_email,        :email=
+      alias_method :deletion_support,   :delete_support=  
+      alias_method :update_granularity, :granularity=     
+      alias_method :source_model,       :model=
+      
     end
 
-    def list_metadata_formats
-      process_verb 'ListMetadataFormats'
-    end
+    # Default configuration of a repository
+    Base.repository_name 'Open Archives Initiative Data Provider'
+    Base.repository_url 'unknown'
+    Base.record_prefix 'oai:localhost'
+    Base.admin_email 'nobody@localhost'
+    Base.deletion_support OAI::Const::DELETE::TRANSIENT
+    Base.update_granularity 'YYYY-MM-DDThh:mm:ssZ'
+
+    Base.register_format(OAI::Metadata::DublinCore.instance)
     
-    def list_sets(opts = {})
-      process_verb 'ListSets', opts
-    end
-    
-    def get_record(id, opts = {})
-      process_verb 'GetRecord', opts.merge(:identifier => id)
-    end
-    
-    def list_identifiers(opts = {})
-      process_verb 'ListIdentifiers', opts
+    def identify(options = {})
+      Response::Identify.new(self.class, options).to_xml
     end
 
-    def list_records(opts = {})
-      process_verb 'ListRecords', opts
+    def list_sets(options = {})
+      Response::ListSets.new(self.class, options).to_xml
+    end
+    
+    def list_metadata_formats(options = {})
+      Response::ListMetadataFormats.new(self.class, options).to_xml
+    end
+    
+    def list_identifiers(options = {})
+      Response::ListIdentifiers.new(self.class, options).to_xml
+    end
+    
+    def list_records(options = {})
+      Response::ListRecords.new(self.class, options).to_xml
+    end
+    
+    def get_record(options = {})
+      Response::GetRecord.new(self.class, options).to_xml
     end
     
     # xml_response = process_verb('ListRecords', :from => 'October', 
@@ -217,250 +220,33 @@ module OAI
     #
     # If you are implementing a web interface using process_verb is the
     # preferred way.  See extensions/camping.rb
-    def process_verb(verb = nil, opts = {})
-      header do
-        begin
-          # Allow the request to pass in a url
-          @url = opts['url'] ? opts.delete('url') : @config[:url]
+    def process_request(params = {})
+      begin
+
+        # Allow the request to pass in a url
+        self.class.url = params['url'] ? params.delete('url') : self.class.url
           
-          echo_params(verb, opts)
-          @opts = validate_options(verb, opts)
-          
-          # Rubify the verb for calling method
-          call = verb.gsub(/[A-Z]/) {|m| "_#{m.downcase}"}.sub(/^\_/,'')
-          send("#{call}_response")
-          
-        rescue => err
-          if err.respond_to?(:code)
-            @xml.error err.to_s, :code => err.code
-          else
-            raise err
-          end
-        end
-      end
-    end
-    
-    private
-    
-    def identify_response
-      @xml.Identify do
-        @xml.repositoryName @config[:name]
-        @xml.baseURL @url
-        @xml.protocolVersion 2.0
-        @config[:email].to_a.each do |email|
-          @xml.adminEmail email
-        end
-        @xml.earliestDatestamp earliest
-        @xml.deleteRecord @config[:delete]
-        @xml.granularity @config[:granularity]
-      end
-    end
-    
-    def list_sets_response
-      raise OAI::SetException.new unless sets_supported
+        verb = params.delete('verb') || params.delete(:verb)
         
-      @xml.ListSets do |ls|
-        @model.sets.each do |set|
-          @xml.set do
-            @xml.setSpec set.spec
-            @xml.setName set.name
-            @xml.setDescription(set.description) if set.respond_to?(:description)
-          end
+        unless verb and OAI::Const::VERBS.keys.include?(verb)
+          raise OAI::VerbException.new
+        end
+          
+        send(methodize(verb), params) 
+
+      rescue => err
+        if err.respond_to?(:code)
+          Response::Error.new(self.class, err).to_xml
+        else
+          raise err
         end
       end
     end
     
-    def list_metadata_formats_response
-      @xml.ListMetadataFormats do 
-        AVAILABLE_FORMATS.each_pair do |key, format|
-          @xml.metadataFormat do 
-            @xml.metadataPrefix format.send(:prefix)
-            @xml.schema format.send(:schema)
-            @xml.metadataNamespace format.send(:namespace)
-          end
-        end
-      end
+    def methodize(verb)
+      verb.gsub(/[A-Z]/) {|m| "_#{m.downcase}"}.sub(/^\_/,'')
     end
     
-    def list_identifiers_response
-      unless supported_format? || resumption_token
-        raise OAI::FormatException.new
-      end 
-
-      response = @model.find(:all, @opts)
-      records = response.respond_to?(:token) ? response.records : response
-
-      raise OAI::NoMatchException.new if records.nil? || records.empty?
-
-      @xml.ListIdentifiers do
-        records.each do |record|
-          metadata_header record
-        end
-      end
-      
-      response.token.to_xml(@xml) if response.respond_to?(:token)
-    end
-    
-    def get_record_response
-      unless supported_format?
-        raise OAI::FormatException.new
-      end
-      
-      raise OAI::ArgumentException.new unless @opts[:identifier]
-      
-      rec = @opts[:identifier].gsub("#{@config[:prefix]}/", "") rescue nil
-
-      record = @model.find(rec, @opts)
-
-      raise OAI::IdException.new unless record
-
-      @xml.GetRecord do
-        @xml.record do 
-          metadata_header record
-          metadata record unless deleted?(record)
-        end
-      end
-    end
-    
-    def list_records_response
-      unless supported_format? || resumption_token
-        raise OAI::FormatException.new
-      end
-
-      response = @model.find(:all, @opts)
-      records = response.respond_to?(:token) ? response.records : response
-
-      raise OAI::NoMatchException.new if records.nil? || records.empty?
-
-      @xml.ListRecords do
-        records.each do |record|
-          @xml.record do 
-            metadata_header record
-            metadata record unless deleted?(record)
-          end
-        end  
-      end
-
-      response.token.to_xml(@xml) if response.respond_to?(:token)
-    end
-    
-    private
-    
-    def earliest
-      return @model.earliest if @model.respond_to?(:earliest)
-      nil
-    end
-
-    def sets
-      return @model.sets if @model.respond_to?(:sets)
-      nil
-    end
-      
-    # emit record header
-    def metadata_header(record)
-      param = Hash.new
-      param[:status] = 'deleted' if deleted?(record)
-      @xml.header param do 
-        @xml.identifier "#{@config[:prefix]}/#{record.id}"
-        @xml.datestamp record.updated_at.utc.xmlschema
-        if record.respond_to?(:sets) && record.sets
-          if record.sets.respond_to?(:each) # Belongs to multiple sets
-            record.sets.each {|set| @xml.setSpec set.spec }
-          else # Belongs to one set
-            @xml.setSpec record.sets
-          end
-        end
-      end
-    end
-
-    # metadata - core routine for delivering metadata records
-    #
-    def metadata(record)
-      format = extract_format
-      if record.respond_to?("to_#{format}")
-        @xml.metadata do
-          str = record.send("to_#{format}")
-          # Strip off the xml header if we got one.
-          str.sub!(/<\?xml.*?\?>/, '')
-          @xml << str
-        end
-      else
-        map = @model.respond_to?("map_#{format}") ? 
-          @model.send("map_#{format}") : {}
-
-        mdformat = AVAILABLE_FORMATS[format]
-        @xml.metadata do
-          mdformat.header(@xml) do 
-            mdformat.fields.each do |field|
-              set = value_for(field, record, map)
-              set.each do |mdv|
-                @xml.tag! "#{mdformat.element_ns}:#{field}", mdv
-              end
-            end
-          end
-        end
-      end
-    end
-
-    # We try a bunch of different methods to get the data from the model.
-    #
-    # 1) See if the model will hand us the entire record in the requested
-    #    format.  Example:  if the model defines 'to_oai_dc' we call that
-    #    method and append the result to the xml stream.
-    # 2) Check if the model defines a field mapping for the field of 
-    #    interest.
-    # 3) Try calling the pluralized name method on the model.
-    # 4) Try calling the singular name method on the model, if it's not a 
-    #    reserved word. 
-    def value_for(field, record, map)
-      if map.keys.include?(field.intern)
-          value = record.send(map[field.intern])
-          if value.kind_of?(String)
-            return [value]
-          end
-          return value.to_a 
-      end
-    
-      begin # Plural value
-        return record.send(field.pluralize).to_a 
-      rescue 
-        unless OAI::Const::RESERVED_WORDS.include?(field)
-          begin # Singular value
-            return [record.send(field)]
-          rescue
-            return []
-          end
-        end
-      end
-      []
-    end
-    
-    def supported_format?
-      AVAILABLE_FORMATS.include?(extract_format)
-    end
-    
-    def extract_format
-      return @opts[:metadata_prefix] unless resumption_token
-      @model.metadata_format(resumption_token) rescue nil
-    end
-    
-    def resumption_token
-      @opts[:resumption_token]
-    end
-    
-    def sets_supported
-      @model.sets && !@model.sets.empty? rescue nil
-    end
-    
-    def deleted?(record)
-      if record.respond_to?(:deleted_at)
-        return record.deleted_at
-      elsif record.respond_to?(:deleted)
-        return record.deleted
-      end
-      false
-    end    
-
   end
   
 end

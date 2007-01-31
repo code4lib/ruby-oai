@@ -8,25 +8,25 @@ Dir.glob(File.dirname(__FILE__) + "/../models/*.rb").each do |lib|
   require lib
 end
 
-class ARProvider < OAI::Provider
-  name 'ActiveRecord Based Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model OAI::ActiveRecordWrapper.new(DCField)
+class ARProvider < OAI::Provider::Base
+  repository_name 'ActiveRecord Based Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ActiveRecordWrapper.new(DCField)
 end
 
-class SimpleResumptionProvider < OAI::Provider
-  name 'ActiveRecord Resumption Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model OAI::ActiveRecordWrapper.new(DCField, :limit => 25)
+class SimpleResumptionProvider < OAI::Provider::Base
+  repository_name 'ActiveRecord Resumption Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ActiveRecordWrapper.new(DCField, :limit => 25)
 end
 
-class CachingResumptionProvider < OAI::Provider
-  name 'ActiveRecord Caching Resumption Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model OAI::ActiveRecordCachingWrapper.new(DCField, :limit => 25)
+class CachingResumptionProvider < OAI::Provider::Base
+  repository_name 'ActiveRecord Caching Resumption Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ActiveRecordCachingWrapper.new(DCField, :limit => 25)
 end
   
 

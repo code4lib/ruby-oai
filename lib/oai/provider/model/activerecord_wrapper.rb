@@ -1,8 +1,8 @@
 require 'active_record'
 
-module OAI
+module OAI::Provider
   
-  class ActiveRecordWrapper < OAI::Model
+  class ActiveRecordWrapper < Model
     
     attr_reader :model, :timestamp_field
     
@@ -34,13 +34,12 @@ module OAI
     
     def find(selector, options={})
       return next_set(token(options)) if token(options)
-      constrain_from_until(options)
       conditions = sql_conditions(options)
       
       if :all == selector
         total = model.count conditions
         if @limit && total > @limit
-          select_partial(generate_token(options), 0)
+          select_partial(ResumptionToken.new(options.merge({:last => 0})))
         else
           model.find(:all, :conditions => conditions)
         end
@@ -49,38 +48,59 @@ module OAI
       end
     end
     
+    def deleted?(record)
+      if record.respond_to?(:deleted_at)
+        return record.deleted_at
+      elsif record.respond_to?(:deleted)
+        return record.deleted
+      end
+      false
+    end    
+    
     protected
     
-    def next_set(token)
-      raise ResumptionTokenException.new unless @limit
+    def next_set(token_string)
+      raise OAI::ResumptionTokenException.new unless @limit
     
-      base_token, offset = extract_token_and_offset(token)
-      total = model.count token_conditions(base_token)
+      token = ResumptionToken.parse(token_string)
+      total = model.count token_conditions(token)
     
-      if offset * @limit + @limit < total
-        select_partial(base_token, offset)
+      if @limit < total
+        select_partial(token)
       else # end of result set
-        model.find(:all, :conditions => token_conditions(base_token), 
-          :limit => @limit, :offset => offset)
+        model.find(:all, 
+          :conditions => token_conditions(token), 
+          :limit => @limit, :order => "#{model.primary_key} asc")
       end
     end
     
     # select a subset of the result set, and return it with a
     # resumption token to get the next subset
-    def select_partial(token, offset)
-      PartialResult.new(
-        model.find(:all, 
-          :conditions => token_conditions(token),
-          :limit => @limit, 
-          :offset => offset * @limit),
-        ResumptionToken.new("#{token}:#{offset+1}")
-      )
+    def select_partial(token)
+      records = model.find(:all, 
+        :conditions => token_conditions(token),
+        :limit => @limit, 
+        :order => "#{model.primary_key} asc")
+
+      raise OAI::ResumptionTokenException.new unless records
+
+      offset = records.last.send(model.primary_key.to_sym)
+      
+      PartialResult.new(records, token.next(offset))
     end
     
     # build a sql conditions statement from the content
     # of a resumption token
     def token_conditions(token)
-      sql_conditions extract_conditions_from_token(token)
+      last = token.last
+      sql = sql_conditions token.to_conditions_hash
+      
+      return sql if 0 == last
+      # Now add last id constraint
+      sql[0] << " AND #{model.primary_key} > ?"
+      sql << last
+      
+      return sql
     end
     
     # build a sql conditions statement from an OAI options hash
@@ -90,8 +110,9 @@ module OAI
       sql << "set = ?" if opts[:set]
 
       esc_values = [sql.join(" AND ")]
-      esc_values << opts[:from] << opts[:until]
+      esc_values << opts[:from].localtime << opts[:until].localtime
       esc_values << opts[:set] if opts[:set]
+      
       return esc_values
     end
     

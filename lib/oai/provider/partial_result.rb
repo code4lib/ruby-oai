@@ -1,4 +1,4 @@
-module OAI
+module OAI::Provider
   
   class PartialResult
     attr_reader :records, :token

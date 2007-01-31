@@ -5,46 +5,57 @@ class ProviderExceptions < Test::Unit::TestCase
   end
 
   def test_resumption_token_exception
-    assert @provider.list_records(:resumption_token => 'aaadddd:1000') =~
-      /badResumptionToken/
-    assert @provider.list_records(:resumption_token => 'oai_dc:1000') =~
-      /badResumptionToken/
-    assert @provider.list_identifiers(:resumption_token => '..::!:.:!:') =~
-      /badResumptionToken/
-    assert @provider.list_identifiers(
-      :resumption_token => '\:\\:\/$%^&*!@#!:1') =~
-        /badResumptionToken/
+    assert_raise(OAI::ResumptionTokenException) do
+      @provider.list_records(:resumption_token => 'aaadddd:1000')
+    end
+    assert_raise(OAI::ResumptionTokenException) do
+      @provider.list_records(:resumption_token => 'oai_dc:1000')
+    end
+    assert_raise(OAI::ResumptionTokenException) do
+      @provider.list_identifiers(:resumption_token => '..::!:.:!:')
+    end
+    assert_raise(OAI::ResumptionTokenException) do
+      @provider.list_identifiers(:resumption_token => '\:\\:\/$%^&*!@#!:1')
+    end
   end
   
-  def test_verb_exception
-    assert @provider.process_verb('BadVerb') =~ /badVerb/
-    assert @provider.process_verb('\a$#^%!@') =~ /badVerb/
-    assert @provider.process_verb('identity') =~ /badVerb/
-    assert @provider.process_verb('!!\\$\$\.+') =~ /badVerb/
+  def test_bad_verb_raises_exception
+    assert @provider.process_request(:verb => 'BadVerb') =~ /badVerb/
+    assert @provider.process_request(:verb => '\a$#^%!@') =~ /badVerb/
+    assert @provider.process_request(:verb => 'identity') =~ /badVerb/
+    assert @provider.process_request(:verb => '!!\\$\$\.+') =~ /badVerb/
   end
   
-  def test_format_exception
-    assert @provider.get_record('oai:test/1', 
-      :metadata_prefix => 'html') =~ /cannotDisseminateFormat/
+  def test_bad_format_raises_exception
+    assert_raise(OAI::FormatException) do
+      @provider.get_record(:identifier => 'oai:test/1', :metadata_prefix => 'html')
+    end
   end
   
-  def test_id_exception
-    assert @provider.get_record('oai:test/5000') =~ /idDoesNotExist/
-    assert @provider.get_record('oai:test/-1') =~ /idDoesNotExist/
-    assert @provider.get_record('oai:test/one') =~ /idDoesNotExist/
-    assert @provider.get_record('oai:test/\\$1\1!') =~ /idDoesNotExist/
+  def test_bad_id_raises_exception
+    assert_raise(OAI::IdException) do
+      @provider.get_record(:identifier => 'oai:test/5000')
+    end
+    assert_raise(OAI::IdException) do
+      @provider.get_record(:identifier => 'oai:test/-1')
+    end
+    assert_raise(OAI::IdException) do
+      @provider.get_record(:identifier => 'oai:test/one')
+    end
+    assert_raise(OAI::IdException) do
+      @provider.get_record(:identifier => 'oai:test/\\$1\1!')
+    end
   end
   
-  def test_no_match_exception
-    assert @provider.list_records(
-      :from => Chronic.parse("November 2 2000"), 
-      :until => Chronic.parse("November 1 2000")
-      ) =~ /noRecordsMatch/
-
-    assert @provider.list_records(:set => 'unknown') =~ /noRecordsMatch/
+  def test_no_records_match_dates_that_are_out_of_range
+    assert_raise(OAI::NoMatchException) do
+      @provider.list_records(:from => Chronic.parse("November 2 2000"), 
+                             :until => Chronic.parse("November 1 2000"))
+    end
   end
   
-  def test_set_exception
+  def test_no_records_match_bad_set
+    assert_raise(OAI::NoMatchException) { @provider.list_records(:set => 'unknown') }
   end
   
 end

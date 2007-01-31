@@ -34,7 +34,8 @@ class Record
   
 end
 
-class TestModel < OAI::Model
+class TestModel < OAI::Provider::Model
+  include OAI::Provider
   
   def initialize(limit = nil)
     super(limit)
@@ -63,28 +64,27 @@ class TestModel < OAI::Model
       if opts[:resumption_token]
         raise OAI::ResumptionTokenException.new unless @limit
         begin
-          token, offset = extract_token_and_offset(opts[:resumption_token])
+          token = ResumptionToken.parse(opts[:resumption_token])
 
-          if offset < @groups.size - 1
-            OAI::PartialResult.new(@groups[offset], 
-              OAI::ResumptionToken.new("#{token}:#{offset+1}"))
+          if token.last < @groups.size - 1
+            PartialResult.new(@groups[token.last], token.next(token.last + 1))
           else
-            @groups[offset]
+            @groups[token.last]
           end
-        rescue => err
+        rescue
           raise OAI::ResumptionTokenException.new
         end
       else
         records = @records.select do |rec|
           ((opts[:set].nil? || rec.in_set(opts[:set])) && 
-          (opts[:from].nil? || rec.updated_at > opts[:from]) &&
-          (opts[:until].nil? || rec.updated_at < opts[:until]))
+          (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
+          (opts[:until].nil? || rec.updated_at <= opts[:until]))
         end
 
         if @limit && records.size > @limit
           @groups = generate_chunks(records, @limit)
-          return OAI::PartialResult.new(@groups[0], 
-            OAI::ResumptionToken.new("#{generate_token(opts)}:1"))
+          return PartialResult.new(@groups[0], 
+            ResumptionToken.new(opts.merge({:last => 1})))
         end
         return records
       end

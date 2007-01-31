@@ -7,7 +7,6 @@ if not defined?(OAI::Const::VERBS)
   # Shared stuff
   require 'oai/exception'
   require 'oai/constants'
-  require 'oai/helpers'
   require 'oai/xpath'
   require 'oai/metadata_format'
   require 'oai/set'
@@ -50,7 +49,6 @@ module OAI
   #     http://www.openarchives.org/OAI/openarchivesprotocol.html
   
   class Client
-    include Helpers
 
     # The constructor which must be passed a valid base url for an oai 
     # service:
@@ -198,15 +196,6 @@ module OAI
       end
     end
 
-    # convert foo_bar to fooBar thus allowing our ruby code to use
-    # the typical underscore idiom
-    def studly(s)
-      s.gsub(/_(\w)/) do |match|
-        match.sub! '_', ''
-        match.upcase
-      end
-    end
-    
     # Do the actual HTTP get, following any temporary redirects
     def get(uri)
       response = Net::HTTP.get_response(uri)
@@ -226,16 +215,64 @@ module OAI
       end
     end
 
-    # add a metadata prefix unless it's there or we are working with 
-    # a resumption token, and having one added could cause problems
-    def add_default_metadata_prefix(opts)
-      unless opts.has_key? :metadata_prefix or opts.has_key? :resumption_token
-        opts[:metadata_prefix] = 'oai_dc'
-      end
-    end
-
     def debug(msg)
       $stderr.print("#{msg}\n") if @debug
     end
+    
+    # Massage the standard OAI options to make them a bit more palatable.
+    def validate_options(verb, opts = {})
+      raise OAI::VerbException.new unless Const::VERBS.keys.include?(verb)
+
+      return {} if opts.nil?
+
+      raise OAI::ArgumentException.new unless opts.respond_to?(:keys)
+      
+      realopts = {}
+      # Internalize the hash
+      opts.keys.each do |key|
+        realopts[key.to_s.gsub(/([A-Z])/, '_\1').downcase.intern] = opts.delete(key)
+      end
+      
+      return realopts if is_resumption?(realopts)
+      
+      # add in a default metadataPrefix if none exists
+      if(Const::VERBS[verb].include?(:metadata_prefix))
+        realopts[:metadata_prefix] ||= 'oai_dc'
+      end
+      
+      # Convert date formated strings in dates.
+      realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
+      realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
+
+      # check for any bad options
+      unless (realopts.keys - OAI::Const::VERBS[verb]).empty?
+        raise OAI::ArgumentException.new
+      end
+      realopts
+    end
+    
+    def is_resumption?(opts)
+      if opts.keys.include?(:resumption_token) 
+        return true if 1 == opts.keys.size
+        raise OAI::ArgumentException.new
+      end
+    end
+        
+    # Convert our internal representations back into standard OAI options
+    def externalize(value)
+      value.to_s.gsub(/_[a-z]/) { |m| m.sub("_", '').capitalize }
+    end
+    
+    def parse_date(value)
+      return value if value.respond_to?(:strftime)
+      
+      # Oddly Chronic doesn't parse an UTC encoded datetime.  
+      # Luckily Time does
+      dt = Chronic.parse(value) || Time.parse(value)
+      raise OAI::ArgumentError.new unless dt
+      
+      dt.utc
+    end
+    
   end
 end

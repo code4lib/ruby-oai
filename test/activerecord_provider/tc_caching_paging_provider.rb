@@ -4,19 +4,19 @@ class CachingPagingProviderTest < Test::Unit::TestCase
   def test_full_harvest
     doc = Document.new(@provider.list_records)
     assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
     token = doc.elements["/OAI-PMH/resumptionToken"].text
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
     token = doc.elements["/OAI-PMH/resumptionToken"].text
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
     token = doc.elements["/OAI-PMH/resumptionToken"].text
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_nil doc.elements["/OAI-PMH/resumptionToken"]
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
   end
   
   def test_from_and_until
@@ -31,11 +31,11 @@ class CachingPagingProviderTest < Test::Unit::TestCase
         :from => Chronic.parse("September 1 2005"),
         :until => Chronic.parse("November 30 2005"))
       )
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
     token = doc.elements["/OAI-PMH/resumptionToken"].text
     assert_not_nil doc.elements["/OAI-PMH/resumptionToken"]
     doc = Document.new(@provider.list_records(:resumption_token => token))
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
     assert_nil doc.elements["/OAI-PMH/resumptionToken"]
   end
 

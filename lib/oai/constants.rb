@@ -5,25 +5,20 @@ module OAI
     VERBS = {
       'Identify' => [],
       'ListMetadataFormats' => [],
-      'ListSets' => [:token],
+      'ListSets' => [:resumption_token],  # unused currently
       'GetRecord' => [:identifier, :from, :until, :set, :metadata_prefix],
       'ListIdentifiers' => [:from, :until, :set, :metadata_prefix, :resumption_token],
       'ListRecords' => [:from, :until, :set, :metadata_prefix, :resumption_token]
-      }.freeze
-      
-    # Common to many data sources, and sadly also a method on object.
-    RESERVED_WORDS = %{type}.freeze
-    
-    # Default configuration of a repository
-    PROVIDER_DEFAULTS = {  
-      :name => 'Open Archives Initiative Data Provider',
-      :url => 'unknown',
-      :prefix => 'oai:localhost',
-      :email => 'nobody@localhost',
-      :deletes => 'no',
-      :granularity => 'YYYY-MM-DDThh:mm:ssZ',
-      :paginator => nil
     }.freeze
+    
+    RESERVED_WORDS = %w{type id}
+    
+    module DELETE
+      NO = 0
+      TRANSIENT = 1
+      PERSISTENT = 2
+    end
+        
   end
   
 end

@@ -1,6 +1,6 @@
 require 'active_record'
 
-module OAI
+module OAI::Provider
   
   class OaiToken < ActiveRecord::Base
     has_many :entries, :class_name => 'OaiEntry', 
@@ -41,13 +41,13 @@ module OAI
       sweep_cache
       return next_set(token(options)) if token(options)
 
-      constrain_from_until(options)
       conditions = sql_conditions(options)
 
       if :all == selector
         total = model.count conditions
         if @limit && total > @limit
-          select_partial(generate_token(options), 0)
+          select_partial(
+            ResumptionToken.new(options.merge({:last => 0})))
         else
           model.find(:all, :conditions => conditions)
         end
@@ -58,24 +58,24 @@ module OAI
   
     protected 
   
-    def next_set(token)
+    def next_set(token_string)
       raise ResumptionTokenException.new unless @limit
 
-      base_token, offset = extract_token_and_offset(token)
-      total = model.count token_conditions(base_token)
-  
-      if offset * @limit + @limit < total
-        select_partial(base_token, offset)
+      token = ResumptionToken.parse(token_string)
+      total = model.count token_conditions(token)
+
+      if token.last * @limit + @limit < total
+        select_partial(token)
       else 
-        select_partial(base_token, offset).records
+        select_partial(token).records
       end
     end
   
     # select a subset of the result set, and return it with a
     # resumption token to get the next subset
-    def select_partial(token, offset)
-      if 0 == offset
-        oaitoken = OaiToken.find_or_create_by_token(token)
+    def select_partial(token)
+      if 0 == token.last
+        oaitoken = OaiToken.find_or_create_by_token(token.to_s)
         if oaitoken.new_record_before_save?
           OaiToken.connection.execute("insert into " +
             "#{OaiEntry.table_name} (oai_token_id, record_id) " +
@@ -84,15 +84,13 @@ module OAI
         end
       end
       
-      oaitoken = OaiToken.find_by_token(token)
+      oaitoken = OaiToken.find_by_token(token.to_s)
       
       raise ResumptionTokenException.new unless oaitoken
 
       PartialResult.new(
         hydrate_records(oaitoken.entries.find(:all, :limit => @limit, 
-          :offset => offset * @limit)),
-        ResumptionToken.new("#{token}:#{offset+1}", 
-          expires_at(oaitoken.created_at))
+          :offset => token.last * @limit)), token.next(token.last + 1)
       )
     end
     
@@ -102,6 +100,10 @@ module OAI
     
     def hydrate_records(records)
       model.find(records.collect {|r| r.record_id })
+    end
+    
+    def token_conditions(token)
+      sql_conditions token.to_conditions_hash
     end
     
     private

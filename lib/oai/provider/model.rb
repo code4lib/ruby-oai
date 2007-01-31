@@ -1,5 +1,3 @@
-require File.dirname(__FILE__)+'/resumption_tokens'
-
 # = model.rb
 #
 # Copyright (C) 2006 William Groppe
@@ -26,13 +24,16 @@ require File.dirname(__FILE__)+'/resumption_tokens'
 # * sets - if you want to support sets
 # * deleted? - if you want to support deletions
 #
-module OAI
+module OAI::Provider
 
   class Model
     include ResumptionHelpers
     
-    def initialize(limit = nil)
+    attr_reader :timestamp_field
+    
+    def initialize(limit = nil, timestamp_field = 'updated_at')
       @limit = limit
+      @timestamp_field = timestamp_field
     end
     
     def earliest
@@ -42,7 +43,7 @@ module OAI
     def latest
       raise NotImplementedError.new
     end
-  
+    
     def sets
       nil
     end

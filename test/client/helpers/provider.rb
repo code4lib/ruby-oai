@@ -1,11 +1,11 @@
 require 'webrick'
 require File.dirname(__FILE__) + '/../../provider/models'
 
-class ComplexProvider < OAI::Provider
-  name 'Complex Provider'
-  prefix 'oai:test'
-  url 'http://localhost'
-  model ComplexModel.new(100)
+class ComplexProvider < OAI::Provider::Base
+  repository_name 'Complex Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ComplexModel.new(100)
 end
 
 class ProviderServer < WEBrick::HTTPServlet::AbstractServlet
@@ -18,7 +18,7 @@ class ProviderServer < WEBrick::HTTPServlet::AbstractServlet
   
   def do_GET(req, res)
     begin
-      res.body = @provider.process_verb(req.query.delete("verb"), req.query)
+      res.body = @provider.process_request(req.query)
       res.status = 200
       res['Content-Type'] = 'text/xml'
     rescue => err

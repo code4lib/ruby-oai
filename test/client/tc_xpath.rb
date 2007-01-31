@@ -1,4 +1,4 @@
-require 'oai/xpath'
+require 'test_helper'
 
 class XpathTest < Test::Unit::TestCase
   include OAI::XPath

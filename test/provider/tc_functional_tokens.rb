@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ResumptionTokenFunctionalTest < Test::Unit::TestCase
   include REXML
   

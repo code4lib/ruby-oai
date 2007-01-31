@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ProviderExceptions < Test::Unit::TestCase
 
   def setup

@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class IdentifyTest < Test::Unit::TestCase
 
   def test_ok

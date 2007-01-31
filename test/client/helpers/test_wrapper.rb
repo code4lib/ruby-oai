@@ -1,5 +1,3 @@
-require 'provider'
-
 module Test::Unit
   class AutoRunner
     alias_method :real_run, :run

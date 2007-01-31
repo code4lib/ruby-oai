@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ResumptionTokenTest < Test::Unit::TestCase
   include REXML
   include OAI::Provider

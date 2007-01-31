@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class GetRecordsTest < Test::Unit::TestCase
   def test_get_records
     client = OAI::Client.new 'http://localhost:3333/oai'

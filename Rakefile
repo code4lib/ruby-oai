@@ -40,20 +40,18 @@ end
 
 namespace :test do
   Rake::TestTask.new('client') do |t|
-    t.libs << ['lib', 'test/client/helpers']
+    t.libs << ['lib', 'test/client']
     t.pattern = 'test/client/tc_*.rb'
     t.verbose = true
-    t.ruby_opts = ['-r oai', '-r test/unit', '-r test_wrapper']
   end
 
   Rake::TestTask.new('provider') do |t|
     t.libs << ['lib', 'test/provider']
     t.pattern = 'test/provider/tc_*.rb'
     t.verbose = true
-    t.ruby_opts = ['-r oai', '-r test/unit', '-r test_helper.rb']
   end
 
-  desc "Active Record Provider Tests"
+  desc "Active Record base Provider Tests"
   Rake::TestTask.new('activerecord_provider') do |t|
     t.libs << ['lib', 'test/activerecord_provider']
     t.pattern = 'test/activerecord_provider/tc_*.rb'
@@ -61,6 +59,17 @@ namespace :test do
     t.ruby_opts = ['-r oai', '-r rubygems', '-r test/unit', 
       '-r helpers/providers']
   end
+
+  desc 'Measures test coverage'
+  # borrowed from here: http://clarkware.com/cgi/blosxom/2007/01/05#RcovRakeTask
+  task :coverage do
+    rm_f "coverage"
+    rm_f "coverage.data"
+    system("rcov --aggregate coverage.data --text-summary -Ilib:test/provider test/provider/tc_*.rb")
+    system("rcov --aggregate coverage.data --text-summary -Ilib:test/client test/client/tc_*.rb")
+    system("open coverage/index.html") if PLATFORM['darwin']
+  end
+
 end
 
 task 'test:activerecord_provider' => :create_database
@@ -102,8 +111,3 @@ Rake::RDocTask.new('doc') do |rd|
   rd.main = 'OAI'
   rd.rdoc_dir = 'doc'
 end
-
-namespace :test do
-
-end
-

@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ListIdentifiersTest < Test::Unit::TestCase
 
   def test_list_with_resumption_token

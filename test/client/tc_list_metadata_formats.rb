@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ListMetadataFormatsTest < Test::Unit::TestCase
   def test_list
     client = OAI::Client.new 'http://localhost:3333/oai' 

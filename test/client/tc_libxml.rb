@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class LibXMLTest < Test::Unit::TestCase
 
   def test_oai_exception

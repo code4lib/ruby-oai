@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class GetRecordTest < Test::Unit::TestCase
   
   def test_get_one

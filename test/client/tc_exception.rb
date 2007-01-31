@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ExceptionTest < Test::Unit::TestCase
 
   def test_http_error

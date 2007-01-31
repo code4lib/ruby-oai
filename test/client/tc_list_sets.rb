@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ListSetsTest < Test::Unit::TestCase
 
   def test_list

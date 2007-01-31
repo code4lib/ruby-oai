@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class OaiTest < Test::Unit::TestCase
 
   def setup

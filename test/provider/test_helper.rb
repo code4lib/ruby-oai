@@ -1,4 +1,7 @@
-require 'models'
+require 'oai'
+require 'test/unit'
+
+require File.dirname(__FILE__) + '/models'
 include OAI
 
 class SimpleProvider < Provider::Base

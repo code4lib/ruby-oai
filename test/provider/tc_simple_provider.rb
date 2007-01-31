@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class TestSimpleProvider < Test::Unit::TestCase
 
   def setup

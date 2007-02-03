@@ -2,6 +2,7 @@ require 'active_record'
 
 module OAI::Provider
   
+  # ActiveRecord model class in support of the caching wrapper.
   class OaiToken < ActiveRecord::Base
     has_many :entries, :class_name => 'OaiEntry', 
       :order => "record_id", :dependent => :destroy
@@ -21,13 +22,30 @@ module OAI::Provider
 
   end
 
+  # ActiveRecord model class in support of the caching wrapper.
   class OaiEntry < ActiveRecord::Base
     belongs_to :oai_token
 
     validates_uniqueness_of :record_id, :scope => :oai_token
   end
-    
   
+  # = OAI::Provider::ActiveRecordCachingWrapper
+  # 
+  # This class wraps an ActiveRecord model and delegates all of the record
+  # selection/retrieval to the AR model.  It accepts options for specifying
+  # the update timestamp field, a timeout, and a limit.  The limit option 
+  # is used for doing pagination with resumption tokens.  The timeout is
+  # used to expire old tokens from the cache.  Default timeout is 12 hours.
+  #
+  # The difference between ActiveRecordWrapper and this class is how the
+  # pagination is accomplished.  ActiveRecordWrapper encodes all the
+  # information in the token.  That approach should work 99% of the time.
+  # If you have an extremely active respository you may want to consider
+  # the caching wrapper.  The caching wrapper takes the entire result set
+  # from a request and caches it in another database table, well tables
+  # actually.  So the result returned to the client will always be 
+  # internally consistent.
+  #
   class ActiveRecordCachingWrapper < ActiveRecordWrapper
     
     attr_reader :model, :timestamp_field, :expire

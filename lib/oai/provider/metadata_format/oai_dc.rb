@@ -1,43 +1,7 @@
-# = OaiPmh::Metadata::OaiDc
-#
-# Copyright (C) 2006 William Groppe
-#
-# Will Groppe mailto:wfg@artstor.org
-#
-# Only one form of metadata is supported out of the box.  Dublin Core is the 
-# most basic form of metadata, and the one recommended for support in all
-# OAI-PMH repositories.
-#
-# To add additional metadata types it's easiest just to subclass 
-# Oai::Metadata::OaiDc.  Subclasses should override header(xml) to ouput a 
-# valid metadata header.  They should also set defaults for prefix, schema,
-# namespace, element_ns, and fields.
-#
-# === Example
-#  class CdwaLite < Oai::Metadata::OaiDc
-#    prefix = 'cdwalite'
-#    schema = 'http://www.getty.edu/CDWA/CDWALite/CDWALite-xsd-draft-009c2.xsd'
-#    namespace = 'http://www.getty.edu/CDWA/CDWALite'
-#    element_ns = 'cdwalite'
-#    fields = [] # using to_cdwalite in model
-#
-#    def self.header(xml)
-#      xml.tag!('cdwalite:cdwalite',
-#       'xmlns:cdwalite' => "http://www.getty.edu/CDWA/CDWALite",
-#       'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
-#       'xsi:schemaLocation' => 
-#         %{http://www.getty.edu/CDWA/CDWALite 
-#           http://www.getty.edu/CDWA/CDWALite/CDWALite-xsd-draft-009c2.xsd}) do
-#         yield xml
-#      end
-#    end
-#  end
-#
-#  # Now register the new metadata class
-#  Oai.register_metadata_class(CdwaLite)
-#
 module OAI::Metadata
-
+  # = OAI::Metadata::DublinCore
+  # 
+  # Simple implementation of the Dublin Core metadata format.
   class DublinCore < Format
     
     def initialize

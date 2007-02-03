@@ -1,7 +1,15 @@
 require 'active_record'
 
 module OAI::Provider
-  
+  # = OAI::Provider::ActiveRecordWrapper
+  # 
+  # This class wraps an ActiveRecord model and delegates all of the record
+  # selection/retrieval to the AR model.  It accepts options for specifying
+  # the update timestamp field, a timeout, and a limit.  The limit option 
+  # is used for doing pagination with resumption tokens.  The
+  # expiration timeout is ignored, since all necessary information is
+  # encoded in the token.
+  #
   class ActiveRecordWrapper < Model
     
     attr_reader :model, :timestamp_field
@@ -27,7 +35,10 @@ module OAI::Provider
       model.find(:first, 
         :order => "#{timestamp_field} desc").send(timestamp_field)
     end
-    
+
+    # A model class is expected to provide a method Model.sets that
+    # returns all the sets the model supports.  See the 
+    # activerecord_provider tests for an example.   
     def sets
       model.sets if model.respond_to?(:sets)
     end
@@ -59,6 +70,7 @@ module OAI::Provider
     
     protected
     
+    # Request the next set in this sequence.
     def next_set(token_string)
       raise OAI::ResumptionTokenException.new unless @limit
     
@@ -90,7 +102,11 @@ module OAI::Provider
     end
     
     # build a sql conditions statement from the content
-    # of a resumption token
+    # of a resumption token.  It is very important not to
+    # miss any changes as records may change scope as the
+    # harvest is in progress.  To avoid loosing any changes
+    # the last 'id' of the previous set is used as the 
+    # filter to the next set.
     def token_conditions(token)
       last = token.last
       sql = sql_conditions token.to_conditions_hash

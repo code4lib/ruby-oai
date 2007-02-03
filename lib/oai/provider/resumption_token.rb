@@ -3,10 +3,15 @@ require 'enumerator'
 require File.dirname(__FILE__) + "/partial_result"
 
 module OAI::Provider
-  
+  # = OAI::Provider::ResumptionToken
+  #
+  # The ResumptionToken class forms the basis of paging query results.  It
+  # provides several helper methods for dealing with resumption tokens.
+  #
   class ResumptionToken
     attr_reader :prefix, :set, :from, :until, :last, :expiration, :total
 
+    # parses a token string and returns a ResumptionToken
     def self.parse(token_string)
       begin
         options = {}
@@ -31,6 +36,7 @@ module OAI::Provider
       end
     end
     
+    # extracts the metadata prefix from a token string
     def self.extract_format(token_string)
       return token_string.split('.')[0]
     end
@@ -45,6 +51,7 @@ module OAI::Provider
       @total = total if total
     end
           
+    # convenience method for setting the offset of the next set of results
     def next(last)
       @last = last
       self
@@ -56,12 +63,14 @@ module OAI::Provider
         expiration == other.expiration and total == other.total
     end
     
+    # output an xml resumption token
     def to_xml
       xml = Builder::XmlMarkup.new
       xml.resumptionToken(encode_conditions, hash_of_attributes)
       xml.target!
     end
     
+    # return a hash containing just the model selection parameters
     def to_conditions_hash
       conditions = {:metadata_prefix => self.prefix }
       conditions[:set] = self.set if self.set
@@ -70,6 +79,7 @@ module OAI::Provider
       conditions
     end
     
+    # return the a string representation of the token minus the offset
     def to_s
       encode_conditions.gsub(/:\w+?$/, '')
     end

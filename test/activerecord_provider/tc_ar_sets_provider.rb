@@ -1,4 +1,4 @@
-require 'helpers/set_provider'
+require 'test_helper'
 
 class ActiveRecordSetProviderTest < Test::Unit::TestCase
 

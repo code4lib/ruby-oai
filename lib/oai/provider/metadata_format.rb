@@ -1,10 +1,26 @@
 module OAI::Metadata
-  
-  class MetadataFormat
+  # == Metadata Base Class
+  #
+  # MetadataFormat is the base class from which all other format classes 
+  # should inherit.  Format classes provide mapping of record fields into XML.
+  #
+  # * prefix - contains the metadata_prefix used to select the format
+  # * schema - location of the xml schema
+  # * namespace - location of the namespace document
+  # * element_namespace - the namespace portion of the XML elements
+  # * fields - list of fields in this metadata format
+  #
+  # See OAI::Metadata::DublinCore for an example
+  #
+  class Format
     include Singleton
     
     attr_accessor :prefix, :schema, :namespace, :element_namespace, :fields
     
+    # Provided a model, and a record belonging to that model this method
+    # will return an xml represention of the record.  This is the method
+    # that should be extended if you need to create more complex xml
+    # representations.
     def encode(model, record)
       if record.respond_to?("to_#{prefix}")
         record.send("to_#{prefix}")
@@ -27,13 +43,10 @@ module OAI::Metadata
 
     # We try a bunch of different methods to get the data from the model.
     #
-    # 1) See if the model will hand us the entire record in the requested
-    #    format.  Example:  if the model defines 'to_oai_dc' we call that
-    #    method and append the result to the xml stream.
-    # 2) Check if the model defines a field mapping for the field of 
-    #    interest.
-    # 3) Try calling the pluralized name method on the model.
-    # 4) Try calling the singular name method on the model
+    # 1.  Check if the model defines a field mapping for the field of 
+    #     interest.
+    # 2.  Try calling the pluralized name method on the model.
+    # 3.  Try calling the singular name method on the model
     def value_for(field, record, map)
       method = map[field] ? map[field].to_s : field.to_s
       
@@ -47,6 +60,7 @@ module OAI::Metadata
       end
     end
 
+    # Subclasses must override
     def header_specification
       raise NotImplementedError.new
     end

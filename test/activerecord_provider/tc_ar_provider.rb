@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class ActiveRecordProviderTest < Test::Unit::TestCase
 
   def test_identify

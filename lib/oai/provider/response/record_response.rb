@@ -4,8 +4,8 @@ module OAI::Provider::Response
     def self.inherited(klass)
       klass.valid_parameters    :metadata_prefix, :from, :until, :set
       klass.default_parameters  :metadata_prefix => "oai_dc", 
-                                :from => Proc.new {|x| x.provider.model.earliest },
-                                :until => Proc.new {|x| x.provider.model.latest }
+            :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) },
+            :until => Proc.new {|x| Time.parse(x.provider.model.latest.to_s) }
     end
     
     # emit record header
@@ -60,7 +60,7 @@ module OAI::Provider::Response
     def deleted?(record)
       return record.deleted? if record.respond_to?(:deleted?)
       return record.deleted if record.respond_to?(:deleted)
-      return record.deleted_at if record_respond_to?(:deleted_at)
+      return record.deleted_at if record.respond_to?(:deleted_at)
       false
     end
     

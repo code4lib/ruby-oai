@@ -98,6 +98,14 @@ class TestModel < OAI::Provider::Model
       nil
     end
   end
+  
+  def generate_chunks(records, limit)
+    groups = []
+    records.each_slice(limit) do |group|
+      groups << group
+    end
+    groups
+  end
       
   def generate_records(number, timestamp = Time.now, sets = [], deleted = false)
     @earliest = timestamp.dup if @earliest.nil? || timestamp < @earliest

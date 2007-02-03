@@ -7,16 +7,6 @@ module OAI::Provider
   class ResumptionToken
     attr_reader :prefix, :set, :from, :until, :last, :expiration, :total
 
-    def initialize(options, expiration = nil, total = nil)
-      @prefix = options[:metadata_prefix]
-      @set = options[:set]
-      @last = options[:last]
-      @from = options[:from] if options[:from]
-      @until = options[:until] if options[:until]
-      @expiration = expiration if expiration
-      @total = total if total
-    end
-      
     def self.parse(token_string)
       begin
         options = {}
@@ -44,7 +34,17 @@ module OAI::Provider
     def self.extract_format(token_string)
       return token_string.split('.')[0]
     end
-    
+
+    def initialize(options, expiration = nil, total = nil)
+      @prefix = options[:metadata_prefix]
+      @set = options[:set]
+      @last = options[:last]
+      @from = options[:from] if options[:from]
+      @until = options[:until] if options[:until]
+      @expiration = expiration if expiration
+      @total = total if total
+    end
+          
     def next(last)
       @last = last
       self
@@ -91,23 +91,6 @@ module OAI::Provider
       attributes
     end
 
-    
   end
-  
-  module ResumptionHelpers
-    
-    def token(opts)
-      return opts[:resumption_token]
-    end
-        
-    def generate_chunks(records, limit)
-      groups = []
-      records.each_slice(limit) do |group|
-        groups << group
-      end
-      groups
-    end
-        
-  end
-          
+
 end

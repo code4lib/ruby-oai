@@ -1,8 +1,6 @@
-require 'oai'
 require 'active_record'
+require 'oai'
 require "config/connection.rb"
-require 'oai/provider/model/activerecord_wrapper'
-require 'oai/provider/model/activerecord_caching_wrapper'
 
 Dir.glob(File.dirname(__FILE__) + "/../models/*.rb").each do |lib|
   require lib

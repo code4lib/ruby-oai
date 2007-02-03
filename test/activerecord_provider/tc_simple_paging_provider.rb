@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class SimpleResumptionProviderTest < Test::Unit::TestCase
   include REXML
   

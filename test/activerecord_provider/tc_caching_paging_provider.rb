@@ -1,3 +1,5 @@
+require 'test_helper'
+
 class CachingPagingProviderTest < Test::Unit::TestCase
   include REXML
   

@@ -56,8 +56,6 @@ namespace :test do
     t.libs << ['lib', 'test/activerecord_provider']
     t.pattern = 'test/activerecord_provider/tc_*.rb'
     t.verbose = true
-    t.ruby_opts = ['-r oai', '-r rubygems', '-r test/unit', 
-      '-r helpers/providers']
   end
 
   desc 'Measures test coverage'

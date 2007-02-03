@@ -33,7 +33,7 @@ module OAI::Provider
     end
     
     def find(selector, options={})
-      return next_set(token(options)) if token(options)
+      return next_set(options[:resumption_token]) if options[:resumption_token]
       conditions = sql_conditions(options)
       
       if :all == selector

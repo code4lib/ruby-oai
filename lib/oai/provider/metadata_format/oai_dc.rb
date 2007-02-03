@@ -38,7 +38,7 @@
 #
 module OAI::Metadata
 
-  class DublinCore < MetadataFormat
+  class DublinCore < Format
     
     def initialize
       @prefix = 'oai_dc'

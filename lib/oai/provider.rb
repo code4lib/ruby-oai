@@ -21,26 +21,27 @@ if defined?(ActiveRecord)
 end
 
 module OAI::Provider
-  # = provider
+  # = OAI::Provider::Base
   #
   # Open Archives Initiative - Protocol for Metadata Harvesting see 
   # http://www.openarchives.org/ 
   #
-  # === Features
+  # == Features
   # * Easily setup a simple repository
   # * Simple integration with ActiveRecord
   # * Dublin Core metadata format included
   # * Easily add addition metadata formats
   # * Adaptable to any data source
+  # * Simple resumption token support
   #
-  # === Current shortcomings
+  # == Current shortcomings
   # * Doesn't validate metadata
   # * Many others I can't think of right now. :-)
   #
   # == Usage
   #
-  # To create a functional provider either subclass Provider::Base, or reconfigure
-  # the defaults.
+  # To create a functional provider either subclass Provider::Base, 
+  # or reconfigure the defaults.
   # 
   # === Sub classing a provider
   #
@@ -48,8 +49,8 @@ module OAI::Provider
   #    repository_name 'My little OAI provider'
   #    repository_url  'http://localhost/provider'
   #    record_prefix 'oai:localhost'
-  #    admin_email 'root@localhost'             # String or Array
-  #    source_model MyModel.new
+  #    admin_email 'root@localhost'   # String or Array
+  #    source_model MyModel.new       # Subclass of OAI::Provider::Model
   #  end
   #
   # === Configuring the default provider
@@ -61,6 +62,9 @@ module OAI::Provider
   #    admin_email 'root@localhost'
   #    source_model MyModel.new
   #  end
+  #
+  # The provider does allow a URL to be passed in at request processing time
+  # in case the repository URL cannot be determined ahead of time.
   #
   # == Integrating with frameworks
   #
@@ -89,68 +93,65 @@ module OAI::Provider
   #
   # 
   #
-  # === Supporting custom metadata
+  # == Supporting custom metadata formats
   #
   # See Oai::Metadata for details.
   # 
-  # == Examples
-  #
   # == ActiveRecord Integration
   #
-  # To successfully use ActiveRecord as a OAI PMH datasource the database 
-  # table
-  # should include an updated_at column so that updates to the table are 
-  # tracked by ActiveRecord.  This provides much of the base functionality for
-  # selecting update periods.
+  # ActiveRecord integration is provided by the ActiveRecordWrapper class.
+  # It takes one required paramater, the class name of the AR class to wrap,
+  # and optional hash of options.
   #
-  # To understand how the data is extracted from the AR model it's best to just
-  # go thru the logic:
-  #
-  # Does the model respond to 'to_{prefix}'?  Where prefix is the
-  # metadata prefix.  If it does then just include the response from
-  # the model.  So if you want to provide custom or complex metadata you can 
-  # simply define a 'to_{prefix}' method on your model.
+  # Valid options include:
+  # * timestamp_field - Specifies the model field to use as the update
+  #                     filter.  Defaults to 'updated_at'.
+  # * limit -           Maximum number of records to return in each page/set.
+  #                     Defaults to 100.  The wrapper will paginate the 
+  #                     result via resumption tokens.  Caution:  specifying
+  #                     too large a limit will adversely affect performance.
   # 
-  # Example:
+  # Mapping from a ActiveRecord object to a specific metadata format follows
+  # this set of rules:
   #
-  #  class Record < ActiveRecord::Base
+  # 1. Does Model#to_{metadata_prefix} exist?  If so just return the result.
+  # 2. Does the model provide a map via Model.map_{metadata_prefix}?  If so
+  #    use the map to generate the xml document.
+  # 3. Loop thru the fields of the metadata format and check to see if the
+  #    model responds to either the plural, or singular of the field.
   #
+  # For maximum control of the xml metadata generated, it's usually best to
+  # provide a 'to_{metadata_prefix}' in the model.  If using Builder be sure
+  # not to include any instruct! in the xml object.
+  #  
+  # === Explicit creation example 
+  #
+  #  class Post < ActiveRecord::Base
   #    def to_oai_dc
   #      xml = Builder::XmlMarkup.new
-  #      xml.tag!('oai_dc:dc',
+  #      xml.tag!("oai_dc:dc", 
   #        'xmlns:oai_dc' => "http://www.openarchives.org/OAI/2.0/oai_dc/",
   #        'xmlns:dc' => "http://purl.org/dc/elements/1.1/",
   #        'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
   #        'xsi:schemaLocation' => 
   #          %{http://www.openarchives.org/OAI/2.0/oai_dc/ 
-  #          http://www.openarchives.org/OAI/2.0/oai_dc.xsd}) do
-  #
-  #          xml.oai_dc :title, title
-  #          xml.oai_dc :subject, subject
+  #            http://www.openarchives.org/OAI/2.0/oai_dc.xsd}) do
+  #          xml.tag!('oai_dc:title', title)
+  #          xml.tag!('oai_dc:description', text)
+  #          xml.tag!('oai_dc:creator', user)
+  #          tags.each do |tag|
+  #            xml.tag!('oai_dc:subject', tag)
+  #          end
   #      end
-  #      xml.to_s
+  #      xml.target!
   #    end
+  #  end  
   #
-  #  end
+  # === Mapping Example
   #
-  # If the model doesn't define a 'to_{prefix}' then start iterating thru
-  # the defined metadata fields.
-  #
-  # Grab a mapping if one exists by trying to call 'map_{prefix}'.
-  #
-  # Now do the iteration and try calling methods on the model that match
-  # the field names, or the mapped field names.
-  #
-  # So with Dublin Core we end up with the following:
-  #
-  # 1. Check for 'title' mapped to a different method.
-  # 2. Call model.titles - try plural
-  # 3. Call model.title - try singular last
-  #
-  # Extremely contrived Blog example:
-  #
+  #  # Extremely contrived example
   #  class Post < ActiveRecord::Base
-  #    def map_oai_dc
+  #    def self.map_oai_dc
   #      {:subject => :tags, 
   #       :description => :text, 
   #       :creator => :user, 

@@ -1,6 +1,27 @@
 module OAI
   module Harvester
-  
+    # = OAI::Harvester::Shell
+    # 
+    # A OAI-PMH client shell allowing OAI Harvesting to be configured in
+    # an interactive manner.  Typing 'oai' on the command line starts the
+    # shell.  The first time the shell is run it will prompt for the following
+    # configuration details:
+    # 1. A storage directory for all harvested records.  Harvests will be 
+    #    stored under this directory in a directory structure based on the 
+    #    date of the harvest.
+    # 2. A log file directory.
+    # 3. Email address(es) for sending daily harvesting activity reports.
+    # 4. Network address of the SMTP server for sending mail.
+    #
+    # After the initial configuration, new harvest sites can be added by using
+    # the 'new' command.  Sites are identified via nickname assigned by the
+    # user.  After choosing a nickname, provide the URL of a harvestable site,
+    # and the shell will prompt you for the rest of the configuration
+    # information.
+    #
+    # The shell automatically pulls down the list of sets in the repository, and
+    # the supported metadata prefixes.  Making it very simple to setup harvests.
+    #  
     class Shell
       include Readline
     

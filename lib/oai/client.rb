@@ -53,19 +53,24 @@ module OAI
     # The constructor which must be passed a valid base url for an oai 
     # service:
     #
-    #   client = OAI::Harvseter.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
     #
     # If you want to see debugging messages on STDERR use:
     #
-    #   client = OAI::Harvester.new 'http://example.com', :debug => true
+    #   client = OAI::Client.new 'http://example.com', :debug => true
     #
     # By default OAI verbs called on the client will return REXML::Element
     # objects for metadata records, however if you wish you can use the
     # :parser option to indicate you want to use 'libxml' instead, and get
     # back XML::Node objects
     #
-    #   client = OAI::Harvester.new 'http://example.com', :parser => 'libxml'
-    
+    #   client = OAI::Client.new 'http://example.com', :parser => 'libxml'
+    #
+    # === HIGH PERFORMANCE
+    #
+    # If you want to supercharge this api install libxml-ruby >= 0.3.8 and 
+    # use the :parser option when you construct your OAI::Client.
+    #
     def initialize(base_url, options={})
       @base = URI.parse base_url
       @debug = options.fetch(:debug, false)

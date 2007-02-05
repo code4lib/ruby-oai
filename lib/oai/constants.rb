@@ -13,10 +13,20 @@ module OAI
     
     RESERVED_WORDS = %w{type id}
     
-    module DELETE
-      NO = 0
-      TRANSIENT = 1
-      PERSISTENT = 2
+    # Two granularities are supported in OIA-PMH, daily or seconds. 
+    module Granularity
+      LOW = 'YYYY-MM-DD'
+      HIGH = 'YYYY-MM-DDThh:mm:ssZ'
+    end
+    
+    # Repositories can support three different schemes for dealing with deletions.
+    # * NO - No deletions allowed
+    # * TRANSIENT - Deletions are supported but may not be permanently maintained.
+    # * PERSISTENT - Deletions are supported and are permanently maintained.
+    module Delete
+      NO = :no
+      TRANSIENT = :transient
+      PERSISTENT = :persistent
     end
         
   end

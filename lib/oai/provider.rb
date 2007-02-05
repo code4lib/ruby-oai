@@ -20,145 +20,169 @@ if defined?(ActiveRecord)
   require File.dirname(__FILE__) + "/provider/model/activerecord_caching_wrapper"
 end
 
+# = OAI::Provider
+#
+# Open Archives Initiative - Protocol for Metadata Harvesting see 
+# http://www.openarchives.org/ 
+#
+# == Features
+# * Easily setup a simple repository
+# * Simple integration with ActiveRecord
+# * Dublin Core metadata format included
+# * Easily add addition metadata formats
+# * Adaptable to any data source
+# * Simple resumption token support
+#
+# == Current shortcomings
+# * Doesn't validate metadata
+# * Many others I can't think of right now. :-)
+#
+# == Usage
+#
+# To create a functional provider either subclass Provider::Base, 
+# or reconfigure the defaults.
+# 
+# === Sub classing a provider
+#
+#  class MyProvider < Oai::Provider
+#    repository_name 'My little OAI provider'
+#    repository_url  'http://localhost/provider'
+#    record_prefix 'oai:localhost'
+#    admin_email 'root@localhost'   # String or Array
+#    source_model MyModel.new       # Subclass of OAI::Provider::Model
+#  end
+#
+# === Configuring the default provider
+#
+#  class Oai::Provider::Base
+#    repository_name 'My little OAI Provider'
+#    repository_url 'http://localhost/provider'
+#    record_prefix 'oai:localhost'
+#    admin_email 'root@localhost'
+#    source_model MyModel.new
+#  end
+#
+# The provider does allow a URL to be passed in at request processing time
+# in case the repository URL cannot be determined ahead of time.
+#
+# == Integrating with frameworks
+#
+# === Camping
+#
+# In the Models module of your camping application post model definition:
+# 
+#   class CampingProvider < OAI::Provider::Base
+#     repository_name 'Camping Test OAI Repository'
+#     source_model ActiveRecordWrapper.new(YOUR_ACTIVE_RECORD_MODEL)
+#   end
+#
+# In the Controllers module:
+#
+#   class Oai
+#     def get
+#       @headers['Content-Type'] = 'text/xml'
+#       provider = Models::CampingProvider.new
+#       provider.process_request(@input.merge(:url => "http:"+URL(Oai).to_s))
+#     end
+#   end
+#
+# The provider will be available at "/oai"
+#
+# === Rails
+#
+# At the bottom of environment.rb create a OAI Provider:
+#
+#   # forgive the standard blog example.
+# 
+#   require 'oai'
+#   class BlogProvider < OAI::Provider::Base
+#     repository_name 'My little OAI Provider'
+#     repository_url 'http://localhost:3000/provider'
+#     record_prefix 'oai:blog'
+#     admin_email 'root@localhost'
+#     source_model OAI::Provider::ActiveRecordWrapper.new(Post)
+#   end
+#
+# Create a custom controller:
+#
+#   class OaiController < ApplicationController
+#     def index
+#       # Remove controller and action from the options.  Rails adds them automatically.
+#       options = params.delete_if { |k,v| %w{controller action}.include?(k) }
+#       provider = BlogProvider.new
+#       response =  provider.process_request(options)
+#       render :text => response, :content_type => 'text/xml'
+#     end
+#   end
+#
+# Special thanks to Jose Hales-Garcia for this solution. 
+#
+# == Supporting custom metadata formats
+#
+# See Oai::Metadata for details.
+# 
+# == ActiveRecord Integration
+#
+# ActiveRecord integration is provided by the ActiveRecordWrapper class.
+# It takes one required paramater, the class name of the AR class to wrap,
+# and optional hash of options.
+#
+# Valid options include:
+# * timestamp_field - Specifies the model field to use as the update
+#   filter.  Defaults to 'updated_at'.
+# * limit -           Maximum number of records to return in each page/set.
+#   Defaults to 100.  The wrapper will paginate the result via resumption tokens.  
+#   Caution:  specifying too large a limit will adversely affect performance.
+# 
+# Mapping from a ActiveRecord object to a specific metadata format follows
+# this set of rules:
+#
+# 1. Does Model#to_{metadata_prefix} exist?  If so just return the result.
+# 2. Does the model provide a map via Model.map_{metadata_prefix}?  If so
+#    use the map to generate the xml document.
+# 3. Loop thru the fields of the metadata format and check to see if the
+#    model responds to either the plural, or singular of the field.
+#
+# For maximum control of the xml metadata generated, it's usually best to
+# provide a 'to_{metadata_prefix}' in the model.  If using Builder be sure
+# not to include any instruct! in the xml object.
+#  
+# === Explicit creation example 
+#
+#  class Post < ActiveRecord::Base
+#    def to_oai_dc
+#      xml = Builder::XmlMarkup.new
+#      xml.tag!("oai_dc:dc", 
+#        'xmlns:oai_dc' => "http://www.openarchives.org/OAI/2.0/oai_dc/",
+#        'xmlns:dc' => "http://purl.org/dc/elements/1.1/",
+#        'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
+#        'xsi:schemaLocation' => 
+#          %{http://www.openarchives.org/OAI/2.0/oai_dc/ 
+#            http://www.openarchives.org/OAI/2.0/oai_dc.xsd}) do
+#          xml.tag!('oai_dc:title', title)
+#          xml.tag!('oai_dc:description', text)
+#          xml.tag!('oai_dc:creator', user)
+#          tags.each do |tag|
+#            xml.tag!('oai_dc:subject', tag)
+#          end
+#      end
+#      xml.target!
+#    end
+#  end  
+#
+# === Mapping Example
+#
+#  # Extremely contrived mapping
+#  class Post < ActiveRecord::Base
+#    def self.map_oai_dc
+#      {:subject => :tags, 
+#       :description => :text, 
+#       :creator => :user, 
+#       :contibutor => :comments}
+#    end
+#  end
+#
 module OAI::Provider
-  # = OAI::Provider::Base
-  #
-  # Open Archives Initiative - Protocol for Metadata Harvesting see 
-  # http://www.openarchives.org/ 
-  #
-  # == Features
-  # * Easily setup a simple repository
-  # * Simple integration with ActiveRecord
-  # * Dublin Core metadata format included
-  # * Easily add addition metadata formats
-  # * Adaptable to any data source
-  # * Simple resumption token support
-  #
-  # == Current shortcomings
-  # * Doesn't validate metadata
-  # * Many others I can't think of right now. :-)
-  #
-  # == Usage
-  #
-  # To create a functional provider either subclass Provider::Base, 
-  # or reconfigure the defaults.
-  # 
-  # === Sub classing a provider
-  #
-  #  class MyProvider < Oai::Provider
-  #    repository_name 'My little OAI provider'
-  #    repository_url  'http://localhost/provider'
-  #    record_prefix 'oai:localhost'
-  #    admin_email 'root@localhost'   # String or Array
-  #    source_model MyModel.new       # Subclass of OAI::Provider::Model
-  #  end
-  #
-  # === Configuring the default provider
-  #
-  #  class Oai::Provider::Base
-  #    repository_name 'My little OAI Provider'
-  #    repository_url 'http://localhost/provider'
-  #    record_prefix 'oai:localhost'
-  #    admin_email 'root@localhost'
-  #    source_model MyModel.new
-  #  end
-  #
-  # The provider does allow a URL to be passed in at request processing time
-  # in case the repository URL cannot be determined ahead of time.
-  #
-  # == Integrating with frameworks
-  #
-  # === Camping
-  #
-  # In the Models module of your camping application post model definition:
-  # 
-  #   class CampingProvider < OAI::Provider::Base
-  #     repository_name 'Camping Test OAI Repository'
-  #     source_model ActiveRecordWrapper.new(YOUR_ACTIVE_RECORD_MODEL)
-  #   end
-  #
-  # In the Controllers module:
-  #
-  #   class Oai
-  #     def get
-  #       @headers['Content-Type'] = 'text/xml'
-  #       provider = Models::CampingProvider.new
-  #       provider.process_request(@input.merge(:url => "http:"+URL(Oai).to_s))
-  #     end
-  #   end
-  #
-  # The provider will be available at "/oai"
-  #
-  # === Rails
-  #
-  # 
-  #
-  # == Supporting custom metadata formats
-  #
-  # See Oai::Metadata for details.
-  # 
-  # == ActiveRecord Integration
-  #
-  # ActiveRecord integration is provided by the ActiveRecordWrapper class.
-  # It takes one required paramater, the class name of the AR class to wrap,
-  # and optional hash of options.
-  #
-  # Valid options include:
-  # * timestamp_field - Specifies the model field to use as the update
-  #                     filter.  Defaults to 'updated_at'.
-  # * limit -           Maximum number of records to return in each page/set.
-  #                     Defaults to 100.  The wrapper will paginate the 
-  #                     result via resumption tokens.  Caution:  specifying
-  #                     too large a limit will adversely affect performance.
-  # 
-  # Mapping from a ActiveRecord object to a specific metadata format follows
-  # this set of rules:
-  #
-  # 1. Does Model#to_{metadata_prefix} exist?  If so just return the result.
-  # 2. Does the model provide a map via Model.map_{metadata_prefix}?  If so
-  #    use the map to generate the xml document.
-  # 3. Loop thru the fields of the metadata format and check to see if the
-  #    model responds to either the plural, or singular of the field.
-  #
-  # For maximum control of the xml metadata generated, it's usually best to
-  # provide a 'to_{metadata_prefix}' in the model.  If using Builder be sure
-  # not to include any instruct! in the xml object.
-  #  
-  # === Explicit creation example 
-  #
-  #  class Post < ActiveRecord::Base
-  #    def to_oai_dc
-  #      xml = Builder::XmlMarkup.new
-  #      xml.tag!("oai_dc:dc", 
-  #        'xmlns:oai_dc' => "http://www.openarchives.org/OAI/2.0/oai_dc/",
-  #        'xmlns:dc' => "http://purl.org/dc/elements/1.1/",
-  #        'xmlns:xsi' => "http://www.w3.org/2001/XMLSchema-instance",
-  #        'xsi:schemaLocation' => 
-  #          %{http://www.openarchives.org/OAI/2.0/oai_dc/ 
-  #            http://www.openarchives.org/OAI/2.0/oai_dc.xsd}) do
-  #          xml.tag!('oai_dc:title', title)
-  #          xml.tag!('oai_dc:description', text)
-  #          xml.tag!('oai_dc:creator', user)
-  #          tags.each do |tag|
-  #            xml.tag!('oai_dc:subject', tag)
-  #          end
-  #      end
-  #      xml.target!
-  #    end
-  #  end  
-  #
-  # === Mapping Example
-  #
-  #  # Extremely contrived example
-  #  class Post < ActiveRecord::Base
-  #    def self.map_oai_dc
-  #      {:subject => :tags, 
-  #       :description => :text, 
-  #       :creator => :user, 
-  #       :contibutor => :comments}
-  #    end
-  #  end
-  #
   class Base
     include OAI::Provider
     
@@ -202,10 +226,10 @@ module OAI::Provider
     Base.repository_url 'unknown'
     Base.record_prefix 'oai:localhost'
     Base.admin_email 'nobody@localhost'
-    Base.deletion_support OAI::Const::DELETE::TRANSIENT
-    Base.update_granularity 'YYYY-MM-DDThh:mm:ssZ'
+    Base.deletion_support OAI::Const::Delete::TRANSIENT
+    Base.update_granularity OAI::Const::Granularity::HIGH
 
-    Base.register_format(OAI::Metadata::DublinCore.instance)
+    Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
     
     # Equivalent to '&verb=Identify', returns information about the repository
     def identify(options = {})

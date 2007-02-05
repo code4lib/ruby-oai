@@ -1,4 +1,4 @@
-module OAI::Metadata
+module OAI::Provider::Metadata
   # == Metadata Base Class
   #
   # MetadataFormat is the base class from which all other format classes 

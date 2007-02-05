@@ -105,7 +105,7 @@ task :load_fixtures => :create_database do
 end
   
 Rake::RDocTask.new('doc') do |rd|
-  rd.rdoc_files.include("lib/**/*.rb")
-  rd.main = 'OAI'
+  rd.rdoc_files.include("lib/**/*.rb", "README")
+  rd.main = 'README'
   rd.rdoc_dir = 'doc'
 end

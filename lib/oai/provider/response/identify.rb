@@ -12,22 +12,12 @@ module OAI::Provider::Response
             r.adminEmail address
           end if provider.email
           r.earliestDatestamp provider.model.earliest
-          r.deleteRecord word_for_delete(provider.delete_support)
+          r.deleteRecord provider.delete_support.to_s
           r.granularity provider.granularity
         end
       end
     end
     
-    private
-    
-    def word_for_delete(delete_support)
-      case delete_support
-      when OAI::Const::DELETE::NO then 'no'
-      when OAI::Const::DELETE::TRANSIENT then 'transient'
-      when OAI::Const::DELETE::PERSISTENT then 'persistent'
-      end
-    end
-
   end
   
 end

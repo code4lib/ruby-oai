@@ -1,4 +1,4 @@
-module OAI::Metadata
+module OAI::Provider::Metadata
   # = OAI::Metadata::DublinCore
   # 
   # Simple implementation of the Dublin Core metadata format.

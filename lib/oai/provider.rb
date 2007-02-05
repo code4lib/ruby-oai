@@ -33,9 +33,6 @@ end
 # * Adaptable to any data source
 # * Simple resumption token support
 #
-# == Current shortcomings
-# * Doesn't validate metadata
-#
 # == Usage
 #
 # To create a functional provider either subclass Provider::Base, 

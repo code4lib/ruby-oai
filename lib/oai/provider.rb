@@ -35,7 +35,6 @@ end
 #
 # == Current shortcomings
 # * Doesn't validate metadata
-# * Many others I can't think of right now. :-)
 #
 # == Usage
 #

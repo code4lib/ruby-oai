@@ -8,11 +8,11 @@ if not defined?(OAI::Const::VERBS)
   require 'oai/exception'
   require 'oai/constants'
   require 'oai/xpath'
-  require 'oai/metadata_format'
   require 'oai/set'
 end
 
 # Localize requires so user can select a subset of functionality
+require 'oai/client/metadata_format'
 require 'oai/client/response'
 require 'oai/client/header'
 require 'oai/client/record' 

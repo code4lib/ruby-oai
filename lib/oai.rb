@@ -1,14 +1,8 @@
-require 'oai/xpath'
-require 'oai/response'
-require 'oai/exception'
-require 'oai/header'
-require 'oai/record'
-require 'oai/set'
-require 'oai/metadata_format'
+require 'rubygems'
+require 'date'
+
+# Sub projects (client, provider) require their own libraries so the user
+# can selectively load them.
 require 'oai/client'
-require 'oai/identify'
-require 'oai/list_identifiers'
-require 'oai/list_metadata_formats'
-require 'oai/get_record'
-require 'oai/list_records'
-require 'oai/list_sets'
+require 'oai/provider'
+

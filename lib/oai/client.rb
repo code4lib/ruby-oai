@@ -1,7 +1,27 @@
+# External dependencies
 require 'uri'
 require 'net/http'
 require 'cgi'
-require 'date'
+
+if not defined?(OAI::Const::VERBS)
+  # Shared stuff
+  require 'oai/exception'
+  require 'oai/constants'
+  require 'oai/xpath'
+  require 'oai/set'
+end
+
+# Localize requires so user can select a subset of functionality
+require 'oai/client/metadata_format'
+require 'oai/client/response'
+require 'oai/client/header'
+require 'oai/client/record' 
+require 'oai/client/identify'
+require 'oai/client/get_record'
+require 'oai/client/list_identifiers'
+require 'oai/client/list_metadata_formats'
+require 'oai/client/list_records'
+require 'oai/client/list_sets'
 
 module OAI
 
@@ -33,29 +53,35 @@ module OAI
     # The constructor which must be passed a valid base url for an oai 
     # service:
     #
-    #   client = OAI::Harvseter.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
     #
     # If you want to see debugging messages on STDERR use:
     #
-    #   client = OAI::Harvester.new 'http://example.com', :debug => true
+    #   client = OAI::Client.new 'http://example.com', :debug => true
     #
     # By default OAI verbs called on the client will return REXML::Element
     # objects for metadata records, however if you wish you can use the
     # :parser option to indicate you want to use 'libxml' instead, and get
     # back XML::Node objects
     #
-    #   client = OAI::Harvester.new 'http://example.com', :parser => 'libxml'
-    
+    #   client = OAI::Client.new 'http://example.com', :parser => 'libxml'
+    #
+    # === HIGH PERFORMANCE
+    #
+    # If you want to supercharge this api install libxml-ruby >= 0.3.8 and 
+    # use the :parser option when you construct your OAI::Client.
+    #
     def initialize(base_url, options={})
       @base = URI.parse base_url
       @debug = options.fetch(:debug, false)
       @parser = options.fetch(:parser, 'rexml')
+      @follow_redirects = options.fetch(:redirects, true)
       
       # load appropriate parser
       case @parser
       when 'libxml'
         begin
-	  require 'rubygems'
+          require 'rubygems'
           require 'xml/libxml'
         rescue
           raise OAI::Exception.new("xml/libxml not available")
@@ -74,15 +100,14 @@ module OAI
     # parser then you will get an XML::Node object instead.
     
     def identify
-      return IdentifyResponse.new(do_request(:verb => 'Identify'))
+      return OAI::IdentifyResponse.new(do_request('Identify'))
     end
 
     # Equivalent to a ListMetadataFormats request. A ListMetadataFormatsResponse
     # object is returned to you. 
     
     def list_metadata_formats(opts={})
-      sanitize_verb_arguments 'ListMetadataFormats', opts, [:verb, :identifier]
-      return ListMetadataFormatsResponse.new(do_request(opts))
+      return OAI::ListMetadataFormatsResponse.new(do_request('ListMetadataFormats', opts))
     end
 
     # Equivalent to a ListIdentifiers request. Pass in :from, :until arguments
@@ -90,10 +115,7 @@ module OAI
     # supported by the server.
     
     def list_identifiers(opts={})
-      sanitize_verb_arguments 'ListIdentifiers', opts, 
-        [:verb, :from, :until, :metadata_prefix, :set, :resumption_token]
-      add_default_metadata_prefix opts
-      return ListIdentifiersResponse.new(do_request(opts)) 
+      return OAI::ListIdentifiersResponse.new(do_request('ListIdentifiers', opts)) 
     end
 
     # Equivalent to a GetRecord request. You must supply an identifier 
@@ -101,10 +123,7 @@ module OAI
     # which you can extract a OAI::Record object from.
     
     def get_record(opts={})
-      sanitize_verb_arguments 'GetRecord', opts, 
-        [:verb, :identifier, :metadata_prefix]
-      add_default_metadata_prefix opts
-      return GetRecordResponse.new(do_request(opts))
+      return OAI::GetRecordResponse.new(do_request('GetRecord', opts))
     end
 
     # Equivalent to the ListRecords request. A ListRecordsResponse
@@ -115,10 +134,7 @@ module OAI
     #   end
     
     def list_records(opts={})
-      sanitize_verb_arguments 'ListRecords', opts, [:verb, :from, :until, :set, 
-        :resumption_token, :metadata_prefix]
-      add_default_metadata_prefix opts
-      return ListRecordsResponse.new(do_request(opts))
+      return OAI::ListRecordsResponse.new(do_request('ListRecords', opts))
     end
 
     # Equivalent to the ListSets request. A ListSetsResponse object
@@ -130,43 +146,39 @@ module OAI
     #   end
     
     def list_sets(opts={})
-      sanitize_verb_arguments 'ListSets', opts, [:verb, :resumptionToken]
-      return ListSetsResponse.new(do_request(opts))
+      return OAI::ListSetsResponse.new(do_request('ListSets', opts))
     end
 
     private 
 
-    def do_request(hash)
-      uri = @base.clone
-
-      # build up the query string
-      parts = hash.entries.map do |entry|
-        key = studly(entry[0].to_s)
-        value = entry[1]
-        # dates get stringified using ISO8601, strings are url encoded
-        value = case value
-          when DateTime then value.strftime('%Y-%m-%dT%H:%M:%SZ'); 
-          when Date then value.strftime('%Y-%m-%d')
-          else CGI.escape(entry[1].to_s)
-        end
-        "#{key}=#{value}"
-      end
-      uri.query = parts.join('&')
-      debug("doing request: #{uri.to_s}")
-
+    def do_request(verb, opts = nil)
       # fire off the request and return appropriate DOM object
-      begin
-        xml = Net::HTTP.get(uri)
-	if @parser == 'libxml' 
-          # remove default namespace for oai-pmh since libxml
-          # isn't able to use our xpaths to get at them 
-          # if you know a way around thins please let me know
-          xml = xml.gsub(
-            /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
-        end
-        return load_document(xml)
-      rescue StandardError => e
-        raise OAI::Exception, 'HTTP level error during OAI request: '+e, caller
+      uri = build_uri(verb, opts)
+      xml = get(uri)
+      if @parser == 'libxml' 
+        # remove default namespace for oai-pmh since libxml
+        # isn't able to use our xpaths to get at them 
+        # if you know a way around thins please let me know
+        xml = xml.gsub(
+          /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
+      end
+      return load_document(xml)
+    end
+    
+    def build_uri(verb, opts)
+      opts = validate_options(verb, opts)
+      uri = @base.clone
+      uri.query = "verb=" << verb
+      opts.each_pair { |k,v| uri.query << '&' << externalize(k) << '=' << encode(v) }
+      uri
+    end
+    
+    def encode(value)
+      return CGI.escape(value) unless value.respond_to?(:strftime)
+      if value.respond_to?(:to_time) # Usually a DateTime or Time
+        value.to_time.utc.xmlschema
+      else # Assume something date like
+        value.strftime('%Y-%m-%d')
       end
     end
 
@@ -189,45 +201,83 @@ module OAI
       end
     end
 
-    # convert foo_bar to fooBar thus allowing our ruby code to use
-    # the typical underscore idiom
-    def studly(s)
-      s.gsub(/_(\w)/) do |match|
-        match.sub! '_', ''
-        match.upcase
-      end
-    end
-
-    # add a metadata prefix unless it's there or we are working with 
-    # a resumption token, and having one added could cause problems
-    def add_default_metadata_prefix(opts)
-      unless opts.has_key? :metadata_prefix or opts.has_key? :resumption_token
-        opts[:metadata_prefix] = 'oai_dc'
-      end
-    end
-
-    def sanitize_verb_arguments(verb, opts, valid_opts)
-      # opts could mistakenly not be a hash if the method was called wrong
-      # client.get_record(12) instead of client.get_record(:identifier => 12)
-      unless opts.kind_of?(Hash)
-        raise OAI::Exception.new("method options must be passed as a hash") 
-      end
-
-      # add the verb
-      opts[:verb] = verb
-
-      # make sure options aren't using studly caps, and that they're legit
-      opts.keys.each do |opt|
-        if opt =~ /[A-Z]/
-          raise OAI::Exception.new("#{opt} should use underscores")
-        elsif not valid_opts.include? opt 
-          raise OAI::Exception.new("invalid option #{opt} in #{opts['verb']}")
+    # Do the actual HTTP get, following any temporary redirects
+    def get(uri)
+      response = Net::HTTP.get_response(uri)
+      case response
+      when Net::HTTPSuccess
+        return response.body
+      when Net::HTTPMovedPermanently
+        if @follow_redirects
+          response = get(URI.parse(response['location']))
+        else
+          raise ArgumentError, "Permanently Redirected to [#{response['location']}]"
         end
+      when Net::HTTPTemporaryRedirect
+        response = get(URI.parse(response['location']))
+      else
+        raise ArgumentError, "#{response.code_type} [#{response.code}]"
       end
     end
 
     def debug(msg)
       $stderr.print("#{msg}\n") if @debug
     end
+    
+    # Massage the standard OAI options to make them a bit more palatable.
+    def validate_options(verb, opts = {})
+      raise OAI::VerbException.new unless Const::VERBS.keys.include?(verb)
+
+      return {} if opts.nil?
+
+      raise OAI::ArgumentException.new unless opts.respond_to?(:keys)
+      
+      realopts = {}
+      # Internalize the hash
+      opts.keys.each do |key|
+        realopts[key.to_s.gsub(/([A-Z])/, '_\1').downcase.intern] = opts.delete(key)
+      end
+      
+      return realopts if is_resumption?(realopts)
+      
+      # add in a default metadataPrefix if none exists
+      if(Const::VERBS[verb].include?(:metadata_prefix))
+        realopts[:metadata_prefix] ||= 'oai_dc'
+      end
+      
+      # Convert date formated strings in dates.
+      realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
+      realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
+
+      # check for any bad options
+      unless (realopts.keys - OAI::Const::VERBS[verb]).empty?
+        raise OAI::ArgumentException.new
+      end
+      realopts
+    end
+    
+    def is_resumption?(opts)
+      if opts.keys.include?(:resumption_token) 
+        return true if 1 == opts.keys.size
+        raise OAI::ArgumentException.new
+      end
+    end
+        
+    # Convert our internal representations back into standard OAI options
+    def externalize(value)
+      value.to_s.gsub(/_[a-z]/) { |m| m.sub("_", '').capitalize }
+    end
+    
+    def parse_date(value)
+      return value if value.respond_to?(:strftime)
+      
+      # Oddly Chronic doesn't parse an UTC encoded datetime.  
+      # Luckily Time does
+      dt = Chronic.parse(value) || Time.parse(value)
+      raise OAI::ArgumentError.new unless dt
+      
+      dt.utc
+    end
+    
   end
 end

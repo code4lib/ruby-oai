@@ -1,32 +1,59 @@
-ruby-oai
---------
+= ruby-oai
 
-DESCRIPTION
+== DESCRIPTION
 
-ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH) 
-client library for Ruby. If you're not familiar with OAI-PMH it is the 
-most used protocol for sharing metadata between digital library repositories.
+ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH[http://openarchives.org]) 
+library for Ruby. If you're not familiar with OAI-PMH[http://openarchives.org] it is the most used 
+protocol for sharing metadata between digital library repositories.
 
-The OAI-PMH spec defines six verbs (Identify, ListIdentifiers, ListRecords, 
-GetRecords, ListSets, ListMetadataFormat) which translate into methods you 
-can call on a OAI::Client object.
+The OAI-PMH[http://openarchives.org] spec defines six verbs (Identify, ListIdentifiers, ListRecords, 
+GetRecords, ListSets, ListMetadataFormat) used for discovery and sharing of
+metadata.
 
-SYNOPSIS
+The ruby-oai gem includes a client library, a server/provider library and
+a interactive harvesting shell.
 
-  # do a ListRecords request and print out the REXML::Element objects
-  # for each record
+=== client
 
+The OAI client library is used for harvesting metadata from repositories. 
+For example to initiate a ListRecords request to pubmed you can:
+
+  require 'oai'
   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
-  for record in client.list_records 
+  for record in client.list_records
     puts record.metadata
   end
 
-HIGH PERFORMANCE
+See OAI::Client for more details
 
-If you want to supercharge this api install libxml-ruby >= 0.3.8 and use the 
-:parser option when you construct your OAI::Client.
+=== provider
 
-INSTALLATION
+The OAI provider library handles serving local content to other clients.
+
+Setting up a simple provider:
+
+  class MyProvider < Oai::Provider
+    repository_name 'My little OAI provider'
+    repository_url  'http://localhost/provider'
+    record_prefix 'oai:localhost'
+    admin_email 'root@localhost'   # String or Array
+    source_model MyModel.new       # Subclass of OAI::Provider::Model
+  end
+
+See OAI::Provider for more details
+
+=== interactive harvester
+
+The OAI-PMH[http://openarchives.org] client shell allows OAI Harvesting to be configured in
+an interactive manner.  Typing 'oai' on the command line starts the
+shell.
+
+After initial configuration, the shell can be used to manage harvesting
+operations.
+
+See OAI::Harvester::Shell for more details
+
+== INSTALLATION
 
 Normally the best way to install oai is from rubyforge using the gem
 command line tool:
@@ -41,6 +68,13 @@ So you'll need to:
 
 Where x.y.z is the version of the gem that was generated.
 
-BUGS/SUGGESTIONS
+== TODO
+
+* consolidate response classes used by provider and client
+* automatic validation of metadata schemas
+* email the authors with your suggestions
+
+== AUTHORS
 
 - Ed Summers <ehs@pobox>
+- William Groppe <will.groppe@gmail.com>

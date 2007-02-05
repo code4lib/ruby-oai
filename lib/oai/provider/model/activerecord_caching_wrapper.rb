@@ -62,7 +62,7 @@ module OAI::Provider
       conditions = sql_conditions(options)
 
       if :all == selector
-        total = model.count conditions
+        total = model.count(:id, :conditions => conditions)
         if @limit && total > @limit
           select_partial(
             ResumptionToken.new(options.merge({:last => 0})))
@@ -80,7 +80,7 @@ module OAI::Provider
       raise ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = model.count token_conditions(token)
+      total = model.count(:id, :conditions => token_conditions(token))
 
       if token.last * @limit + @limit < total
         select_partial(token)

@@ -14,7 +14,7 @@ module OAI::Provider::Response
           records.each do |rec|
             r.record do
               header_for rec
-              data_for rec
+              data_for rec unless deleted?(rec)
             end
           end
         end

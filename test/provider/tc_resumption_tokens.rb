@@ -6,8 +6,8 @@ class ResumptionTokenTest < Test::Unit::TestCase
   
   def setup
     @token = ResumptionToken.new(
-      :from => Chronic.parse("January 1 2005"),
-      :until => Chronic.parse("January 31 2005"), 
+      :from => Time.utc(2005,"jan",1,17,0,0),
+      :until => Time.utc(2005,"jan",31,17,0,0),
       :set => "A",
       :metadata_prefix => "oai_dc", 
       :last => 1

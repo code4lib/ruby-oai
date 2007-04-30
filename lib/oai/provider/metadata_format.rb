@@ -30,8 +30,12 @@ module OAI::Provider::Metadata
           xml.tag!("#{prefix}:#{element_namespace}", header_specification) do
             fields.each do |field|
               values = value_for(field, record, map)
-              values.each do |value|
-                xml.tag! "#{element_namespace}:#{field}", value
+              if values.respond_to?(:each)
+                values.each do |value|
+                  xml.tag! "#{element_namespace}:#{field}", value
+                end
+              else
+                xml.tag! "#{element_namespace}:#{field}", values
               end
             end
           end

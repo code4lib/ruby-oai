@@ -19,7 +19,7 @@ class OAIPMHTables < ActiveRecord::Migration
       t.column  :description,   :string
       t.column  :contributor,   :string
       t.column  :publisher,     :string
-      t.column  :date,          :string
+      t.column  :date,          :datetime
       t.column  :type,          :string
       t.column  :format,        :string
       t.column  :source,        :string

@@ -4,7 +4,7 @@ module OAI
     # OAI defines six verbs with various allowable options.
     VERBS = {
       'Identify' => [],
-      'ListMetadataFormats' => [],
+      'ListMetadataFormats' => [:identifier],
       'ListSets' => [:resumption_token],  # unused currently
       'GetRecord' => [:identifier, :from, :until, :set, :metadata_prefix],
       'ListIdentifiers' => [:from, :until, :set, :metadata_prefix, :resumption_token],

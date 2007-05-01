@@ -46,7 +46,7 @@ module OAI::Provider
     def find(selector, options={})
       return next_set(options[:resumption_token]) if options[:resumption_token]
       conditions = sql_conditions(options)
-      
+
       if :all == selector
         total = model.count(:id, :conditions => conditions)
         if @limit && total > @limit
@@ -68,6 +68,13 @@ module OAI::Provider
       false
     end    
     
+    def available_formats(record)
+      if record.respond_to?(:available_formats)
+        return record.available_formats
+      end
+      super
+    end
+            
     protected
     
     # Request the next set in this sequence.

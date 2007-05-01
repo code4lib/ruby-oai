@@ -14,6 +14,9 @@ module OAI::Provider
   # sets - should return an array of sets supported by the repository.
   # deleted? - individual records returned should respond true or false
   # when sent the deleted? message.
+  # available_formats - if overridden, individual records should return an 
+  # array of prefixes for all formats in which that record is available, 
+  # if other than ["oai_dc"]
   #
   # == Resumption Tokens
   #
@@ -64,6 +67,10 @@ module OAI::Provider
     
     def deleted?
       false
+    end
+    
+    def available_formats(record)
+      ["oai_dc"] # this should probably be an array of all of the provider's available formats -DA
     end
     
   end

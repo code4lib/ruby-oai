@@ -196,7 +196,11 @@ module OAI::Provider
       end
       
       def format(prefix)
-        @formats[prefix]
+        if @formats[prefix].nil?
+          raise OAI::FormatException.new
+        else
+          @formats[prefix]
+        end
       end
 
       protected 

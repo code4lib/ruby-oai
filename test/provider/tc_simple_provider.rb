@@ -29,6 +29,13 @@ class TestSimpleProvider < Test::Unit::TestCase
       doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text
   end
   
+  def test_metadata_formats_for_document
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_metadata_formats(:identifier => "oai:test/1")) }
+    doc =  REXML::Document.new(@simple_provider.list_metadata_formats)
+    assert_equal "oai_dc",
+      doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text
+  end
+    
   def test_list_records_without_constraints
     assert_nothing_raised { REXML::Document.new(@simple_provider.list_records) }
 

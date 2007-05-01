@@ -12,6 +12,13 @@ class ActiveRecordProviderTest < Test::Unit::TestCase
     assert doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text == 'oai_dc'
   end
   
+  def test_metadata_formats_for_record
+    assert_nothing_raised { REXML::Document.new(@provider.list_metadata_formats(:identifier => 'oai:test/1')) }
+    doc =  REXML::Document.new(@provider.list_metadata_formats)
+    puts doc
+    assert doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text == 'oai_dc'
+  end
+  
   def test_list_records
     assert_nothing_raised { REXML::Document.new(@provider.list_records) }
     doc = REXML::Document.new(@provider.list_records)

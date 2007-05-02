@@ -18,13 +18,7 @@ module OAI::Provider::Response
         end
       end
     end
-    
-    private
-    
-    def extract_identifier(id)
-      id.sub("#{provider.prefix}/", '')
-    end
-    
+        
   end
 
 end

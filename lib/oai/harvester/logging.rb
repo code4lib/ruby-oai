@@ -8,8 +8,8 @@ module OAI
       alias_method :orig_call, :call
       alias_method :orig_init, :initialize
     
-      def initialize(config = nil, directory = nil, date = nil)
-        orig_init(config, directory, date)
+      def initialize(*args)
+        orig_init(*args)
         @summary = []
         @logger = Logger.new(File.join(@config.logfile, "harvester.log"), 
           shift_age = 'weekly') if @config.logfile

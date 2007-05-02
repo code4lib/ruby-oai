@@ -29,19 +29,21 @@ module OAI
       private
     
       def harvest(site)
-        harvest_time = Time.now.utc
         opts = build_options_hash(@config.sites[site])
-        opts[:until] = harvest_time.xmlschema
-      
-        # Allow a from date to be passed in
-        if(@from)
-          opts[:from] = @from
-        else 
-          opts[:from] = earliest(opts[:url])
-        end
-      
-        opts.delete(:set) if 'all' == opts[:set]
+        harvest_time = Time.now.utc
 
+        if "YYYY-MM-DD" == granularity(opts[:url])
+          opts[:until] = harvest_time.strftime("%Y-%m-%d")
+          opts[:from] = @from.strftime("%Y-%m-%d") if @from
+        else
+          opts[:until] = harvest_time.xmlschema
+          opts[:from] = @from.xmlschema if @from
+        end
+
+        # Allow a from date to be passed in
+        opts[:from] = earliest(opts[:url]) unless opts[:from]
+        opts.delete(:set) if 'all' == opts[:set]
+        
         begin
           # Connect, and download
           file, records = call(opts.delete(:url), opts)
@@ -67,11 +69,6 @@ module OAI
         records = 0;
         client = OAI::Client.new(url, :parser => @parser)
         provider_config = client.identify
-        
-        if Harvester::LOW_RESOLUTION == provider_config.granularity
-          options[:from] = Time.parse(options[:from]).strftime("%Y-%m-%d")
-          options[:until] = Time.parse(options[:until]).strftime("%Y-%m-%d")
-        end
         
         file = Tempfile.new('oai_data')
         gz = Zlib::GzipWriter.new(file)
@@ -131,11 +128,20 @@ module OAI
         "_at_#{until_time.strftime('%H-%M-%S')}"
       end
     
+      def granularity(url)
+        client = OAI::Client.new url
+        client.identify.granularity
+      end
+
       # Get earliest timestamp from repository
       def earliest(url)
         client = OAI::Client.new url
         identify = client.identify
-        Time.parse(identify.earliest_datestamp).utc.xmlschema
+        if "YYYY-MM-DD" == identify.granularity
+          Time.parse(identify.earliest_datestamp).strftime("%Y-%m-%d")
+        else
+          Time.parse(identify.earliest_datestamp).xmlschema
+        end
       end
     
     end

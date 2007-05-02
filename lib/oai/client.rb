@@ -2,6 +2,7 @@
 require 'uri'
 require 'net/http'
 require 'cgi'
+require 'iconv'
 
 if not defined?(OAI::Const::VERBS)
   # Shared stuff
@@ -183,6 +184,7 @@ module OAI
     end
 
     def load_document(xml)
+      retried = false
       case @parser
       when 'libxml'
         begin
@@ -190,13 +192,28 @@ module OAI
           parser.string = xml
           return parser.parse
         rescue XML::Parser::ParseError => e
-          raise OAI::Exception, 'response not well formed XML: '+e, caller
+          if retried
+            raise OAI::Exception, 'response not well formed XML: '+e, caller
+          end
+          ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
+          xml2 = ic.iconv(xml << ' ')[0..-2]
+          puts "equal? #{xml == xml2}"
+          retried = true
+          retry
         end
       when 'rexml'
         begin
           return REXML::Document.new(xml)
         rescue REXML::ParseException => e
-          raise OAI::Exception, 'response not well formed XML: '+e, caller
+          if retried
+            puts xml
+            raise OAI::Exception, 'response not well formed XML: '+e, caller
+          end
+          puts "RETRYING"
+          ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
+          xml = ic.iconv(xml << ' ')[0..-2]
+          retried = true
+          retry
         end
       end
     end
@@ -246,8 +263,8 @@ module OAI
       end
       
       # Convert date formated strings in dates.
-      realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
-      realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
+      #realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
+      #realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
 
       # check for any bad options
       unless (realopts.keys - OAI::Const::VERBS[verb]).empty?

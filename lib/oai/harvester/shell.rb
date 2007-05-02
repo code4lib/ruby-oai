@@ -73,7 +73,7 @@ module OAI
             banner "Harvesting '#{site}'"
             if date && !date.empty?
               begin
-                date = Chronic.parse(date.join(' ')).utc.xmlschema
+                date = Chronic.parse(date.join(' ')).utc
               rescue NoMethodError
                 puts "Couldn't parse the date supplied"
                 return

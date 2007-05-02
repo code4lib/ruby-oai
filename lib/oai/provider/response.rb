@@ -54,6 +54,10 @@ module OAI
           http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd}
       }
     end
+
+    def extract_identifier(id)
+      id.sub("#{provider.prefix}/", '')
+    end
     
     def valid?
       return true if resumption?

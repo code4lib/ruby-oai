@@ -69,10 +69,6 @@ module OAI::Provider
       false
     end
     
-    def available_formats(record)
-      ["oai_dc"] # this should probably be an array of all of the provider's available formats -DA
-    end
-    
   end
   
 end

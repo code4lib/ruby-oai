@@ -1,7 +1,7 @@
 module OAI::Provider::Response
   
   class GetRecord < RecordResponse
-    required_parameters :identifier
+    required_parameters :identifier, :metadataPrefix
     
     def to_xml
       id = extract_identifier(options.delete(:identifier))

@@ -29,6 +29,10 @@ module OAI
       PERSISTENT = :persistent
     end
         
+    module Strict
+      STRICT = :strict
+      LAX    = :lax
+    end
   end
   
 end

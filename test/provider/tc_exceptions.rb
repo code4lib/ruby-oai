@@ -60,4 +60,13 @@ class ProviderExceptions < Test::Unit::TestCase
     assert_raise(OAI::NoMatchException) { @provider.list_records(:set => 'unknown') }
   end
   
+  def test_no_metadata_prefix_on_record_request_raises_exception
+    assert_raise(OAI::ArgumentException) { @provider.process_request(:verb => "ListRecords") }
+  end
+
+  def test_bad_character_raises_exception
+    assert_raise(OAI::ArgumentException) do
+      @provider.process_request(:verb => "GetRecord", :metadataPrefix => "oai_dc", :identifier => "bad\"id")
+    end
+  end
 end

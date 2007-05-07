@@ -184,7 +184,7 @@ module OAI::Provider
     
     class << self
       attr_reader :formats
-      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :strict
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model
 
       def register_format(format)
         @formats ||= {}
@@ -218,7 +218,6 @@ module OAI::Provider
       alias_method :deletion_support,   :delete_support=  
       alias_method :update_granularity, :granularity=     
       alias_method :source_model,       :model=
-      alias_method :strict_mode,        :strict=
       
     end
 
@@ -229,7 +228,6 @@ module OAI::Provider
     Base.admin_email 'nobody@localhost'
     Base.deletion_support OAI::Const::Delete::TRANSIENT
     Base.update_granularity OAI::Const::Granularity::HIGH
-    Base.strict_mode OAI::Const::Strict::LAX
 
     Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
     
@@ -278,7 +276,7 @@ module OAI::Provider
 
         # Allow the request to pass in a url
         self.class.url = params['url'] ? params.delete('url') : self.class.url
-
+          
         verb = params.delete('verb') || params.delete(:verb)
         
         unless verb and OAI::Const::VERBS.keys.include?(verb)

@@ -37,54 +37,54 @@ class TestSimpleProvider < Test::Unit::TestCase
   end
     
   def test_list_records_without_constraints
-    assert_nothing_raised { REXML::Document.new(@simple_provider.list_records) }
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_records(:metadataPrefix => 'oai_dc')) }
 
     total = @model.find(:all).size
-    doc = REXML::Document.new(@simple_provider.list_records)
+    doc = REXML::Document.new(@simple_provider.list_records(:metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
   end
   
   def test_list_records_with_set_equal_a
     total = @model.find(:all, :set => 'A').size
-    doc = REXML::Document.new(@simple_provider.list_records(:set => 'A'))
+    doc = REXML::Document.new(@simple_provider.list_records(:set => 'A', :metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
   end
   
   def test_list_record_with_set_equal_ab
     total = @model.find(:all, :set => 'A:B').size
-    doc = REXML::Document.new(@simple_provider.list_records(:set => 'A:B'))
+    doc = REXML::Document.new(@simple_provider.list_records(:set => 'A:B', :metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
   end
 
   def test_list_identifiers_without_constraints
-    assert_nothing_raised { REXML::Document.new(@simple_provider.list_identifiers) }
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_identifiers(:metadataPrefix => 'oai_dc')) }
 
     total = @model.find(:all).size
-    doc = REXML::Document.new(@simple_provider.list_identifiers)
+    doc = REXML::Document.new(@simple_provider.list_identifiers(:metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
   end
   
   def test_list_identifiers_with_set_equal_a
     total = @model.find(:all, :set => 'A').size
-    doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A'))
+    doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A', :metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
   end
   
   def test_list_indentifiers_with_set_equal_ab
     total = @model.find(:all, :set => 'A:B').size
-    doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A:B'))
+    doc = REXML::Document.new(@simple_provider.list_identifiers(:set => 'A:B', :metadataPrefix => 'oai_dc'))
     assert_equal total, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
   end
 
   def test_get_record
-    assert_nothing_raised { REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/1')) }
-    doc = REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/1'))
+    assert_nothing_raised { REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/1', :metadataPrefix => 'oai_dc')) }
+    doc = REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/1', :metadataPrefix => 'oai_dc'))
     assert_equal 'oai:test/1', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
   end
   
   def test_deleted_record
-    assert_nothing_raised { REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/6')) }
-    doc = REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/5'))
+    assert_nothing_raised { REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/6', :metadataPrefix => 'oai_dc')) }
+    doc = REXML::Document.new(@simple_provider.get_record(:identifier => 'oai:test/5', :metadataPrefix => 'oai_dc'))
     assert_equal 'oai:test/5', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
     assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
   end

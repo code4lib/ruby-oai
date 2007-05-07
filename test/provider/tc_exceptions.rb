@@ -36,28 +36,29 @@ class ProviderExceptions < Test::Unit::TestCase
   
   def test_bad_id_raises_exception
     assert_raise(OAI::IdException) do
-      @provider.get_record(:identifier => 'oai:test/5000')
+      @provider.get_record(:identifier => 'oai:test/5000', :metadataPrefix => 'oai_dc')
     end
     assert_raise(OAI::IdException) do
-      @provider.get_record(:identifier => 'oai:test/-1')
+      @provider.get_record(:identifier => 'oai:test/-1', :metadataPrefix => 'oai_dc')
     end
     assert_raise(OAI::IdException) do
-      @provider.get_record(:identifier => 'oai:test/one')
+      @provider.get_record(:identifier => 'oai:test/one', :metadataPrefix => 'oai_dc')
     end
     assert_raise(OAI::IdException) do
-      @provider.get_record(:identifier => 'oai:test/\\$1\1!')
+      @provider.get_record(:identifier => 'oai:test/\\$1\1!', :metadataPrefix => 'oai_dc')
     end
   end
   
   def test_no_records_match_dates_that_are_out_of_range
     assert_raise(OAI::NoMatchException) do
       @provider.list_records(:from => Chronic.parse("November 2 2000"), 
-                             :until => Chronic.parse("November 1 2000"))
+                             :until => Chronic.parse("November 1 2000"),
+                             :metadataPrefix => 'oai_dc')
     end
   end
   
   def test_no_records_match_bad_set
-    assert_raise(OAI::NoMatchException) { @provider.list_records(:set => 'unknown') }
+    assert_raise(OAI::NoMatchException) { @provider.list_records(:set => 'unknown', :metadataPrefix => 'oai_dc') }
   end
   
 end

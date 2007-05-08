@@ -70,8 +70,13 @@ class ProviderExceptions < Test::Unit::TestCase
       @provider.list_records( :from => "2005-06-05T12:20:40Z",
                               :until => "iamnotadate",
                               :metadataPrefix => 'oai_dc' )
+    end    
+  end
+  
+  def test_extra_parameter_for_identify_raises_correct_exception
+    assert_raise(OAI::ArgumentException) do
+      @provider.identify( :metadataPrefix => 'oai_dc' )
     end
-    
   end
   
   def test_different_granularities_raises_exception

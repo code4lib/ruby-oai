@@ -89,7 +89,7 @@ class ActiveRecordProviderTest < Test::Unit::TestCase
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
   
-  def test_bad_identifer_raises_correct_exception
+  def test_bad_identifier_raises_correct_exception
     assert_raise(OAI::IdException) do
       @provider.get_record( :identifier => "fjsdklf",
                             :metadataPrefix => "oai_dc")

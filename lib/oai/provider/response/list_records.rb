@@ -1,6 +1,7 @@
 module OAI::Provider::Response
 
   class ListRecords < RecordResponse
+    required_parameters :metadata_prefix
     
     def to_xml
       result = provider.model.find(:all, options)

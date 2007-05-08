@@ -3,8 +3,7 @@ module OAI::Provider::Response
 
     def self.inherited(klass)
       klass.valid_parameters    :metadata_prefix, :from, :until, :set
-      klass.default_parameters  :metadata_prefix => "oai_dc", 
-            :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) },
+      klass.default_parameters  :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) },
             :until => Proc.new {|x| Time.parse(x.provider.model.latest.to_s) }
     end
     
@@ -62,6 +61,12 @@ module OAI::Provider::Response
       return record.deleted if record.respond_to?(:deleted)
       return record.deleted_at if record.respond_to?(:deleted_at)
       false
+    end
+    
+    def record_supports(record, prefix)
+      prefix == 'oai_dc' or 
+      record.respond_to?("to_#{prefix}") or
+      record.respond_to?("map_#{prefix}")
     end
     
   end

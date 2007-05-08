@@ -30,6 +30,7 @@ module OAI
 
     def initialize(provider, options = {})
       @provider = provider
+      @original_options = options.dup
       @options = internalize(options)
       raise OAI::ArgumentException.new unless valid?
     end
@@ -63,14 +64,52 @@ module OAI
       return true if resumption?
       
       return true if self.class.valid_options.nil? and options.empty?
-      
+
       if self.class.required_options
         return false unless (self.class.required_options - @options.keys).empty?
       end
-
+      
+      return false if !@options.keys.empty? && (self.class.valid_options.nil? || self.class.valid_options.empty?)
       return false unless (@options.keys - self.class.valid_options).empty?
-
+      return false unless valid_times?
+      return false unless valid_format?
       populate_defaults
+
+    end
+    
+    def valid_format?
+      return true if @options[:metadata_prefix].nil?
+      raise OAI::FormatException.new unless provider.format_supported?(@options[:metadata_prefix])
+      true
+    end
+    
+    def valid_times?
+
+      if (@original_options[:from].nil? || 
+        @original_options[:from] =~ /^\d\d\d\d-\d\d-\d\d(T\d\d:\d\d:\d\dZ)?/  ||
+        @original_options[:from].instance_of?(Time))
+
+
+        if (@original_options[:until].nil? || 
+          @original_options[:until] =~ /^\d\d\d\d-\d\d-\d\d(T\d\d:\d\d:\d\dZ)?/ ||
+          @original_options[:until].instance_of?(Time))
+        else
+          return false
+        end
+      else
+        return false
+      end
+      # if dates are not nil and are strings, make sure they're the same length
+      # testing granularity
+      if ((!@original_options[:from].nil? && @original_options[:from].respond_to?(:length)) && 
+        (!@original_options[:until].nil? && @original_options[:until].respond_to?(:length)))
+          if @original_options[:from].length != @original_options[:until].length
+            return false
+          end
+      
+      end
+
+      true
     end
     
     def populate_defaults

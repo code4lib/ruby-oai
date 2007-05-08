@@ -12,7 +12,7 @@ module OAI::Provider::Response
             r.adminEmail address
           end if provider.email
           r.earliestDatestamp provider.model.earliest
-          r.deleteRecord provider.delete_support.to_s
+          r.deletedRecord provider.delete_support.to_s
           r.granularity provider.granularity
         end
       end

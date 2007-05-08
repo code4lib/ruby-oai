@@ -55,7 +55,11 @@ module OAI::Provider
           model.find(:all, :conditions => conditions)
         end
       else
-        model.find(selector, :conditions => conditions)
+        begin
+          model.find(selector, :conditions => conditions)
+        rescue ActiveRecord::RecordNotFound
+          raise OAI::IdException.new
+        end
       end
     end
     

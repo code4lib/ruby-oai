@@ -30,7 +30,10 @@ class ProviderExceptions < Test::Unit::TestCase
   
   def test_bad_format_raises_exception
     assert_raise(OAI::FormatException) do
-      @provider.get_record(:identifier => 'oai:test/1', :metadata_prefix => 'html')
+      @provider.get_record(:identifier => 'oai:test/1', :metadataPrefix => 'html')
+    end
+    assert_raise(OAI::FormatException) do
+      @provider.list_identifiers(:metadataPrefix => 'fjdsklfj')
     end
   end
   
@@ -54,6 +57,15 @@ class ProviderExceptions < Test::Unit::TestCase
       @provider.list_records(:from => Chronic.parse("November 2 2000"), 
                              :until => Chronic.parse("November 1 2000"),
                              :metadataPrefix => 'oai_dc')
+    end
+  end
+  
+  def test_different_granularities_raises_exception
+    assert_raise(OAI::ArgumentException) do
+      @provider.list_records( :from => "2000-01-01", 
+                              :until => "2007-06-05T12:00:00Z",
+                              :metadataPrefix => 'oai_dc'
+                              )
     end
   end
   

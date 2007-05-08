@@ -60,6 +60,20 @@ class ProviderExceptions < Test::Unit::TestCase
     end
   end
   
+  def test_bad_datespecs_raise_exception
+    assert_raise(OAI::ArgumentException) do
+      @provider.list_records( :from => "iamnotadate",
+                              :until => "2005-06-05T12:20:40Z",
+                              :metadataPrefix => 'oai_dc' )
+    end
+    assert_raise(OAI::ArgumentException) do
+      @provider.list_records( :from => "2005-06-05T12:20:40Z",
+                              :until => "iamnotadate",
+                              :metadataPrefix => 'oai_dc' )
+    end
+    
+  end
+  
   def test_different_granularities_raises_exception
     assert_raise(OAI::ArgumentException) do
       @provider.list_records( :from => "2000-01-01", 

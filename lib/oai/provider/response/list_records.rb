@@ -17,11 +17,12 @@ module OAI::Provider::Response
               data_for rec unless deleted?(rec)
             end
           end
-        end
 
-        # append resumption token for getting next group of records
-        if result.respond_to?(:token)
-          r.target! << result.token.to_xml
+          # append resumption token for getting next group of records
+          if result.respond_to?(:token)
+            r.target! << result.token.to_xml
+          end
+
         end
       end
     end

@@ -22,9 +22,7 @@ module OAI::Provider::Metadata
     # that should be extended if you need to create more complex xml
     # representations.
     def encode(model, record)
-      RAILS_DEFAULT_LOGGER.info "Format's model: #{model.inspect}"
-      RAILS_DEFAULT_LOGGER.info "Format's record: #{record.inspect}"
-      RAILS_DEFAULT_LOGGER.info "Format's prefix: #{prefix}"
+      RAILS_DEFAULT_LOFFER.info "Model responds to 'to_#{prefix}'? "+record.respond_to?("to_#{prefix}")
       
       if record.respond_to?("to_#{prefix}")
         record.send("to_#{prefix}")

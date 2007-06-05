@@ -4,7 +4,12 @@ class ExceptionTest < Test::Unit::TestCase
 
   def test_http_error
     client = OAI::Client.new 'http://www.example.com'
-    assert_raises(OAI::Exception) { client.identify }
+    assert_raises(Errno::ETIMEDOUT) { client.identify }
+  end
+  
+  def test_not_found
+    client = OAI::Client.new 'http://www.google.com'
+    assert_raises(ArgumentError) { client.identify }
   end
 
   def test_xml_error

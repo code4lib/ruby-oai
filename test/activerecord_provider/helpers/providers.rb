@@ -1,6 +1,7 @@
 require 'active_record'
 require 'oai'
-require "config/connection.rb"
+require "config/connection"
+require "helpers/custom_metadata_format"
 
 Dir.glob(File.dirname(__FILE__) + "/../models/*.rb").each do |lib|
   require lib
@@ -11,6 +12,7 @@ class ARProvider < OAI::Provider::Base
   repository_url 'http://localhost'
   record_prefix 'oai:test'
   source_model ActiveRecordWrapper.new(DCField)
+  register_format CustomMetadataFormat.instance
 end
 
 class SimpleResumptionProvider < OAI::Provider::Base

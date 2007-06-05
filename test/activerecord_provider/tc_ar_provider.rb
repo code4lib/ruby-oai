@@ -87,6 +87,11 @@ class ActiveRecordProviderTest < Test::Unit::TestCase
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
   
+  def test_custom_metadata_format
+    doc = REXML::Document.new(@provider.get_record(:identifier => 'oai:test/1', :metadataPrefix => 'cmf'))
+    puts doc.to_s
+  end
+  
   def setup
     @provider = ARProvider.new
     ARLoader.load

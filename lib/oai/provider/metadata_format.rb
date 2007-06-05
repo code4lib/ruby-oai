@@ -22,6 +22,7 @@ module OAI::Provider::Metadata
     # that should be extended if you need to create more complex xml
     # representations.
     def encode(model, record)
+      RAILS_DEFAULT_LOGGER.info "Model is: "+record.class.to_s
       RAILS_DEFAULT_LOGGER.info "Model responds to 'to_#{prefix}'? "+record.respond_to?("to_#{prefix}").to_s
       
       if record.respond_to?("to_#{prefix}")

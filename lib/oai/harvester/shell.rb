@@ -110,6 +110,8 @@ module OAI
           print_site(site)
         end
         puts
+      rescue
+        puts args + " doesn't appear to be configured, use list to see configured repositories."
       end
     
       def new

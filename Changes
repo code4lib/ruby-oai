@@ -1,3 +1,9 @@
+v0.0.6 Tue Jun 5, 2007
+- change to resumption token location in the response, to better conform to the specification.
+- oai shell date parsing should now be working correctly.
+- ability to list metadata formats for an individual record.
+- AR returning Time object bug fixed.
+
 v0.0.5 Fri Feb 16, 2007
 - fixed problem with provider supplying metadata for deleted records
 

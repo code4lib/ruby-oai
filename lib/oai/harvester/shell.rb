@@ -47,8 +47,8 @@ module OAI
             end
           rescue 
             puts "Not a recognized command, or bad options.  Type 'help' for clues."
-            #puts $!
-            #puts $!.backtrace.join("\n")
+            puts $!
+            puts $!.backtrace.join("\n")
           end
         end
       end

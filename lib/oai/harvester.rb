@@ -9,6 +9,7 @@ require 'readline'
 require 'chronic'
 require 'socket'
 
+require 'oai/client'
 require 'oai/harvester/config'
 require 'oai/harvester/harvest'
 require 'oai/harvester/logging'

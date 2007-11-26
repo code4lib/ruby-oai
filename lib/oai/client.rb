@@ -155,7 +155,7 @@ module OAI
     def do_request(verb, opts = nil)
       # fire off the request and return appropriate DOM object
       uri = build_uri(verb, opts)
-      xml = get(uri)
+      xml = strip_invalid_utf_8_chars(get(uri))
       if @parser == 'libxml' 
         # remove default namespace for oai-pmh since libxml
         # isn't able to use our xpaths to get at them 
@@ -184,7 +184,6 @@ module OAI
     end
 
     def load_document(xml)
-      retried = false
       case @parser
       when 'libxml'
         begin
@@ -192,28 +191,13 @@ module OAI
           parser.string = xml
           return parser.parse
         rescue XML::Parser::ParseError => e
-          if retried
-            raise OAI::Exception, 'response not well formed XML: '+e, caller
-          end
-          ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
-          xml2 = ic.iconv(xml << ' ')[0..-2]
-          puts "equal? #{xml == xml2}"
-          retried = true
-          retry
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
         end
       when 'rexml'
         begin
           return REXML::Document.new(xml)
         rescue REXML::ParseException => e
-          if retried
-            puts xml
-            raise OAI::Exception, 'response not well formed XML: '+e, caller
-          end
-          puts "RETRYING"
-          ic = Iconv.new('UTF-8//IGNORE', 'UTF-8')
-          xml = ic.iconv(xml << ' ')[0..-2]
-          retried = true
-          retry
+          raise OAI::Exception, 'response not well formed XML: '+e, caller
         end
       end
     end
@@ -296,5 +280,19 @@ module OAI
       dt.utc
     end
     
+    
+    # Strip out invalid UTF-8 characters.  Regex from the W3C, inverted.
+    # http://www.w3.org/International/questions/qa-forms-utf-8.en.php
+    def strip_invalid_utf_8_chars(xml)
+      simple_bytes = xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
+                             | [\x00-\x7F][\x80-\xBF]+
+                             | ([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*
+                             | [\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})
+                             | [\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))
+                             | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')
+      simple_bytes.gsub(/\xE0[\x80-\x9F][\x80-\xBF]
+                       | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
+    end
+        
   end
 end

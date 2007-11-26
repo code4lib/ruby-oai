@@ -280,9 +280,11 @@ module OAI
       dt.utc
     end
     
-    
     # Strip out invalid UTF-8 characters.  Regex from the W3C, inverted.
     # http://www.w3.org/International/questions/qa-forms-utf-8.en.php
+    #
+    # Regex is from WebCollab: 
+    #   http://webcollab.sourceforge.net/unicode.html
     def strip_invalid_utf_8_chars(xml)
       simple_bytes = xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
                              | [\x00-\x7F][\x80-\xBF]+

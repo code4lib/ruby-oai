@@ -176,8 +176,10 @@ module OAI
     
     def encode(value)
       return CGI.escape(value) unless value.respond_to?(:strftime)
-      if value.respond_to?(:to_time) # Usually a DateTime or Time
-        value.to_time.utc.xmlschema
+      if value.kind_of?(DateTime)
+        Time.parse(value.asctime).utc.xmlschema
+      elsif value.kind_of?(Time)
+        value.utc.xmlschema
       else # Assume something date like
         value.strftime('%Y-%m-%d')
       end
@@ -272,12 +274,10 @@ module OAI
     def parse_date(value)
       return value if value.respond_to?(:strftime)
       
-      # Oddly Chronic doesn't parse an UTC encoded datetime.  
-      # Luckily Time does
-      dt = Chronic.parse(value) || Time.parse(value)
-      raise OAI::ArgumentError.new unless dt
-      
-      dt.utc
+      Date.parse(value) # This will raise an exception for badly formatted dates
+      Time.parse(value).utc # Sadly, this will not
+    rescue
+      raise OAI::ArgumentError.new 
     end
     
     # Strip out invalid UTF-8 characters.  Regex from the W3C, inverted.

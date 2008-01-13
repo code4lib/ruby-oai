@@ -94,12 +94,10 @@ module OAI
     def parse_date(value)
       return value if value.respond_to?(:strftime)
       
-      # Oddly Chronic doesn't parse an UTC encoded datetime.  
-      # Luckily Time does
-      dt = Chronic.parse(value) || Time.parse(value)
-      raise OAI::ArgumentError.new unless dt
-      
-      dt.utc
+      Date.parse(value) # This will raise an exception for badly formatted dates
+      Time.parse(value).utc # Sadly, this will not
+    rescue
+      raise OAI::ArgumentError.new 
     end
     
     def internalize(hash = {})

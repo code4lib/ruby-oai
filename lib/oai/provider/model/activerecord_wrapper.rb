@@ -20,8 +20,8 @@ module OAI::Provider
       @limit = options.delete(:limit)
       
       unless options.empty?
-        raise ArgumentException.new(
-          "Unsupported options [#{options.join(', ')}]"
+        raise ArgumentError.new(
+          "Unsupported options [#{options.keys.join(', ')}]"
         )
       end
     end

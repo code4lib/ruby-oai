@@ -107,7 +107,7 @@ module OAI
       end
     
       def get_records(doc)
-        doc.doc.root.elements.to_a("/OAI-PMH/ListRecords/record")
+        doc.find("/OAI-PMH/ListRecords/record").to_a
       end
     
       def build_options_hash(site)

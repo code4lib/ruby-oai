@@ -23,8 +23,8 @@ class ResumptionTokenFunctionalTest < Test::Unit::TestCase
     assert_nothing_raised { Document.new(@provider.list_records) }
     doc = Document.new(
       @provider.list_records(
-        :from => Chronic.parse("September 1 2004"),
-        :until => Chronic.parse("November 30 2004"))
+        :from => Time.parse("September 1 2004"),
+        :until => Time.parse("November 30 2004"))
       )
     assert_equal 101, doc.elements["/OAI-PMH/ListRecords"].to_a.size
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text

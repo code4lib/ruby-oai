@@ -103,7 +103,6 @@ module OAI::Provider
       end
       
       oaitoken = OaiToken.find_by_token(token.to_s)
-      
       raise ResumptionTokenException.new unless oaitoken
 
       PartialResult.new(

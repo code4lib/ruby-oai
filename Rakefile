@@ -25,8 +25,6 @@ spec = Gem::Specification.new do |s|
     s.bindir = 'bin'
     s.executables = 'oai'
 
-    s.add_dependency('activesupport', '>=1.3.1')
-    s.add_dependency('chronic', '>=0.0.3')
     s.add_dependency('builder', '>=2.0.0')
     
     s.files = %w(README Rakefile) +

@@ -5,7 +5,7 @@ module OAI
     def xpath_all(doc, path)
       case parser_type(doc)
       when 'libxml'
-        return doc.find(path)
+        return doc.find(path).to_a if doc.find(path)
       when 'rexml'
         return REXML::XPath.match(doc, path)
       end

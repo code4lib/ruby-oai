@@ -1,7 +1,8 @@
 require 'test_helper'
 
 class ProviderExceptions < Test::Unit::TestCase
-
+  include Singleton
+  
   def setup
     @provider = ComplexProvider.new
   end
@@ -51,8 +52,8 @@ class ProviderExceptions < Test::Unit::TestCase
   
   def test_no_records_match_dates_that_are_out_of_range
     assert_raise(OAI::NoMatchException) do
-      @provider.list_records(:from => Chronic.parse("November 2 2000"), 
-                             :until => Chronic.parse("November 1 2000"))
+      @provider.list_records(:from => Time.parse("November 2 2000"), 
+                             :until => Time.parse("November 1 2000"))
     end
   end
   

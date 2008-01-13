@@ -1,6 +1,6 @@
-require 'active_support'
+require 'rexml/document'
+require 'singleton'
 require 'builder'
-require 'chronic'
 
 if not defined?(OAI::Const::VERBS)
   require 'oai/exception'
@@ -266,8 +266,8 @@ module OAI::Provider
       Response::GetRecord.new(self.class, options).to_xml
     end
     
-    #  xml_response = process_verb('ListRecords', :from => 'October', 
-    #    :until => 'November') # thanks Chronic!
+    #  xml_response = process_verb('ListRecords', :from => 'October 1, 2005', 
+    #    :until => 'November 1, 2005') 
     #
     # If you are implementing a web interface using process_request is the
     # preferred way.

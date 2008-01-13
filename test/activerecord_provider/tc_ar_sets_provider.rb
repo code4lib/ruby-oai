@@ -25,7 +25,8 @@ class ActiveRecordSetProviderTest < Test::Unit::TestCase
   end
   
   def test_record_with_multiple_sets
-    assert_equal 2, DCField.find(32).sets.size
+    record = DCSet.find(:first, :conditions => "spec = 'C'").dc_fields.first
+    assert_equal 2, record.sets.size
   end
 
   def setup
@@ -43,24 +44,29 @@ class ActiveRecordSetProviderTest < Test::Unit::TestCase
   def define_sets
     set_a = DCSet.create(:name => "Set A", :spec => "A")
     set_b = DCSet.create(:name => "Set B", :spec => "B")
-    set_c = DCSet.create(:name => "Set B", :spec => "B")
+    set_c = DCSet.create(:name => "Set C", :spec => "C")
     set_ab = DCSet.create(:name => "Set A:B", :spec => "A:B")
   
-    DCField.find([1,2,3,4,5,6,7,8,9,10]).each do |record|
+    next_id = 0
+    DCField.find(:all, :limit => 10, :order => "id asc").each do |record|
       set_a.dc_fields << record
+      next_id = record.id
     end
     
-    DCField.find([11,12,13,14,15,16,17,18,19,20]).each do |record|
+    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
       set_b.dc_fields << record
+      next_id = record.id
     end
 
-    DCField.find([21,22,23,24,25,26,27,28,29,30]).each do |record|
+    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
       set_ab.dc_fields << record
+      next_id = record.id
     end
   
-    DCField.find([31,32,33,34,35,36,37,38,39,40]).each do |record|
+    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
       set_a.dc_fields << record
       set_c.dc_fields << record
+      next_id = record.id
     end
   end
 end

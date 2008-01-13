@@ -143,9 +143,9 @@ class SimpleModel < TestModel
     set_two.spec = "A:B"
     set_two.description = "This is test set two."
 
-    generate_records(5, Chronic.parse("oct 5 2002"), set_one)
-    generate_records(1, Chronic.parse("nov 5 2002"), [set_two], true)
-    generate_records(4, Chronic.parse("nov 5 2002"), [set_two])
+    generate_records(5, Time.parse("2002-10-5"), set_one)
+    generate_records(1, Time.parse("2002-11-5"), [set_two], true)
+    generate_records(4, Time.parse("2002-11-5"), [set_two])
   end
 
 end
@@ -154,11 +154,11 @@ class BigModel < TestModel
   
   def initialize(limit = nil)
     super(limit)
-    generate_records(100, Chronic.parse("October 2 2000"))
-    generate_records(100, Chronic.parse("November 2 2000"))
-    generate_records(100, Chronic.parse("December 2 2000"))
-    generate_records(100, Chronic.parse("January 2 2001"))
-    generate_records(100, Chronic.parse("February 2 2001"))
+    generate_records(100, Time.parse("October 2 2000"))
+    generate_records(100, Time.parse("November 2 2000"))
+    generate_records(100, Time.parse("December 2 2000"))
+    generate_records(100, Time.parse("January 2 2001"))
+    generate_records(100, Time.parse("February 2 2001"))
   end
   
 end
@@ -172,7 +172,7 @@ class MappedModel < TestModel
     set_one.spec = "A"
     set_one.description = "This is test set one."
 
-    generate_records(5, Chronic.parse("dec 1 2006"), set_one)
+    generate_records(5, Time.parse("dec 1 2006"), set_one)
   end
   
   def map_oai_dc
@@ -216,14 +216,14 @@ class ComplexModel < TestModel
     set_three_four.spec = "Three:Four"
     set_three_four.description = "This is combination set of Three and Four."
 
-    generate_records(250, Chronic.parse("May 2 1998"), [set_one, set_one_two])
-    generate_records(50, Chronic.parse("June 2 1998"), [set_one, set_one_two], true)
-    generate_records(50, Chronic.parse("October 10 1998"), [set_three, set_three_four], true)
-    generate_records(250, Chronic.parse("July 2 2002"), [set_two, set_one_two])
+    generate_records(250, Time.parse("May 2 1998"), [set_one, set_one_two])
+    generate_records(50, Time.parse("June 2 1998"), [set_one, set_one_two], true)
+    generate_records(50, Time.parse("October 10 1998"), [set_three, set_three_four], true)
+    generate_records(250, Time.parse("July 2 2002"), [set_two, set_one_two])
     
-    generate_records(250, Chronic.parse("September 15 2004"), [set_three, set_three_four])
-    generate_records(50, Chronic.parse("October 10 2004"), [set_three, set_three_four], true)
-    generate_records(250, Chronic.parse("December 25 2005"), [set_four, set_three_four])
+    generate_records(250, Time.parse("September 15 2004"), [set_three, set_three_four])
+    generate_records(50, Time.parse("October 10 2004"), [set_three, set_three_four], true)
+    generate_records(250, Time.parse("December 25 2005"), [set_four, set_three_four])
   end
   
 end

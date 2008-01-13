@@ -2,11 +2,6 @@ require 'test_helper'
 
 class ExceptionTest < Test::Unit::TestCase
 
-  def test_http_error
-    client = OAI::Client.new 'http://www.example.com'
-    assert_raises(Errno::ETIMEDOUT) { client.identify }
-  end
-  
   def test_not_found
     client = OAI::Client.new 'http://www.google.com'
     assert_raises(ArgumentError) { client.identify }

@@ -199,7 +199,7 @@ module OAI
         begin
           return REXML::Document.new(xml)
         rescue REXML::ParseException => e
-          raise OAI::Exception, 'response not well formed XML: '+e, caller
+          raise OAI::Exception, 'response not well formed XML: '+e.message, caller
         end
       end
     end

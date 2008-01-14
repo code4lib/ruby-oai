@@ -13,7 +13,7 @@ class XpathTest < Test::Unit::TestCase
   def test_libxml
     begin 
       require 'xml/libxml'
-    rescue
+    rescue LoadError
       # libxml not available so nothing to test!
       return
     end
@@ -24,6 +24,3 @@ class XpathTest < Test::Unit::TestCase
   end
 
 end
-
-__END__
-

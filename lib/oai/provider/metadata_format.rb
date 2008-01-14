@@ -56,10 +56,9 @@ module OAI::Provider::Metadata
     def value_for(field, record, map)
       method = map[field] ? map[field].to_s : field.to_s
       
-      methods = record.public_methods(false)
-      if methods.include?(pluralize(method))
+      if record.respond_to?(pluralize(method))
         record.send pluralize(method)
-      elsif methods.include?(method)
+      elsif record.respond_to?(method)
         record.send method
       else
         []
@@ -87,6 +86,7 @@ module OAI::Provider::Metadata
         'move' => 'moves', 'cow' => 'kine' }.each { |k,v| return v if word == k }
       
       rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      result
     end
     
     def rules

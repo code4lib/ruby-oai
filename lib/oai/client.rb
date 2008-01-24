@@ -32,8 +32,9 @@ module OAI
   #
   #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
   #   record = client.get_record :identifier => 'oai:pubmedcentral.gov:13901'
-  #   for identifier in client.list_identifiers :metadata_prefix => 'oai_dc'
-  #     puts identifier.
+  #   for identifier in client.list_identifiers
+  #     puts identifier
+  #   end
   #
   # It is worth noting that the api uses methods and parameter names with 
   # underscores in them rather than studly caps. So above list_identifiers 

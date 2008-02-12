@@ -1,4 +1,4 @@
-RUBY_OAI_VERSION = '0.0.6'
+RUBY_OAI_VERSION = '0.0.8'
 
 require 'rubygems'
 require 'rake'

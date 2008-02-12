@@ -45,10 +45,12 @@ module OAI
             else
               self.send(cmd.shift, cmd.join(" "))
             end
-          rescue 
-            puts "Not a recognized command, or bad options.  Type 'help' for clues."
-            puts $!
-            puts $!.backtrace.join("\n")
+          rescue NoMethodError
+              puts "Not a recognized command. Type 'help' for clues."
+          rescue
+              puts "An error occurred:"
+              puts $!
+              puts $!.backtrace.join("\n")
           end
         end
       end
@@ -73,7 +75,7 @@ module OAI
             banner "Harvesting '#{site}'"
             if date && !date.empty?
               begin
-                date = Chronic.parse(date.join(' ')).utc
+                date = Time.parse(date.join(' ')).utc
               rescue NoMethodError
                 puts "Couldn't parse the date supplied"
                 return

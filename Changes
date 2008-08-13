@@ -1,3 +1,6 @@
+v0.0.9 Tue Aug 12, 2008
+- change to xpath.rb file to add support to libxml-ruby 0.8+ branch.
+
 v0.0.6 Tue Jun 5, 2007
 - change to resumption token location in the response, to better conform to the specification.
 - oai shell date parsing should now be working correctly.

@@ -13,7 +13,7 @@ module OAI::Provider::Response
           else
             r.adminEmail provider.email.to_s
           end
-          r.earliestDatestamp provider.model.earliest
+          r.earliestDatestamp Time.parse(provider.model.earliest.to_s).utc.xmlschema
           r.deletedRecord provider.delete_support.to_s
           r.granularity provider.granularity
         end
@@ -23,4 +23,3 @@ module OAI::Provider::Response
   end
   
 end
-  

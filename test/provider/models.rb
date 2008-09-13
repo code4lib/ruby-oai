@@ -7,9 +7,9 @@ class Record
       tags = 'tag', 
       sets = nil, 
       deleted = false,
-      updated_at = Time.new.utc)
+      updated_at = Time.now.utc.xmlschema)
       
-    @id = id;
+    @id = id
     @titles = titles
     @creator = creator
     @tags = tags
@@ -31,7 +31,6 @@ class Record
     end
     false
   end
-  
 end
 
 class TestModel < OAI::Provider::Model
@@ -41,15 +40,15 @@ class TestModel < OAI::Provider::Model
     super(limit)
     @records = []
     @sets = []
-    @earliest = Time.now
+    @earliest = Time.now.utc.xmlschema
   end
   
   def earliest
-    (@records.min {|a,b| a.updated_at <=> b.updated_at }).updated_at
+    (@records.min {|a,b| a.updated_at <=> b.updated_at }).updated_at.utc.xmlschema
   end
   
   def latest
-    @records.max {|a,b| a.updated_at <=> b.updated_at }.updated_at
+    @records.max {|a,b| a.updated_at <=> b.updated_at }.updated_at.utc.xmlschema
   end
 
   def sets
@@ -76,9 +75,14 @@ class TestModel < OAI::Provider::Model
         end
       else
         records = @records.select do |rec|
-          ((opts[:set].nil? || rec.in_set(opts[:set])) && 
-          (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
-          (opts[:until].nil? || rec.updated_at <= opts[:until]))
+             ((opts[:set].nil? || rec.in_set(opts[:set])) &&
+	      (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
+	      (opts[:until].nil? || rec.updated_at <= opts[:until]))
+           #else
+           #  ((opts[:set].nil? || rec.in_set(opts[:set])) && 
+           #   (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
+           #   (opts[:until].nil? || rec.updated_at <= opts[:until]))
+           #end
         end
 
         if @limit && records.size > @limit
@@ -107,8 +111,8 @@ class TestModel < OAI::Provider::Model
     groups
   end
       
-  def generate_records(number, timestamp = Time.now, sets = [], deleted = false)
-    @earliest = timestamp.dup if @earliest.nil? || timestamp < @earliest
+  def generate_records(number, timestamp = Time.now.utc.xmlschema, sets = [], deleted = false)
+    @earliest = timestamp.dup if @earliest.nil? || timestamp.to_s < @earliest
     
     # Add any sets we don't already have
     sets = [sets] unless sets.respond_to?(:each)

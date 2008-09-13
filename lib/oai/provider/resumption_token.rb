@@ -89,7 +89,7 @@ module OAI::Provider
     def encode_conditions
       encoded_token = @prefix.to_s.dup
       encoded_token << ".s(#{set})" if set
-      encoded_token << ".f(#{from.utc.xmlschema})" if from
+      encoded_token << ".f(#{self.from.utc.xmlschema})" if self.from
       encoded_token << ".u(#{self.until.utc.xmlschema})" if self.until
       encoded_token << ":#{last}"
     end

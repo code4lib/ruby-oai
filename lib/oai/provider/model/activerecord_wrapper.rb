@@ -1,5 +1,4 @@
 require 'active_record'
-
 module OAI::Provider
   # = OAI::Provider::ActiveRecordWrapper
   # 
@@ -35,7 +34,6 @@ module OAI::Provider
       model.find(:first, 
         :order => "#{timestamp_field} desc").send(timestamp_field)
     end
-
     # A model class is expected to provide a method Model.sets that
     # returns all the sets the model supports.  See the 
     # activerecord_provider tests for an example.   
@@ -46,7 +44,6 @@ module OAI::Provider
     def find(selector, options={})
       return next_set(options[:resumption_token]) if options[:resumption_token]
       conditions = sql_conditions(options)
-
       if :all == selector
         total = model.count(:id, :conditions => conditions)
         if @limit && total > @limit
@@ -93,9 +90,7 @@ module OAI::Provider
         :conditions => token_conditions(token),
         :limit => @limit, 
         :order => "#{model.primary_key} asc")
-
       raise OAI::ResumptionTokenException.new unless records
-
       offset = records.last.send(model.primary_key.to_sym)
       
       PartialResult.new(records, token.next(offset))
@@ -124,9 +119,8 @@ module OAI::Provider
       sql = []
       sql << "#{timestamp_field} >= ?" << "#{timestamp_field} <= ?" 
       sql << "set = ?" if opts[:set]
-
       esc_values = [sql.join(" AND ")]
-      esc_values << opts[:from].localtime << opts[:until].localtime
+      esc_values << Time.parse(opts[:from]).localtime << Time.parse(opts[:until]).localtime #-- OAI 2.0 hack - UTC fix from record_responce 
       esc_values << opts[:set] if opts[:set]
       
       return esc_values
@@ -134,3 +128,4 @@ module OAI::Provider
     
   end
 end
+

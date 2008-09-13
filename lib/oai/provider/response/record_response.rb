@@ -1,11 +1,10 @@
 module OAI::Provider::Response
   class RecordResponse < Base
-
     def self.inherited(klass)
       klass.valid_parameters    :metadata_prefix, :from, :until, :set
       klass.default_parameters  :metadata_prefix => "oai_dc", 
-            :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) },
-            :until => Proc.new {|x| Time.parse(x.provider.model.latest.to_s) }
+           :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) }, #-- OAI 2.0 hack - UTC
+           :until => Proc.new {|x| Time.parse(x.provider.model.latest.to_s) }   #-- OAI 2.0 hack - UTC
     end
     
     # emit record header
@@ -20,7 +19,6 @@ module OAI::Provider::Response
         end
       end
     end
-
     # metadata - core routine for delivering metadata records
     #
     def data_for(record)
@@ -51,7 +49,6 @@ module OAI::Provider::Response
       elsif options[:resumption_token]
         OAI::Provider::ResumptionToken.extract_format(options[:resumption_token])
       end
-
       raise OAI::FormatException.new unless provider.format_supported?(format)
       
       format

@@ -33,7 +33,7 @@ class LibXMLTest < Test::Unit::TestCase
       records.each do |record|
         assert record.header.identifier
         next if record.deleted?
-        assert_kind_of XML::Node, record.metadata
+        assert_kind_of LibXML::XML::Node, record.metadata
       end
     end
   end

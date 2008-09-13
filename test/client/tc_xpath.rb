@@ -18,7 +18,7 @@ class XpathTest < Test::Unit::TestCase
       return
     end
 
-    doc = XML::Document.file('test/test.xml')
+    doc = LibXML::XML::Document.file('test/test.xml')
     assert_equal xpath(doc, './/responseDate'), '2006-09-11T14:33:15Z'
     assert_equal xpath(doc, './/foobar'), nil
   end

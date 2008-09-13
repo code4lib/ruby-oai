@@ -54,11 +54,13 @@ module OAI::Provider::Metadata
     # 2.  Try calling the pluralized name method on the model.
     # 3.  Try calling the singular name method on the model
     def value_for(field, record, map)
-      method = map[field] ? map[field].to_s : field.to_s
-      
+      method = map[field] ? map[field].to_s : field.to_s 
+     
       if record.respond_to?(pluralize(method))
         record.send pluralize(method)
       elsif record.respond_to?(method)
+        # at this point, this function will throw a dep. error because of the call to type -- a reserved work
+        # in ruby
         record.send method
       else
         []

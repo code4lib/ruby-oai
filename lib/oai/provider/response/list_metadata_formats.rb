@@ -1,5 +1,4 @@
 module OAI::Provider::Response
-
   class ListMetadataFormats < RecordResponse
     valid_parameters :identifier
     
@@ -17,7 +16,6 @@ module OAI::Provider::Response
         # Remove any format that this particular record can't be provided in.
         formats.reject! { |f| !record_supports(record, f.prefix) }
       end
-
       response do |r|
         r.ListMetadataFormats do
           formats.each do |format|
@@ -38,5 +36,4 @@ module OAI::Provider::Response
     end
     
   end  
-
 end

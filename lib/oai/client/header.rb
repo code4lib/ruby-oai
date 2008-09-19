@@ -7,7 +7,7 @@ module OAI
       @status = get_attribute(element, 'status')
       @identifier = xpath(element, './/identifier')
       @datestamp = xpath(element, './/datestamp')
-      @set_spec = xpath(element, './/setSpec')
+      @set_spec = xpath_all(element, './/setSpec')
     end
 
     def deleted?

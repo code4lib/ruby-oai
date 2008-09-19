@@ -17,7 +17,12 @@ module OAI
           code = error.attributes['code']
         when 'LibXML::XML::Node'
           message = error.content
-          code = error.attributes('code')
+          code = ""
+          if defined?(error.property) == nil
+              code = error.attributes['code']
+           else
+              code.property('code')
+           end
       end
       raise OAI::Exception.new(message, code)
     end

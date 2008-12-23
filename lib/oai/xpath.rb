@@ -42,7 +42,13 @@ module OAI
         if defined?(node.property) == nil
           return node.attributes[attr_name]
         else
-          return node.property(attr_name)
+	  #node.property is being deprecated.  We'll eventually remove
+	  #this trap
+	  begin
+	    return node[attr_name]
+          rescue
+             return node.property(attr_name)
+          end
         end	
       end
       return nil

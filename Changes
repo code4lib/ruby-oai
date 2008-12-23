@@ -1,3 +1,6 @@
+v0.0.12 Monday Dec. 23
+- libxml is deprecating node.property, so added support to new syntax to xpath.rb
+
 v0.0.11 Monday Sept. 15
 - fixed problem in client/response dealing with libxml call that was missed during recent libxml .5+ support corrections.
 - Thank you to Bjorn Hjelle for pointing out the above oversight.

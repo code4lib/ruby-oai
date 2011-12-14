@@ -1,4 +1,5 @@
-```            _                             _ 
+```
+            _                             _ 
  _ __ _   _| |__  _   _        ___   __ _(_)
 | '__| | | | '_ \| | | |_____ / _ \ / _` | |
 | |  | |_| | |_) | |_| |_____| (_) | (_| | |
@@ -57,12 +58,7 @@ See OAI::Provider for more details
 Interactive Harvester
 ---------------------
 
-The OAI-PMH[http://openarchives.org] client shell allows OAI Harvesting to be configured in
-an interactive manner.  Typing 'oai' on the command line starts the
-shell.
-
-After initial configuration, the shell can be used to manage harvesting
-operations.
+The OAI-PMH client shell allows OAI Harvesting to be configured in an interactive manner.  Typing 'oai' on the command line starts the shell. After initial configuration, the shell can be used to manage harvesting operations.
 
 See OAI::Harvester::Shell for more details
 
@@ -72,13 +68,17 @@ Installation
 Normally the best way to install oai is from rubyforge using the gem
 command line tool:
 
+```
   % gem install oai
+```
 
 If you're reading this you've presumably got the tarball or zip distribution.
 So you'll need to:
 
+```
   % rake package
   % gem install pkg/oai-x.y.z.gem 
+```
 
 Where x.y.z is the version of the gem that was generated.
 

@@ -61,6 +61,9 @@ module OAI
       
       return true if self.class.valid_options.nil? and options.empty?
       
+      # Added by chase@aps.org. Needed if the request includes an argument and there are no valid arguments for that verb (Identify, for example).
+      raise OAI::ArgumentException.new if self.class.valid_options.nil? && !options.empty?
+      
       if self.class.required_options
         return false unless (self.class.required_options - @options.keys).empty?
       end

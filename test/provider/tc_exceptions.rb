@@ -7,6 +7,13 @@ class ProviderExceptions < Test::Unit::TestCase
     @provider = ComplexProvider.new
   end
 
+  # chase@aps.org
+  def test_argument_exception
+    assert_raise(OAI::ArgumentException) do
+      @provider.identify(:identifier => 'invalid_arg')
+    end 
+  end
+
   def test_resumption_token_exception
     assert_raise(OAI::ResumptionTokenException) do
       @provider.list_records(:resumption_token => 'aaadddd:1000')

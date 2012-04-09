@@ -1,11 +1,5 @@
-```
-            _                             _ 
- _ __ _   _| |__  _   _        ___   __ _(_)
-| '__| | | | '_ \| | | |_____ / _ \ / _` | |
-| |  | |_| | |_) | |_| |_____| (_) | (_| | |
-|_|   \__,_|_.__/ \__, |      \___/ \__,_|_|
-                  |___/                     
-```
+ruby-oai
+========
 
 ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH)
 library for Ruby. OAI-PMH[http://openarchives.org] it is a somewhat 

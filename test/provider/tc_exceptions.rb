@@ -7,7 +7,6 @@ class ProviderExceptions < Test::Unit::TestCase
     @provider = ComplexProvider.new
   end
 
-  # chase@aps.org
   def test_argument_exception
     assert_raise(OAI::ArgumentException) do
       @provider.identify(:identifier => 'invalid_arg')

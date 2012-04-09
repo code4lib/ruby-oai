@@ -32,8 +32,6 @@ module OAI::Provider
         end
         self.new(options)
       rescue => err
-        # chase@aps.org 
-        # This was not caught by the tests.
         raise OAI::ResumptionTokenException.new
       end
     end

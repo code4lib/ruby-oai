@@ -58,9 +58,8 @@ module OAI::Provider::Metadata
      
       if record.respond_to?(pluralize(method))
         record.send pluralize(method)
-      elsif record.respond_to?(method)
-        # at this point, this function will throw a dep. error because of the call to type -- a reserved work
-        # in ruby
+      elsif method != 'type' and record.respond_to?(method)
+        # TODO: this calls type, which is deprecated, should be 
         record.send method
       else
         []

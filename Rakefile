@@ -21,7 +21,6 @@ spec = Gem::Specification.new do |s|
     s.summary = 'A ruby library for working with the Open Archive Initiative Protocol for Metadata Harvesting (OAI-PMH)'
     s.require_path = 'lib'
     s.autorequire = 'oai'
-    s.has_rdoc = true
     s.bindir = 'bin'
     s.executables = 'oai'
 

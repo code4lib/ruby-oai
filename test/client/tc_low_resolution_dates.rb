@@ -3,7 +3,7 @@ require 'test_helper'
 class LowResolutionDatesTest < Test::Unit::TestCase
 
   def test_low_res_date_parsing
-    client = OAI::Client.new 'http://caltechcstr.library.caltech.edu/perl/oai2' 
+    client = OAI::Client.new 'http://authors.library.caltech.edu/cgi/oai2' 
 
     date = Date.new 2003, 1, 1
     

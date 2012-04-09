@@ -112,8 +112,7 @@ class TestModel < OAI::Provider::Model
   end
       
   def generate_records(number, timestamp = Time.now.utc.xmlschema, sets = [], deleted = false)
-    # chase@aps.org -- causes tests to die
-    # @earliest = timestamp.dup if @earliest.nil? || timestamp.to_s < @earliest
+    @earliest = timestamp.dup if @earliest.nil? || timestamp.to_s < @earliest
     @earliest = timestamp.dup if @earliest.nil?
     
     # Add any sets we don't already have

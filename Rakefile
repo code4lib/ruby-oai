@@ -1,4 +1,4 @@
-RUBY_OAI_VERSION = '0.0.12'
+RUBY_OAI_VERSION = '0.0.13'
 
 require 'rubygems'
 require 'rake'
@@ -26,7 +26,7 @@ spec = Gem::Specification.new do |s|
 
     s.add_dependency('builder', '>=2.0.0')
     
-    s.files = %w(README Rakefile) +
+    s.files = %w(README.md Rakefile) +
       Dir.glob("{bin,test,lib}/**/*") + 
       Dir.glob("examples/**/*.rb")
 end

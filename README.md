@@ -80,11 +80,3 @@ License
 -------
 
 [Public Domain](http://creativecommons.org/publicdomain/zero/1.0/)
-
-Authors
--------
-
-* Ed Summers <ehs@pobox.com>
-* William Groppe <will.groppe@gmail.com>
-* Terry Reese <terry.reese@oregonstate.edu>
-

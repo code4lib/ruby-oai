@@ -13,6 +13,11 @@ class TestSimpleProvider < Test::Unit::TestCase
       doc.elements["/OAI-PMH/Identify/repositoryName"].text
     assert_equal SimpleModel.new.earliest.to_s,
       doc.elements["/OAI-PMH/Identify/earliestDatestamp"].text
+      
+      # PC
+  #  lambda { REXML::Document.new(@simple_provider.identify(:set => 'A')) }
+    
+  
   end
 
   def test_list_sets

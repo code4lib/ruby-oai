@@ -186,7 +186,7 @@ module OAI::Provider
     
     class << self
       attr_reader :formats
-      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :sample_ident
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier
 
       def register_format(format)
         @formats ||= {}
@@ -220,7 +220,7 @@ module OAI::Provider
       alias_method :deletion_support,   :delete_support=  
       alias_method :update_granularity, :granularity=     
       alias_method :source_model,       :model=
-      alias_method :sample_identifier,  :sample_ident=
+      alias_method :sample_id,          :identifier=
       
     end
 
@@ -231,7 +231,7 @@ module OAI::Provider
     Base.admin_email 'nobody@localhost'
     Base.deletion_support OAI::Const::Delete::TRANSIENT
     Base.update_granularity OAI::Const::Granularity::HIGH
-    Base.sample_identifier 'oai:pubmedcentral.gov:13900'
+    Base.sample_id '13900'
 
     Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
     

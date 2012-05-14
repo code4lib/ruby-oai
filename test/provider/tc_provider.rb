@@ -5,6 +5,13 @@ class OaiTest < Test::Unit::TestCase
   def setup
     @mapped_provider = MappedProvider.new
     @big_provider = BigProvider.new
+    @described_provider = DescribedProvider.new
+  end
+
+  def test_additional_description
+    doc = REXML::Document.new(@described_provider.identify)
+    assert_equal "oai:test:13900", doc.elements['OAI-PMH/Identify/description/oai-identifier/sampleIdentifier'].text
+    assert_not_nil doc.elements['OAI-PMH/Identify/my_custom_xml']
   end
   
   def test_list_identifiers_for_correct_xml

@@ -186,7 +186,7 @@ module OAI::Provider
     
     class << self
       attr_reader :formats
-      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
 
       def register_format(format)
         @formats ||= {}
@@ -221,6 +221,7 @@ module OAI::Provider
       alias_method :update_granularity, :granularity=     
       alias_method :source_model,       :model=
       alias_method :sample_id,          :identifier=
+      alias_method :extra_description,  :description=
       
     end
 

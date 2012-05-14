@@ -24,7 +24,11 @@ module OAI::Provider::Response
               r.sampleIdentifier "#{provider.prefix}:#{provider.identifier}"
             end
           end
+          if provider.description
+            r.target! << provider.description
+          end
         end
+
       end
     end
     

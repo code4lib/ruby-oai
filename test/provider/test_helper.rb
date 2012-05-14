@@ -34,3 +34,12 @@ class ComplexProvider < Provider::Base
   record_prefix 'oai:test'
   source_model ComplexModel.new(100)
 end
+
+class DescribedProvider < Provider::Base
+  repository_name 'Described PRovider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model SimpleModel.new
+  sample_id '13900'
+  extra_description "<my_custom_xml />"
+end

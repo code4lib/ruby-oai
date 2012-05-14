@@ -24,7 +24,7 @@ module OAI::Provider::Response
               r.sampleIdentifier "#{provider.prefix}:#{provider.identifier}"
             end
           end
-          if provider.desciption
+          if provider.description
             provider.description
           end
         end

@@ -16,6 +16,7 @@ module OAI::Provider::Response
           r.earliestDatestamp Time.parse(provider.model.earliest.to_s).utc.xmlschema
           r.deletedRecord provider.delete_support.to_s
           r.granularity provider.granularity
+          r.sampleIdentifier provider.sample_identifier
         end
       end
     end

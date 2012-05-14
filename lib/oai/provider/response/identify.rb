@@ -25,7 +25,7 @@ module OAI::Provider::Response
             end
           end
           if provider.description
-            provider.description
+            r.target! << provider.description
           end
         end
 

@@ -120,7 +120,7 @@ module OAI::Provider
       sql << "#{timestamp_field} >= ?" << "#{timestamp_field} <= ?" 
       sql << "set = ?" if opts[:set]
       esc_values = [sql.join(" AND ")]
-      esc_values << Time.parse(opts[:from]).localtime << Time.parse(opts[:until]).localtime #-- OAI 2.0 hack - UTC fix from record_responce 
+      esc_values << Time.parse(opts[:from].to_s).localtime << Time.parse(opts[:until].to_s).localtime #-- OAI 2.0 hack - UTC fix from record_responce 
       esc_values << opts[:set] if opts[:set]
       
       return esc_values

@@ -55,6 +55,7 @@ end
 #    repository_url 'http://localhost/provider'
 #    record_prefix 'oai:localhost'
 #    admin_email 'root@localhost'
+#    sample_identifier 'oai:pubmedcentral.gov:13900'
 #    source_model MyModel.new
 #  end
 #
@@ -97,6 +98,7 @@ end
 #     record_prefix 'oai:blog'
 #     admin_email 'root@localhost'
 #     source_model OAI::Provider::ActiveRecordWrapper.new(Post)
+#     sample_identifier 'oai:pubmedcentral.gov:13900'
 #   end
 #
 # Create a custom controller:
@@ -184,7 +186,7 @@ module OAI::Provider
     
     class << self
       attr_reader :formats
-      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
 
       def register_format(format)
         @formats ||= {}
@@ -218,6 +220,8 @@ module OAI::Provider
       alias_method :deletion_support,   :delete_support=  
       alias_method :update_granularity, :granularity=     
       alias_method :source_model,       :model=
+      alias_method :sample_id,          :identifier=
+      alias_method :extra_description,  :description=
       
     end
 
@@ -228,6 +232,7 @@ module OAI::Provider
     Base.admin_email 'nobody@localhost'
     Base.deletion_support OAI::Const::Delete::TRANSIENT
     Base.update_granularity OAI::Const::Granularity::HIGH
+    Base.sample_id '13900'
 
     Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
     

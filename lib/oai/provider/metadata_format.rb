@@ -28,7 +28,7 @@ module OAI::Provider::Metadata
         record.send("to_#{prefix}")
       else
         xml = Builder::XmlMarkup.new
-        map = model.respond_to?("map_#{prefix}") ? model.send("map_#{prefix}") : {}
+        map = model.model.respond_to?("map_#{prefix}") ? model.model.send("map_#{prefix}") : {}
           xml.tag!("#{prefix}:#{element_namespace}", header_specification) do
             fields.each do |field|
               values = value_for(field, record, map)

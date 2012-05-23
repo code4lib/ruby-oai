@@ -1,4 +1,24 @@
 module OAI
+
+  # An OAI::Response contains entries and a resumption token. If a resumption token is present, 
+  # then you must use it to fetch the rest of the entries for your query. For example:
+  #   # List all records
+  #   i = 1
+  #   begin 
+  #     response = client.list_records
+  #     while response.entries.size > 0    
+  #       response.entries.each { |entry|
+  #         puts "<b>#{i}</b> #{entry.header.identifier}<br/>"
+  #         i +=1
+  #       }
+  #       token = response.resumption_token
+  #       response = client.list_records :resumption_token => token if token
+  #     end
+  #   rescue OAI::Exception => e
+  #     puts 'No records to process'
+  #   end
+  #   puts "Done processing #{i} records"
+
   class Response
     include OAI::XPath
     attr_reader :doc, :resumption_token

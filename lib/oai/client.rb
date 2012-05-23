@@ -98,7 +98,7 @@ module OAI
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
     # object which is essentially just a wrapper around a REXML::Document 
-    # for the response. If you are created your client using the libxml 
+    # for the response. If you created your client using the libxml 
     # parser then you will get an XML::Node object instead.
     
     def identify

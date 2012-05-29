@@ -1,7 +1,6 @@
 require 'test_helper'
 
 class ProviderExceptions < Test::Unit::TestCase
-  include Singleton
   
   def setup
     @provider = ComplexProvider.new

@@ -1,6 +1,6 @@
 # External dependencies
 require 'uri'
-require 'net/http'
+require 'faraday'
 require 'cgi'
 require 'iconv'
 
@@ -67,6 +67,11 @@ module OAI
     # back XML::Node objects
     #
     #   client = OAI::Client.new 'http://example.com', :parser => 'libxml'
+    #   
+    # You can configure the Faraday HTTP client by providing an alternate 
+    # Faraday instance:
+    #
+    #   client = OAI::Client.new 'http://example.com', :http => Faraday.new { |c| }
     #
     # === HIGH PERFORMANCE
     #
@@ -77,7 +82,18 @@ module OAI
       @base = URI.parse base_url
       @debug = options.fetch(:debug, false)
       @parser = options.fetch(:parser, 'rexml')
+
       @follow_redirects = options.fetch(:redirects, true)
+      @http_client = options.fetch(:http, Faraday.new(@base))
+
+      if !options.key?(:http) and @follow_redirects
+
+        count = @folow_redirects if @folow_redirects.is_a? Fixnum
+        count ||= 5
+
+        require 'faraday_middleware'
+        @http_client.use FaradayMiddleware::FollowRedirects, :limit => count
+      end
       
       # load appropriate parser
       case @parser
@@ -207,21 +223,8 @@ module OAI
 
     # Do the actual HTTP get, following any temporary redirects
     def get(uri)
-      response = Net::HTTP.get_response(uri)
-      case response
-      when Net::HTTPSuccess
-        return response.body
-      when Net::HTTPMovedPermanently
-        if @follow_redirects
-          response = get(URI.parse(response['location']))
-        else
-          raise ArgumentError, "Permanently Redirected to [#{response['location']}]"
-        end
-      when Net::HTTPTemporaryRedirect
-        response = get(URI.parse(response['location']))
-      else
-        raise ArgumentError, "#{response.code_type} [#{response.code}]"
-      end
+      response = @http_client.get uri
+      response.body
     end
 
     def debug(msg)

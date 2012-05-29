@@ -12,6 +12,8 @@ Gem::Specification.new do |s|
     s.executables = 'oai'
 
     s.add_dependency('builder', '>=2.0.0')
+    s.add_dependency('faraday')
+    s.add_dependency('faraday_middleware')
     s.add_development_dependency('rake')
     
     s.files = %w(README.md Rakefile) +

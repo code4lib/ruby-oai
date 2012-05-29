@@ -1,3 +1,6 @@
+ruby-oai has moved to the [code4lib organization account](http://github.com/code4lib/ruby-oai)!
+========================================================
+
 ruby-oai
 ========
 

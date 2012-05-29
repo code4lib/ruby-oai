@@ -50,7 +50,7 @@ namespace :test do
       Rake::Task['test:provider'].invoke
     end
 
-    system("open coverage/index.html") if PLATFORM['darwin']
+    system("open coverage/index.html") if (PLATFORM['darwin'] if Kernel.const_defined? :PLATFORM) || (RUBY_PLATFORM =~ /darwin/ if Kernel.const_defined? :RUBY_PLATFORM)
   end
 
 end

@@ -41,11 +41,38 @@ namespace :test do
   task :coverage do
     rm_f "coverage"
     rm_f "coverage.data"
-    system("rcov --aggregate coverage.data --text-summary -Ilib:test/provider test/provider/tc_*.rb")
-    system("rcov --aggregate coverage.data --text-summary -Ilib:test/client test/client/tc_*.rb")
+    if RUBY_VERSION =~ /^1.8/
+      Rake::Task['rcov:client'].invoke
+      Rake::Task['rcov:provider'].invoke
+    else
+      ENV['COVERAGE'] = 'true'
+      Rake::Task['test:client'].invoke
+      Rake::Task['test:provider'].invoke
+    end
+
     system("open coverage/index.html") if PLATFORM['darwin']
   end
 
+end
+
+if RUBY_VERSION =~ /^1.8/
+  require 'rcov/rcovtask'
+  namespace :rcov do
+    Rcov::RcovTask.new do |t|
+      t.name = 'client'
+      t.libs << ['lib', 'test/client']
+      t.pattern = 'test/client/tc_*.rb'
+      t.verbose = true
+      t.rcov_opts = ['--aggregate coverage.data', '--text-summary']
+    end
+
+    Rcov::RcovTask.new('provider') do |t|
+      t.libs << ['lib', 'test/provider']
+      t.pattern = 'test/provider/tc_*.rb'
+      t.verbose = true
+      t.rcov_opts = ['--aggregate coverage.data', '--text-summary']
+    end
+  end
 end
 
 task 'test:activerecord_provider' => :create_database

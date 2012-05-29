@@ -9,3 +9,10 @@ module Test::Unit
   end
   
 end
+
+unless $provider_server_already_started
+  $provider_server_already_started = true
+  ProviderServer.start(3333)
+  sleep 2
+end
+

@@ -24,7 +24,7 @@ module OAI::Provider
         )
       end
     end
-    
+
     def earliest
       model.find(:first, 
         :order => "#{timestamp_field} asc").send(timestamp_field)
@@ -65,6 +65,22 @@ module OAI::Provider
       false
     end    
     
+    def respond_to?(m, *args)
+      if m =~ /^map_/ 
+        model.respond_to?(m, *args)
+      else
+        super
+      end
+    end
+
+    def method_missing(m, *args, &block)
+      if m =~ /^map_/
+        model.send(m, *args, &block)
+      else
+        super
+      end
+    end
+
     protected
     
     # Request the next set in this sequence.
@@ -120,7 +136,7 @@ module OAI::Provider
       sql << "#{timestamp_field} >= ?" << "#{timestamp_field} <= ?" 
       sql << "set = ?" if opts[:set]
       esc_values = [sql.join(" AND ")]
-      esc_values << Time.parse(opts[:from]).localtime << Time.parse(opts[:until]).localtime #-- OAI 2.0 hack - UTC fix from record_responce 
+      esc_values << Time.parse(opts[:from].to_s).localtime << Time.parse(opts[:until].to_s).localtime.to_s #-- OAI 2.0 hack - UTC fix from record_responce 
       esc_values << opts[:set] if opts[:set]
       
       return esc_values

@@ -72,7 +72,7 @@ module OAI
         
         file = Tempfile.new('oai_data')
         gz = Zlib::GzipWriter.new(file)
-        gz << "<? xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+        gz << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
         gz << "<records>"
         begin
           response = client.list_records(options)

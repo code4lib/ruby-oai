@@ -206,8 +206,7 @@ module OAI
       case @parser
       when 'libxml'
         begin
-          parser = XML::Parser.new()
-          parser.string = xml
+          parser = XML::Parser.string()
           return parser.parse
         rescue XML::Parser::ParseError => e
           raise OAI::Exception, 'response not well formed XML: '+e, caller

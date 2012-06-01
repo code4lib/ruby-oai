@@ -1,3 +1,4 @@
+require 'time'
 require 'zlib'
 require 'net/smtp'
 require 'yaml'

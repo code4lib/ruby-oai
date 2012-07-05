@@ -26,6 +26,21 @@ module OAI::Provider::Response
         @builder.target! << provider.format(requested_format).encode(provider.model, record)
       end
     end
+
+    # about - core routine for delivering about records
+    #
+    def about_for(record)
+      return unless provider.model.respond_to? :about
+
+      about = provider.model.about(record)
+      return if about.nil? 
+
+      Array(about).each do |a|
+        @builder.about do
+          @builder.target! << a
+        end 
+      end
+    end
     
     private
     

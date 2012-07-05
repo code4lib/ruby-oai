@@ -231,5 +231,14 @@ class ComplexModel < TestModel
     generate_records(250, Time.parse("December 25 2005"), [set_four, set_three_four])
   end
   
+  def about record
+    <<-eos 
+    <oai_dc:dc 
+          xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+          xmlns:dc="http://purl.org/dc/elements/1.1/">
+          <dc:publisher>Ruby OAI test data</dc:publisher>
+    </oai_dc:dc>
+    eos
+  end
 end
 

@@ -10,11 +10,12 @@ module OAI
   
   class Record
     include OAI::XPath
-    attr_accessor :header, :metadata
+    attr_accessor :header, :metadata, :about
 
     def initialize(element)
       @header = OAI::Header.new xpath_first(element, './/header')
       @metadata = xpath_first(element, './/metadata')
+      @about = xpath_first(element, './/about')
     end
 
     # a convenience method which digs into the header status attribute

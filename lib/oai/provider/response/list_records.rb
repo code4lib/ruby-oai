@@ -15,6 +15,7 @@ module OAI::Provider::Response
             r.record do
               header_for rec
               data_for rec unless deleted?(rec)
+              about_for rec unless deleted?(rec)
             end
           end
 

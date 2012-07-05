@@ -17,6 +17,8 @@ module OAI::Provider
   # available_formats - if overridden, individual records should return an 
   # array of prefixes for all formats in which that record is available, 
   # if other than ["oai_dc"]
+  # about - if overridden, should return a String or Array of XML Strings to
+  # insert into the OAI Record <about> chunks.
   #
   # == Resumption Tokens
   #
@@ -68,7 +70,11 @@ module OAI::Provider
     def deleted?
       false
     end
-    
+
+    # can return a String or Array of XML Strings add as OAI Record <about> chunks.
+    def about record
+      nil
+    end
   end
   
 end

@@ -9,6 +9,7 @@ class GetRecordTest < Test::Unit::TestCase
     assert_kind_of OAI::Record, response.record
     assert_kind_of REXML::Element, response.record.metadata
     assert_kind_of OAI::Header, response.record.header
+    assert_kind_of REXML::Element, response.record.about
 
     # minimal check that the header is working
     assert_equal 'oai:test/3', 
@@ -16,6 +17,7 @@ class GetRecordTest < Test::Unit::TestCase
 
     # minimal check that the metadata is working
     #assert 'en', response.record.metadata.elements['.//dc:language'].text
+    assert_equal 'Ruby OAI test data', response.record.about.elements['.//dc:publisher'].text
   end
 
   def test_missing_identifier

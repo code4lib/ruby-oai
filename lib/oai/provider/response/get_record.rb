@@ -14,6 +14,7 @@ module OAI::Provider::Response
           r.record do 
             header_for record
             data_for record unless deleted?(record)
+            about_for record unless deleted?(record)
           end
         end
       end

@@ -16,7 +16,7 @@ end
 require 'oai/client/metadata_format'
 require 'oai/client/response'
 require 'oai/client/header'
-require 'oai/client/record' 
+require 'oai/client/record'
 require 'oai/client/identify'
 require 'oai/client/get_record'
 require 'oai/client/list_identifiers'
@@ -27,7 +27,7 @@ require 'oai/client/list_sets'
 module OAI
 
   # A OAI::Client provides a client api for issuing OAI-PMH verbs against
-  # a OAI-PMH server. The 6 OAI-PMH verbs translate directly to methods you 
+  # a OAI-PMH server. The 6 OAI-PMH verbs translate directly to methods you
   # can call on a OAI::Client object. Verb arguments are passed as a hash:
   #
   #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
@@ -36,9 +36,9 @@ module OAI
   #     puts identifier
   #   end
   #
-  # It is worth noting that the api uses methods and parameter names with 
-  # underscores in them rather than studly caps. So above list_identifiers 
-  # and metadata_prefix are used instead of the listIdentifiers and 
+  # It is worth noting that the api uses methods and parameter names with
+  # underscores in them rather than studly caps. So above list_identifiers
+  # and metadata_prefix are used instead of the listIdentifiers and
   # metadataPrefix used in the OAI-PMH specification.
   #
   # Also, the from and until arguments which specify dates should be passed
@@ -49,10 +49,10 @@ module OAI
   # the OAI-PMH docs at:
   #
   #     http://www.openarchives.org/OAI/openarchivesprotocol.html
-  
+
   class Client
 
-    # The constructor which must be passed a valid base url for an oai 
+    # The constructor which must be passed a valid base url for an oai
     # service:
     #
     #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
@@ -67,15 +67,15 @@ module OAI
     # back XML::Node objects
     #
     #   client = OAI::Client.new 'http://example.com', :parser => 'libxml'
-    #   
-    # You can configure the Faraday HTTP client by providing an alternate 
+    #
+    # You can configure the Faraday HTTP client by providing an alternate
     # Faraday instance:
     #
     #   client = OAI::Client.new 'http://example.com', :http => Faraday.new { |c| }
     #
     # === HIGH PERFORMANCE
     #
-    # If you want to supercharge this api install libxml-ruby >= 0.3.8 and 
+    # If you want to supercharge this api install libxml-ruby >= 0.3.8 and
     # use the :parser option when you construct your OAI::Client.
     #
     def initialize(base_url, options={})
@@ -94,7 +94,7 @@ module OAI
         require 'faraday_middleware'
         @http_client.use FaradayMiddleware::FollowRedirects, :limit => count
       end
-      
+
       # load appropriate parser
       case @parser
       when 'libxml'
@@ -113,33 +113,33 @@ module OAI
     end
 
     # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
-    # object which is essentially just a wrapper around a REXML::Document 
-    # for the response. If you created your client using the libxml 
+    # object which is essentially just a wrapper around a REXML::Document
+    # for the response. If you created your client using the libxml
     # parser then you will get an XML::Node object instead.
-    
+
     def identify
       return OAI::IdentifyResponse.new(do_request('Identify'))
     end
 
     # Equivalent to a ListMetadataFormats request. A ListMetadataFormatsResponse
-    # object is returned to you. 
-    
+    # object is returned to you.
+
     def list_metadata_formats(opts={})
       return OAI::ListMetadataFormatsResponse.new(do_request('ListMetadataFormats', opts))
     end
 
     # Equivalent to a ListIdentifiers request. Pass in :from, :until arguments
-    # as Date or DateTime objects as appropriate depending on the granularity 
+    # as Date or DateTime objects as appropriate depending on the granularity
     # supported by the server.
-    
+
     def list_identifiers(opts={})
-      return OAI::ListIdentifiersResponse.new(do_request('ListIdentifiers', opts)) 
+      return OAI::ListIdentifiersResponse.new(do_request('ListIdentifiers', opts))
     end
 
-    # Equivalent to a GetRecord request. You must supply an identifier 
+    # Equivalent to a GetRecord request. You must supply an identifier
     # argument. You should get back a OAI::GetRecordResponse object
     # which you can extract a OAI::Record object from.
-    
+
     def get_record(opts={})
       return OAI::GetRecordResponse.new(do_request('GetRecord', opts))
     end
@@ -150,39 +150,39 @@ module OAI
     #   for record in client.list_records
     #     puts record.metadata
     #   end
-    
+
     def list_records(opts={})
       return OAI::ListRecordsResponse.new(do_request('ListRecords', opts))
     end
 
     # Equivalent to the ListSets request. A ListSetsResponse object
-    # will be returned which you can use for iterating through the 
+    # will be returned which you can use for iterating through the
     # OAI::Set objects
     #
     #   for set in client.list_sets
     #     puts set
     #   end
-    
+
     def list_sets(opts={})
       return OAI::ListSetsResponse.new(do_request('ListSets', opts))
     end
 
-    private 
+    private
 
     def do_request(verb, opts = nil)
       # fire off the request and return appropriate DOM object
       uri = build_uri(verb, opts)
       xml = strip_invalid_utf_8_chars(get(uri))
-      if @parser == 'libxml' 
+      if @parser == 'libxml'
         # remove default namespace for oai-pmh since libxml
-        # isn't able to use our xpaths to get at them 
+        # isn't able to use our xpaths to get at them
         # if you know a way around thins please let me know
         xml = xml.gsub(
-          /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '') 
+          /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
       end
       return load_document(xml)
     end
-    
+
     def build_uri(verb, opts)
       opts = validate_options(verb, opts)
       uri = @base.clone
@@ -190,7 +190,7 @@ module OAI
       opts.each_pair { |k,v| uri.query << '&' << externalize(k) << '=' << encode(v) }
       uri
     end
-    
+
     def encode(value)
       return CGI.escape(value) unless value.respond_to?(:strftime)
       if value.kind_of?(DateTime)
@@ -229,7 +229,7 @@ module OAI
     def debug(msg)
       $stderr.print("#{msg}\n") if @debug
     end
-    
+
     # Massage the standard OAI options to make them a bit more palatable.
     def validate_options(verb, opts = {})
       raise OAI::VerbException.new unless Const::VERBS.keys.include?(verb)
@@ -237,20 +237,20 @@ module OAI
       return {} if opts.nil?
 
       raise OAI::ArgumentException.new unless opts.respond_to?(:keys)
-      
+
       realopts = {}
       # Internalize the hash
       opts.keys.each do |key|
         realopts[key.to_s.gsub(/([A-Z])/, '_\1').downcase.intern] = opts.delete(key)
       end
-      
+
       return realopts if is_resumption?(realopts)
-      
+
       # add in a default metadataPrefix if none exists
       if(Const::VERBS[verb].include?(:metadata_prefix))
         realopts[:metadata_prefix] ||= 'oai_dc'
       end
-      
+
       # Convert date formated strings in dates.
       #realopts[:from] = parse_date(realopts[:from]) if realopts[:from]
       #realopts[:until] = parse_date(realopts[:until]) if realopts[:until]
@@ -261,43 +261,43 @@ module OAI
       end
       realopts
     end
-    
+
     def is_resumption?(opts)
-      if opts.keys.include?(:resumption_token) 
+      if opts.keys.include?(:resumption_token)
         return true if 1 == opts.keys.size
         raise OAI::ArgumentException.new
       end
     end
-        
+
     # Convert our internal representations back into standard OAI options
     def externalize(value)
       value.to_s.gsub(/_[a-z]/) { |m| m.sub("_", '').capitalize }
     end
-    
+
     def parse_date(value)
       return value if value.respond_to?(:strftime)
-      
+
       Date.parse(value) # This will raise an exception for badly formatted dates
       Time.parse(value).utc # Sadly, this will not
     rescue
-      raise OAI::ArgumentError.new 
+      raise OAI::ArgumentError.new
     end
-    
+
     # Strip out invalid UTF-8 characters.  Regex from the W3C, inverted.
     # http://www.w3.org/International/questions/qa-forms-utf-8.en.php
     #
-    # Regex is from WebCollab: 
+    # Regex is from WebCollab:
     #   http://webcollab.sourceforge.net/unicode.html
     def strip_invalid_utf_8_chars(xml)
-      simple_bytes = xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
+      xml && xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
                              | [\x00-\x7F][\x80-\xBF]+
                              | ([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*
                              | [\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})
                              | [\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))
-                             | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')
-      simple_bytes.gsub(/\xE0[\x80-\x9F][\x80-\xBF]
+                             | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')\
+                .gsub(/\xE0[\x80-\x9F][\x80-\xBF]
                        | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
     end
-        
+
   end
 end

@@ -1,18 +1,6 @@
-module Test::Unit
-  class AutoRunner
-    alias_method :real_run, :run
-    
-    def run
-      ProviderServer.wrap { real_run }
-    end
-
-  end
-  
-end
-
-unless $provider_server_already_started
-  $provider_server_already_started = true
-  ProviderServer.start(3333)
-  sleep 2
+unless $provider_server
+  $provider_server = ProviderServer.new(3333, '/oai')
+  $provider_server.start
+  sleep 0.2
 end
 

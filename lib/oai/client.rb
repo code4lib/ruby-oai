@@ -2,7 +2,6 @@
 require 'uri'
 require 'faraday'
 require 'cgi'
-require 'iconv'
 
 if not defined?(OAI::Const::VERBS)
   # Shared stuff

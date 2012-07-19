@@ -1,6 +1,8 @@
 class TransactionalTestCase < Test::Unit::TestCase
 
   def run(result, &block)
+    # Handle the default "you have no tests" test if it turns up
+    return if @method_name.to_s == "default_test"
     ActiveRecord::Base.transaction do
       load_fixtures
       result = super(result, &block)

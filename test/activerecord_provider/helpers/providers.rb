@@ -1,6 +1,5 @@
 require 'active_record'
 require 'oai'
-require "config/connection.rb"
 
 Dir.glob(File.dirname(__FILE__) + "/../models/*.rb").each do |lib|
   require lib
@@ -26,7 +25,7 @@ class CachingResumptionProvider < OAI::Provider::Base
   record_prefix 'oai:test'
   source_model ActiveRecordCachingWrapper.new(DCField, :limit => 25)
 end
-  
+
 
 class ARLoader
   def self.load
@@ -37,7 +36,7 @@ class ARLoader
       DCField.create(fixtures[key])
     end
   end
-  
+
   def self.unload
     DCField.delete_all
   end

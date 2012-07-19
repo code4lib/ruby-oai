@@ -1,18 +1,16 @@
-ActiveRecord::Migration.verbose = false
-
-class OAIPMHTables < ActiveRecord::Migration
+class OaipmhTables < ActiveRecord::Migration
   def self.up
-    create_table :oai_tokens, :force => true do |t|
+    create_table :oai_tokens do |t|
       t.column :token,      :string,  :null => false
       t.column :created_at, :timestamp
     end
-    
-    create_table :oai_entries, :force => true do |t|
+
+    create_table :oai_entries do |t|
       t.column :record_id, :integer, :null => false
       t.column :oai_token_id, :integer, :null => false
     end
-    
-    create_table :dc_fields, :force => true do |t|
+
+    create_table :dc_fields do |t|
       t.column  :title,         :string
       t.column  :creator,       :string
       t.column  :subject,       :string
@@ -31,13 +29,13 @@ class OAIPMHTables < ActiveRecord::Migration
       t.column  :created_at,    :datetime
       t.column  :deleted,       :boolean,   :default => false
     end
-    
-    create_table :dc_fields_dc_sets, :force => true, :id => false do |t|
+
+    create_table :dc_fields_dc_sets, :id => false do |t|
       t.column :dc_field_id,    :integer
       t.column :dc_set_id,      :integer
     end
-    
-    create_table :dc_sets, :force => true do |t|
+
+    create_table :dc_sets do |t|
       t.column :name,           :string
       t.column :spec,           :string
       t.column :description,    :string

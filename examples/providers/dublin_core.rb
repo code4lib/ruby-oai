@@ -4,7 +4,7 @@ require 'camping/session'
 require 'oai/provider'
 
 # Extremely simple demo Camping application to illustrate OAI Provider integration
-# with Camping. 
+# with Camping.
 #
 # William Groppe 2/1/2007
 #
@@ -13,9 +13,9 @@ Camping.goes :DublinCore
 
 module DublinCore
   include Camping::Session
-  
-  FIELDS = ['title', 'creator', 'subject', 'description', 
-    'publisher', 'contributor', 'date', 'type', 'format', 
+
+  FIELDS = ['title', 'creator', 'subject', 'description',
+    'publisher', 'contributor', 'date', 'type', 'format',
     'identifier', 'source', 'language', 'relation', 'coverage', 'rights']
 
   def DublinCore.create
@@ -23,7 +23,7 @@ module DublinCore
     DublinCore::Models.create_schema :assume =>
       (DublinCore::Models::Obj.table_exists? ? 1.0 : 0.0)
   end
-  
+
 end
 
 module DublinCore::Models
@@ -32,7 +32,7 @@ module DublinCore::Models
   Base.default_timezone = :utc
 
   class Obj < Base # since Object is reserved
-    has_and_belongs_to_many :fields, :join_table => 'dublincore_field_links', 
+    has_and_belongs_to_many :fields, :join_table => 'dublincore_field_links',
       :foreign_key => 'obj_id', :association_foreign_key => 'field_id'
     DublinCore::FIELDS.each do |field|
       class_eval(%{
@@ -44,68 +44,68 @@ module DublinCore::Models
       });
     end
   end
-  
+
   class Field < Base
-    has_and_belongs_to_many :objs, :join_table => 'dublincore_field_links', 
+    has_and_belongs_to_many :objs, :join_table => 'dublincore_field_links',
       :foreign_key => 'field_id', :association_foreign_key => 'obj_id'
     validates_presence_of :field_type, :message => "can't be blank"
-    
+
     # Support sorting by value
     def <=>(other)
       self.to_s <=> other.to_s
     end
-      
+
     def to_s
       value
     end
   end
-  
+
   DublinCore::FIELDS.each do |field|
     module_eval(%{
       class DC#{field.capitalize} < Field; end
     })
   end
-  
+
   # OAI Provider configuration
   class CampingProvider < OAI::Provider::Base
     repository_name 'Camping Test OAI Repository'
     source_model ActiveRecordWrapper.new(Obj)
   end
-  
+
   class CreateTheBasics < V 1.0
     def self.up
       create_table :dublincore_objs, :force => true do |t|
         t.column  :source, :string
         t.column  :created_at,  :datetime
         t.column  :updated_at,  :datetime
-      end 
-      
+      end
+
       create_table :dublincore_field_links, :id => false, :force => true do |t|
         t.column  :obj_id, :integer, :null => false
         t.column  :field_id,  :integer, :null => false
       end
-      
+
       create_table :dublincore_fields, :force => true do |t|
         t.column  :field_type,  :string,  :limit => 30, :null => false
         t.column  :value,       :text,  :null => false
       end
-      
+
       add_index :dublincore_fields, [:field_type, :value], :uniq => true
       add_index :dublincore_field_links, :field_id
       add_index :dublincore_field_links, [:obj_id, :field_id]
     end
-    
+
     def self.down
       drop_table :dublincore_objs
       drop_table :dublincore_field_links
       drop_table :dublincore_fields
     end
   end
-  
+
 end
 
 module DublinCore::Controllers
-  
+
   # Now setup a URL('/oai' by default) to handle OAI requests
   class Oai
     def get
@@ -114,13 +114,13 @@ module DublinCore::Controllers
       provider.process_request(@input.merge(:url => "http:"+URL(Oai).to_s))
     end
   end
-  
+
   class Index < R '/', '/browse/(\w+)', '/browse/(\w+)/page/(\d+)'
     def get(field = nil, page = 1)
       @field = field
       @page = page.to_i
       @browse = {}
-      if !@field 
+      if !@field
         FIELDS.each do |field|
           @browse[field] = Field.count(
             :conditions => ["field_type = ?", "DC#{field.capitalize}"])
@@ -129,11 +129,11 @@ module DublinCore::Controllers
         @count = @browse.keys.size
       else
         @count = Field.count(:conditions => ["field_type = ?", "DC#{@field.capitalize}"])
-        fields = Field.find(:all, 
+        fields = Field.find(:all,
           :conditions => ["field_type = ?", "DC#{@field.capitalize}"],
-          :order => "value asc", :limit => DublinCore::LIMIT, 
+          :order => "value asc", :limit => DublinCore::LIMIT,
           :offset => (@page - 1) * DublinCore::LIMIT)
-          
+
         fields.each do |field|
           @browse[field] = field.objs.size
         end
@@ -141,14 +141,14 @@ module DublinCore::Controllers
       render :browse
     end
   end
-  
+
   class Search < R '/search', '/search/page/(\d+)'
-    
+
     def get(page = 1)
       @page = page.to_i
       if input.terms
         @state.terms = input.terms if input.terms
-      
+
         start = Time.now
         ids = search(input.terms, @page - 1)
         finish = Time.now
@@ -158,31 +158,31 @@ module DublinCore::Controllers
         @count = 0
         @objs = []
       end
-      
+
       render :search
     end
-    
+
   end
-  
+
   class LinkedTo < R '/linked/(\d+)', '/linked/(\d+)/page/(\d+)'
     def get(field, page = 1)
       @page = page.to_i
       @field = field
       @count = Field.find(field).objs.size
-      @objs = Field.find(field).objs.find(:all, 
-        :limit => DublinCore::LIMIT, 
+      @objs = Field.find(field).objs.find(:all,
+        :limit => DublinCore::LIMIT,
         :offset => (@page - 1) * DublinCore::LIMIT)
       render :records
     end
   end
-  
+
   class Add
     def get
       @obj = Obj.create
       render :edit
     end
   end
-  
+
   class View < R '/view/(\d+)'
     def get obj_id
       obj = Obj.find(obj_id)
@@ -198,13 +198,13 @@ module DublinCore::Controllers
       end
     end
   end
-  
+
   class Edit < R '/edit', '/edit/(\d+)'
     def get obj_id
       @obj = Obj.find obj_id
       render :edit
     end
-    
+
     def post
       case input.action
       when 'Save'
@@ -220,10 +220,10 @@ module DublinCore::Controllers
         redirect View, @obj
       when 'Discard'
         @obj = Obj.find input.obj_id
-        
+
         # Get rid of completely empty records
         @obj.destroy if @obj.fields.empty?
-        
+
         if Obj.exists?(@obj.id)
           redirect View, @obj
         else
@@ -235,7 +235,7 @@ module DublinCore::Controllers
       end
     end
   end
-  
+
   class DataAdd < R '/data/add'
     def post
       if input.field_value && !input.field_value.empty?
@@ -246,7 +246,7 @@ module DublinCore::Controllers
       redirect Edit, input.obj_id
     end
   end
-  
+
   class Style < R '/styles.css'
     def get
       @headers["Content-Type"] = "text/css; charset=utf-8"
@@ -266,7 +266,7 @@ module DublinCore::Controllers
         .totals { font-size: 60%; margin-left: .25em; vertical-align: super; }
         .field_labels { font-size: 60%; margin-left: 1em; vertical-align: super; }
         h2 {color: #CC6600; padding: 0; margin-bottom: .15em; font-size: 160%;}
-        h3.header { padding:0; margin:0; position: relative; top: -2.8em; 
+        h3.header { padding:0; margin:0; position: relative; top: -2.8em;
           padding-bottom: .25em; padding-right: 5em; font-size: 80%; }
         h1.header a { color: #FF9900; text-decoration: none;
           font: bold 250% "Trebuchet MS",Trebuchet,Georgia, Serif;
@@ -294,7 +294,7 @@ module DublinCore::Controllers
 end
 
 module DublinCore::Helpers
-  
+
   def paginate(klass, term = nil)
     @total_pages = count/DublinCore::LIMIT + 1
     div.pagination do
@@ -310,14 +310,14 @@ module DublinCore::Helpers
       end
     end
   end
-  
+
   private
-  
+
   def link_if(string, klass, term, page)
     return "#{string} " if (@page == page || 1 > page || page > @total_pages)
     a(string, :href => term.nil? ? R(klass, page) : R(klass, term, page)) << " "
   end
-  
+
   def page_window
     return 1..@total_pages if @total_pages < 9
     size = @total_pages > 9 ? 9 : @total_pages
@@ -325,11 +325,11 @@ module DublinCore::Helpers
     start = @total_pages - size if start+size > @total_pages
     start..start+size
   end
-  
+
 end
 
 module DublinCore::Views
-  
+
   def layout
     html do
       head do
@@ -353,7 +353,7 @@ module DublinCore::Views
       end
     end
   end
-  
+
   def browse
     if @browse.empty?
       p 'No objects found, try adding one.'
@@ -367,17 +367,17 @@ module DublinCore::Views
       paginate(Index, @field) if @count > DublinCore::LIMIT
     end
   end
-  
+
   def delete_success
     p "Delete was successful"
   end
-    
+
   def search
     p.results { span "#{count} results for '#{@state.terms}'"; span.tiny "(#{@search_time} secs)" }
     ul.undecorated do
       @result.keys.sort.each do |record|
         li do
-          a(record.value, :href => R(LinkedTo, record.id)) 
+          a(record.value, :href => R(LinkedTo, record.id))
           span.totals "(#{@result[record]})"
           span.field_labels "#{record.field_type.sub(/^DC/, '').downcase} "
         end
@@ -385,20 +385,20 @@ module DublinCore::Views
     end
     paginate(Search) if @count > DublinCore::LIMIT
   end
-  
+
   def edit
     h3 "Editing Record"
     p "To remove a field entry, just remove it's content."
     _form(@obj, :action => R(Edit, @obj))
   end
-  
+
   def records
     @objs.each { |obj| _obj(obj) }
     paginate(LinkedTo, @field) if @count > DublinCore::LIMIT
   end
-        
+
   def _obj(obj, edit = false)
-    table.obj :cellspacing => 0 do
+    table.obj(:cellspacing => 0) do
       _edit_controls(obj, edit)
       DublinCore::FIELDS.each do |field|
         obj.send(field.pluralize.intern).each_with_index do |value, index|
@@ -406,8 +406,8 @@ module DublinCore::Views
             td.label { 0 == index ? "#{field}(s)" : "&nbsp;" }
             if edit
               td.value do
-                input :name => value.class, 
-                  :type => 'text', 
+                input :name => value.class,
+                  :type => 'text',
                   :value => value.to_s
               end
             else
@@ -418,7 +418,7 @@ module DublinCore::Views
       end
     end
   end
-  
+
   def _form(obj, action)
     form.controls(:method => 'post', :action => R(Edit)) do
       input :type => 'hidden', :name => 'obj_id', :value => obj.id
@@ -446,7 +446,7 @@ module DublinCore::Views
       end
     end
   end
-  
+
   def _edit_controls(obj, edit)
     tr.controls do
       td :colspan => 2 do
@@ -455,8 +455,8 @@ module DublinCore::Views
       end
     end
   end
-    
-  
+
+
   def _key_value(key, value)
     if value > 0
       if key.kind_of?(DublinCore::Models::Field)
@@ -470,5 +470,5 @@ module DublinCore::Views
       span.totals "(#{value})"
     end
   end
-          
+
 end

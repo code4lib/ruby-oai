@@ -1,4 +1,5 @@
 require 'active_record'
+
 module OAI::Provider
   # = OAI::Provider::ActiveRecordWrapper
   #
@@ -141,7 +142,7 @@ module OAI::Provider
       if opts.has_key?(:until)
         # Handle databases which store fractions of a second by rounding up
         sql << "#{timestamp_field} < :until"
-        esc_values[:until] = parse_to_local(opts[:until]) { |t| round_up(t) }
+        esc_values[:until] = parse_to_local(opts[:until]) { |t| t.succ }
       end
       if opts.has_key?(:set)
         sql << "set = :set"
@@ -155,11 +156,7 @@ module OAI::Provider
     def parse_to_local(time)
       time_obj = Time.parse(time.to_s)
       time_obj = yield(time_obj) if block_given?
-      time_obj.localtime.to_s
-    end
-
-    def round_up(time)
-      (time + 1).round(0)
+      time_obj.localtime.strftime("%Y-%m-%d %H:%M:%S")
     end
 
   end

@@ -142,7 +142,7 @@ module OAI::Provider
       if opts.has_key?(:until)
         # Handle databases which store fractions of a second by rounding up
         sql << "#{timestamp_field} < :until"
-        esc_values[:until] = parse_to_local(opts[:until]) { |t| t.succ }
+        esc_values[:until] = parse_to_local(opts[:until]) { |t| t + 1 }
       end
       if opts.has_key?(:set)
         sql << "set = :set"

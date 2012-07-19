@@ -94,6 +94,21 @@ class ActiveRecordProviderTest < TransactionalTestCase
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
+  def test_handles_empty_collections
+    DCField.delete_all
+    assert DCField.count == 0
+    # Identify and ListMetadataFormats should return normally
+    test_identify
+    test_metadata_formats
+    # ListIdentifiers and ListRecords should return "noRecordsMatch" error code
+    assert_raises(OAI::NoMatchException) {
+      REXML::Document.new(@provider.list_identifiers)
+    }
+    assert_raises(OAI::NoMatchException) {
+      REXML::Document.new(@provider.list_records)
+    }
+  end
+
   def setup
     @provider = ARProvider.new
   end

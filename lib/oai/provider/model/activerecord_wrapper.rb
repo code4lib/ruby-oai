@@ -26,13 +26,13 @@ module OAI::Provider
     end
 
     def earliest
-      model.find(:first,
-        :order => "#{timestamp_field} asc").send(timestamp_field)
+      earliest_obj = model.find(:first, :order => "#{timestamp_field} asc")
+      earliest_obj.nil? ? Time.at(0) : earliest_obj.send(timestamp_field)
     end
 
     def latest
-      model.find(:first,
-        :order => "#{timestamp_field} desc").send(timestamp_field)
+      latest_obj = model.find(:first, :order => "#{timestamp_field} desc")
+      latest_obj.nil? ? Time.now : latest_obj.send(timestamp_field)
     end
     # A model class is expected to provide a method Model.sets that
     # returns all the sets the model supports.  See the

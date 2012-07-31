@@ -35,7 +35,11 @@ module OAI::Provider::Response
       about = provider.model.about(record)
       return if about.nil? 
 
-      Array(about).each do |a|
+      unless about.is_a? Array
+        about = [about]
+      end
+
+      about.each do |a|
         @builder.about do
           @builder.target! << a
         end 

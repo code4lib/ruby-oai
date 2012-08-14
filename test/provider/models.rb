@@ -1,14 +1,14 @@
 class Record
   attr_accessor :id, :titles, :creator, :tags, :sets, :updated_at, :deleted
-  
-  def initialize(id, 
-      titles = 'title', 
-      creator = 'creator', 
-      tags = 'tag', 
-      sets = nil, 
+
+  def initialize(id,
+      titles = 'title',
+      creator = 'creator',
+      tags = 'tag',
+      sets = nil,
       deleted = false,
       updated_at = Time.now.utc.xmlschema)
-      
+
     @id = id
     @titles = titles
     @creator = creator
@@ -17,12 +17,12 @@ class Record
     @deleted = deleted
     @updated_at = updated_at
   end
-  
+
   # Override Object.id
   def id
     @id
   end
-  
+
   def in_set(spec)
     if @sets.respond_to?(:each)
       @sets.each { |set| return true if set.spec == spec }
@@ -35,18 +35,18 @@ end
 
 class TestModel < OAI::Provider::Model
   include OAI::Provider
-  
+
   def initialize(limit = nil)
     super(limit)
     @records = []
     @sets = []
     @earliest = Time.now.utc.xmlschema
   end
-  
+
   def earliest
     (@records.min {|a,b| a.updated_at <=> b.updated_at }).updated_at.utc.xmlschema
   end
-  
+
   def latest
     @records.max {|a,b| a.updated_at <=> b.updated_at }.updated_at.utc.xmlschema
   end
@@ -54,7 +54,7 @@ class TestModel < OAI::Provider::Model
   def sets
     @sets
   end
-  
+
   def find(selector, opts={})
     return nil unless selector
 
@@ -79,7 +79,7 @@ class TestModel < OAI::Provider::Model
 	      (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
 	      (opts[:until].nil? || rec.updated_at <= opts[:until]))
            #else
-           #  ((opts[:set].nil? || rec.in_set(opts[:set])) && 
+           #  ((opts[:set].nil? || rec.in_set(opts[:set])) &&
            #   (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
            #   (opts[:until].nil? || rec.updated_at <= opts[:until]))
            #end
@@ -87,7 +87,7 @@ class TestModel < OAI::Provider::Model
 
         if @limit && records.size > @limit
           @groups = generate_chunks(records, @limit)
-          return PartialResult.new(@groups[0], 
+          return PartialResult.new(@groups[0],
             ResumptionToken.new(opts.merge({:last => 1})))
         end
         return records
@@ -102,7 +102,7 @@ class TestModel < OAI::Provider::Model
       nil
     end
   end
-  
+
   def generate_chunks(records, limit)
     groups = []
     records.each_slice(limit) do |group|
@@ -110,17 +110,17 @@ class TestModel < OAI::Provider::Model
     end
     groups
   end
-      
+
   def generate_records(number, timestamp = Time.now.utc.xmlschema, sets = [], deleted = false)
     @earliest = timestamp.dup if @earliest.nil? || timestamp.to_s < @earliest.to_s
     @earliest = timestamp.dup if @earliest.nil?
-    
+
     # Add any sets we don't already have
     sets = [sets] unless sets.respond_to?(:each)
     sets.each do |set|
       @sets << set unless @sets.include?(set)
-    end 
-    
+    end
+
     # Generate some records
     number.times do |id|
       rec = Record.new(@records.size, "title_#{id}", "creator_#{id}", "tag_#{id}")
@@ -130,11 +130,11 @@ class TestModel < OAI::Provider::Model
       @records << rec
     end
   end
-    
+
 end
 
 class SimpleModel < TestModel
-  
+
   def initialize
     super
     # Create a couple of sets
@@ -156,7 +156,7 @@ class SimpleModel < TestModel
 end
 
 class BigModel < TestModel
-  
+
   def initialize(limit = nil)
     super(limit)
     generate_records(100, Time.parse("October 2 2000"))
@@ -165,7 +165,7 @@ class BigModel < TestModel
     generate_records(100, Time.parse("January 2 2001"))
     generate_records(100, Time.parse("February 2 2001"))
   end
-  
+
 end
 
 class MappedModel < TestModel
@@ -179,7 +179,7 @@ class MappedModel < TestModel
 
     generate_records(5, Time.parse("dec 1 2006"), set_one)
   end
-  
+
   def map_oai_dc
     {:title => :creator, :creator => :titles, :subject => :tags}
   end
@@ -187,7 +187,7 @@ class MappedModel < TestModel
 end
 
 class ComplexModel < TestModel
-  
+
   def initialize(limit = nil)
     super(limit)
     # Create a couple of sets
@@ -225,20 +225,22 @@ class ComplexModel < TestModel
     generate_records(50, Time.parse("June 2 1998"), [set_one, set_one_two], true)
     generate_records(50, Time.parse("October 10 1998"), [set_three, set_three_four], true)
     generate_records(250, Time.parse("July 2 2002"), [set_two, set_one_two])
-    
+
     generate_records(250, Time.parse("September 15 2004"), [set_three, set_three_four])
     generate_records(50, Time.parse("October 10 2004"), [set_three, set_three_four], true)
     generate_records(250, Time.parse("December 25 2005"), [set_four, set_three_four])
   end
-  
+
   def about record
-    <<-eos 
-    <oai_dc:dc 
+    xml = <<-eos
+    <oai_dc:dc
           xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
           xmlns:dc="http://purl.org/dc/elements/1.1/">
           <dc:publisher>Ruby OAI test data</dc:publisher>
     </oai_dc:dc>
     eos
+    # Removes new-lines and formatting, which is a problem with Ruby 1.8.x
+    xml.gsub(/\s+/, ' ')
   end
 end
 

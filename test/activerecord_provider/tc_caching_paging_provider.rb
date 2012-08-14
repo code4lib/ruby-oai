@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class CachingPagingProviderTest < Test::Unit::TestCase
+class CachingPagingProviderTest < TransactionalTestCase
   include REXML
-  
+
   def test_full_harvest
     doc = Document.new(@provider.list_records)
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
@@ -20,7 +20,7 @@ class CachingPagingProviderTest < Test::Unit::TestCase
     assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
   end
-  
+
   def test_from_and_until
     first_id = DCField.find(:first, :order => "id asc").id
     DCField.update_all(['updated_at = ?', Time.parse("September 15 2005")],
@@ -44,11 +44,6 @@ class CachingPagingProviderTest < Test::Unit::TestCase
 
   def setup
     @provider = CachingResumptionProvider.new
-    ARLoader.load
   end
-  
-  def teardown
-    ARLoader.unload
-  end
-  
+
 end

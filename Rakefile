@@ -14,7 +14,7 @@ require 'rdoc/task'
 
 task :default => ["test"]
 
-task :test => ["test:client", "test:provider"]
+task :test => ["test:client", "test:provider", "test:activerecord_provider"]
 
 namespace :test do
   Rake::TestTask.new('client') do |t|
@@ -75,40 +75,6 @@ if RUBY_VERSION =~ /^1.8/
   end
 end
 
-task 'test:activerecord_provider' => :create_database
-
-task :environment do 
-  unless defined? OAI_PATH
-    OAI_PATH = File.dirname(__FILE__) + '/lib/oai'
-    $LOAD_PATH << OAI_PATH
-    $LOAD_PATH << File.dirname(__FILE__) + '/test'
-  end
-end
-
-task :drop_database => :environment do
-  %w{rubygems active_record yaml}.each { |lib| require lib }
-  require 'activerecord_provider/database/ar_migration'
-  require 'activerecord_provider/config/connection'
-  begin
-    OAIPMHTables.down
-  rescue
-  end
-end
-
-task :create_database => :drop_database do
-  OAIPMHTables.up
-end
-
-task :load_fixtures => :create_database do
-  require 'test/activerecord_provider/models/dc_field'
-  fixtures = YAML.load_file(
-    File.join('test', 'activerecord_provider', 'fixtures', 'dc.yml')
-  )
-  fixtures.keys.sort.each do |key|
-    DCField.create(fixtures[key])
-  end
-end
-  
 Rake::RDocTask.new('doc') do |rd|
   rd.rdoc_files.include("lib/**/*.rb", "README.md")
   rd.main = 'README.md'

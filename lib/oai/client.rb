@@ -88,7 +88,7 @@ module OAI
 
       if !options.key?(:http) and @follow_redirects
 
-        count = @folow_redirects if @folow_redirects.is_a? Fixnum
+        count = @follow_redirects if @follow_redirects.is_a? Fixnum
         count ||= 5
 
         require 'faraday_middleware'

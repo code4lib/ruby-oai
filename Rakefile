@@ -44,10 +44,12 @@ namespace :test do
     if RUBY_VERSION =~ /^1.8/
       Rake::Task['rcov:client'].invoke
       Rake::Task['rcov:provider'].invoke
+      Rake::Task['rcov:activerecord_provider'].invoke
     else
       ENV['COVERAGE'] = 'true'
       Rake::Task['test:client'].invoke
       Rake::Task['test:provider'].invoke
+      Rake::Task['test:activerecord_provider'].invoke
     end
 
     system("open coverage/index.html") if (PLATFORM['darwin'] if Kernel.const_defined? :PLATFORM) || (RUBY_PLATFORM =~ /darwin/ if Kernel.const_defined? :RUBY_PLATFORM)
@@ -69,6 +71,13 @@ if RUBY_VERSION =~ /^1.8/
     Rcov::RcovTask.new('provider') do |t|
       t.libs << ['lib', 'test/provider']
       t.pattern = 'test/provider/tc_*.rb'
+      t.verbose = true
+      t.rcov_opts = ['--aggregate coverage.data', '--text-summary']
+    end
+
+    Rcov::RcovTask.new('activerecord_provider') do |t|
+      t.libs << ['lib', 'test/activerecord_provider']
+      t.pattern = 'test/activerecord_provider/tc_*.rb'
       t.verbose = true
       t.rcov_opts = ['--aggregate coverage.data', '--text-summary']
     end

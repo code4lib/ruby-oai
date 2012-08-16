@@ -11,7 +11,7 @@ class TransactionalTestCase < Test::Unit::TestCase
     result
   end
 
-  private
+  protected
 
   def load_fixtures
     fixtures = YAML.load_file(

@@ -10,7 +10,7 @@ class OaipmhTables < ActiveRecord::Migration
       t.column :oai_token_id, :integer, :null => false
     end
 
-    create_table :dc_fields do |t|
+    dc_fields = proc do |t|
       t.column  :title,         :string
       t.column  :creator,       :string
       t.column  :subject,       :string
@@ -29,6 +29,13 @@ class OaipmhTables < ActiveRecord::Migration
       t.column  :created_at,    :datetime
       t.column  :deleted,       :boolean,   :default => false
     end
+
+    create_table :exclusive_set_dc_fields do |t|
+      dc_fields.call(t)
+      t.column  :set,           :string
+    end
+
+    create_table :dc_fields, &dc_fields
 
     create_table :dc_fields_dc_sets, :id => false do |t|
       t.column :dc_field_id,    :integer

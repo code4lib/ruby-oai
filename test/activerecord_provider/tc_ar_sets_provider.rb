@@ -63,3 +63,76 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
     end
   end
 end
+
+
+class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
+
+  def test_list_sets
+    doc = REXML::Document.new(@provider.list_sets)
+    sets = doc.elements["/OAI-PMH/ListSets"]
+    assert_equal 3, sets.size
+    assert_equal "Set A", sets[0].elements["//setName"].text
+  end
+
+  def test_set_a
+    doc = REXML::Document.new(@provider.list_records(:set => "A"))
+    assert_equal 20, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+
+  def test_set_b
+    doc = REXML::Document.new(@provider.list_records(:set => "B"))
+    assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+
+  def test_set_ab
+    doc = REXML::Document.new(@provider.list_records(:set => "A:B"))
+    assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+
+  def setup
+    @provider = ARExclusiveSetProvider.new
+    define_sets
+  end
+
+  def define_sets
+    next_id = 0
+
+    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc").each do |record|
+      record.set = "A"
+      record.save!
+      next_id = record.id
+    end
+
+    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+      record.set = "B"
+      record.save!
+      next_id = record.id
+    end
+
+    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+      record.set = "A:B"
+      record.save!
+      next_id = record.id
+    end
+
+    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+      record.set = "A"
+      record.save!
+      next_id = record.id
+    end
+  end
+
+  protected
+
+  def load_fixtures
+    fixtures = YAML.load_file(
+      File.join(File.dirname(__FILE__), 'fixtures', 'dc.yml')
+    )
+    disable_logging do
+      fixtures.keys.sort.each do |key|
+        ExclusiveSetDCField.create(fixtures[key])
+      end
+    end
+  end
+
+end

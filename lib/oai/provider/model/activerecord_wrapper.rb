@@ -43,17 +43,20 @@ module OAI::Provider
     end
 
     def find(selector, options={})
-      return next_set(options[:resumption_token]) if options[:resumption_token]
+      find_scope = find_scope(options)
+      return next_set(find_scope,
+        options[:resumption_token]) if options[:resumption_token]
       conditions = sql_conditions(options)
       if :all == selector
-        total = model.count(:id, :conditions => conditions)
+        total = find_scope.count(:id, :conditions => conditions)
         if @limit && total > @limit
-          select_partial(ResumptionToken.new(options.merge({:last => 0})))
+          select_partial(find_scope,
+            ResumptionToken.new(options.merge({:last => 0})))
         else
-          model.find(:all, :conditions => conditions)
+          find_scope.find(:all, :conditions => conditions)
         end
       else
-        model.find(selector, :conditions => conditions)
+        find_scope.find(selector, :conditions => conditions)
       end
     end
 
@@ -84,17 +87,49 @@ module OAI::Provider
 
     protected
 
+    def find_scope(options)
+      return model unless options.key?(:set)
+
+      # Find the set or return an empty scope
+      set = find_set_by_spec(options[:set])
+      return model.scoped(:limit => 0) if set.nil?
+
+      # If the set has a backward relationship, we'll use it
+      if set.class.respond_to?(:reflect_on_all_associations)
+        set.class.reflect_on_all_associations.each do |assoc|
+          return set.send(assoc.name).scoped if assoc.klass == model
+        end
+      end
+
+      # Search the attributes for 'set'
+      if model.column_names.include?('set')
+        # Scope using the set attribute as the spec
+        model.scoped(:conditions => {:set => options[:set]})
+      else
+        # Default to empty set, as we've tried everything else
+        model.scoped(:limit => 0)
+      end
+    end
+
+    def find_set_by_spec(spec)
+      if sets.class == ActiveRecord::Relation
+        sets.find_by_spec(spec)
+      else
+        sets.detect {|set| set.spec == spec}
+      end
+    end
+
     # Request the next set in this sequence.
-    def next_set(token_string)
+    def next_set(find_scope, token_string)
       raise OAI::ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = model.count(:id, :conditions => token_conditions(token))
+      total = find_scope.count(:id, :conditions => token_conditions(token))
 
       if @limit < total
-        select_partial(token)
+        select_partial(find_scope, token)
       else # end of result set
-        model.find(:all,
+        find_scope.find(:all,
           :conditions => token_conditions(token),
           :limit => @limit, :order => "#{model.primary_key} asc")
       end
@@ -102,8 +137,8 @@ module OAI::Provider
 
     # select a subset of the result set, and return it with a
     # resumption token to get the next subset
-    def select_partial(token)
-      records = model.find(:all,
+    def select_partial(find_scope, token)
+      records = find_scope.find(:all,
         :conditions => token_conditions(token),
         :limit => @limit,
         :order => "#{model.primary_key} asc")
@@ -143,10 +178,6 @@ module OAI::Provider
         # Handle databases which store fractions of a second by rounding up
         sql << "#{timestamp_field} < :until"
         esc_values[:until] = parse_to_local(opts[:until]) { |t| t + 1 }
-      end
-      if opts.has_key?(:set)
-        sql << "set = :set"
-        esc_values[:set] = opts[:set]
       end
       return [sql.join(" AND "), esc_values]
     end

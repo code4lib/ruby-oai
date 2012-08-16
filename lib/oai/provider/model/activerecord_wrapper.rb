@@ -156,7 +156,9 @@ module OAI::Provider
     def parse_to_local(time)
       time_obj = Time.parse(time.to_s)
       time_obj = yield(time_obj) if block_given?
-      time_obj.localtime.strftime("%Y-%m-%d %H:%M:%S")
+      # Convert to same as DB - :local => :getlocal, :utc => :getutc
+      tzconv = "get#{model.default_timezone.to_s}".to_sym
+      time_obj.send(tzconv).strftime("%Y-%m-%d %H:%M:%S")
     end
 
   end

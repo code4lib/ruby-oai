@@ -1,2 +1,6 @@
-pkg
-doc
+/pkg/
+/doc/
+/coverage*
+
+# Exclude Gemfile.lock (best practice for gems)
+Gemfile.lock

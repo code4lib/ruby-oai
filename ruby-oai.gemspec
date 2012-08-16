@@ -14,11 +14,6 @@ Gem::Specification.new do |s|
     s.add_dependency('builder', '>=2.0.0')
     s.add_dependency('faraday')
     s.add_dependency('faraday_middleware')
-    s.add_development_dependency('rake')
-    s.add_development_dependency('activerecord')
-    s.add_development_dependency('sqlite3')
-    s.add_development_dependency('rdoc')
-    s.add_development_dependency('libxml-ruby')
 
     s.files = %w(README.md Rakefile) +
       Dir.glob("{bin,test,lib}/**/*") +

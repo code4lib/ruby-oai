@@ -8,61 +8,58 @@ class ComplexProvider < OAI::Provider::Base
   source_model ComplexModel.new(100)
 end
 
-class ProviderServer < WEBrick::HTTPServlet::AbstractServlet
-  @@server = nil
-  
-  def initialize(server)
-    super(server)
+class ProviderServer
+
+  attr_reader :consumed, :server
+
+  def initialize(port, mount_point)
+    @consumed = []
     @provider = ComplexProvider.new
+    @server = WEBrick::HTTPServer.new(
+      :BindAddress => '127.0.0.1',
+      :Logger => WEBrick::Log.new('/dev/null'),
+      :AccessLog => [],
+      :Port => port)
+    @server.mount_proc(mount_point, server_proc)
   end
-  
-  def do_GET(req, res)
+
+  def port
+    @server.config[:Port]
+  end
+
+  def start
+    @thread = Thread.new { @server.start }
+  end
+
+  def stop
+    @thread.exit if @thread
+  end
+
+  def self.wrap(port = 3333, mount_point='/oai')
+    server = self.new(port, mount_point)
     begin
-      res.body = @provider.process_request(req.query)
-      res.status = 200
-      res['Content-Type'] = 'text/xml'
-    rescue => err
-      puts err
-      puts err.backtrace.join("\n")
-      res.body = err.backtrace.join("\n")
-      res.status = 500
-    end
-  end
-  
-  def self.start(port)
-    unless @@server
-      @@server = WEBrick::HTTPServer.new(
-        :BindAddress => '127.0.0.1', 
-        :Logger => WEBrick::Log.new('/dev/null'),
-        :AccessLog => [],
-        :Port => port)
-      @@server.mount("/oai", ProviderServer)
-
-      trap("INT") { @@server.shutdown }
-      @@thread = Thread.new { @@server.start }
-      puts "Starting Webrick/Provider on port[#{port}]"
-    end
-  end
-  
-  def self.stop
-    puts "Stopping Webrick/Provider"
-    if @@thread
-      @@thread.exit
-    end
-  end
-  
-  def self.wrap(port = 3333)
-    begin
-      start(port)
-
-      # Wait for startup
-      sleep 2
-    
-      yield
-
+      server.start
+      yield(server)
     ensure
-      stop
+      server.stop
     end
   end
-  
+
+  protected
+
+  def server_proc
+    Proc.new do |req, res|
+      begin
+        res.body = @provider.process_request(req.query)
+        res.status = 200
+        res['Content-Type'] = 'text/xml'
+      rescue => err
+        puts err
+        puts err.backtrace.join("\n")
+        res.body = err.backtrace.join("\n")
+        res.status = 500
+      end
+    end
+  end
+
 end

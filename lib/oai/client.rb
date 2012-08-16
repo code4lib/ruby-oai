@@ -82,16 +82,17 @@ module OAI
       @debug = options.fetch(:debug, false)
       @parser = options.fetch(:parser, 'rexml')
 
-      @follow_redirects = options.fetch(:redirects, true)
-      @http_client = options.fetch(:http, Faraday.new(@base))
+      @http_client = options.fetch(:http) do
+        Faraday.new(:url => @base) do |builder|
+          follow_redirects = options.fetch(:redirects, true)
+          if follow_redirects
+            count = follow_redirects.is_a?(Fixnum) ? follow_redirects : 5
 
-      if !options.key?(:http) and @follow_redirects
-
-        count = @folow_redirects if @folow_redirects.is_a? Fixnum
-        count ||= 5
-
-        require 'faraday_middleware'
-        @http_client.use FaradayMiddleware::FollowRedirects, :limit => count
+            require 'faraday_middleware'
+            builder.response :follow_redirects, :limit => count
+          end
+          builder.adapter :net_http
+        end
       end
 
       # load appropriate parser

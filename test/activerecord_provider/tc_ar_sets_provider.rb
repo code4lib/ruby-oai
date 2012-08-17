@@ -29,6 +29,12 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
     assert_equal 2, record.sets.size
   end
 
+  def test_missing_set
+    assert_raise(OAI::NoMatchException) do
+      doc = REXML::Document.new(@provider.list_records(:set => "D"))
+    end
+  end
+
   def setup
     @provider = ARSetProvider.new
     define_sets
@@ -87,6 +93,12 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
   def test_set_ab
     doc = REXML::Document.new(@provider.list_records(:set => "A:B"))
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+
+  def test_missing_set
+    assert_raise(OAI::NoMatchException) do
+      doc = REXML::Document.new(@provider.list_records(:set => "D"))
+    end
   end
 
   def setup

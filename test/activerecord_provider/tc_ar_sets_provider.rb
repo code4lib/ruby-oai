@@ -10,17 +10,20 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
   end
 
   def test_set_a
-    doc = REXML::Document.new(@provider.list_records(:set => "A"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "A"))
     assert_equal 20, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
   def test_set_b
-    doc = REXML::Document.new(@provider.list_records(:set => "B"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "B"))
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
   def test_set_ab
-    doc = REXML::Document.new(@provider.list_records(:set => "A:B"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "A:B"))
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
@@ -31,7 +34,8 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
 
   def test_missing_set
     assert_raise(OAI::NoMatchException) do
-      doc = REXML::Document.new(@provider.list_records(:set => "D"))
+      doc = REXML::Document.new(@provider.list_records(
+        :metadata_prefix => 'oai_dc', :set => "D"))
     end
   end
 
@@ -81,23 +85,27 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
   end
 
   def test_set_a
-    doc = REXML::Document.new(@provider.list_records(:set => "A"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "A"))
     assert_equal 20, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
   def test_set_b
-    doc = REXML::Document.new(@provider.list_records(:set => "B"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "B"))
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
   def test_set_ab
-    doc = REXML::Document.new(@provider.list_records(:set => "A:B"))
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc', :set => "A:B"))
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
   def test_missing_set
     assert_raise(OAI::NoMatchException) do
-      doc = REXML::Document.new(@provider.list_records(:set => "D"))
+      doc = REXML::Document.new(@provider.list_records(
+        :metadata_prefix => 'oai_dc', :set => "D"))
     end
   end
 

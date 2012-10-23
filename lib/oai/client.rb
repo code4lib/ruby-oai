@@ -18,6 +18,7 @@ require 'oai/client/header'
 require 'oai/client/record'
 require 'oai/client/identify'
 require 'oai/client/get_record'
+require 'oai/client/resumable'
 require 'oai/client/list_identifiers'
 require 'oai/client/list_metadata_formats'
 require 'oai/client/list_records'
@@ -118,14 +119,14 @@ module OAI
     # parser then you will get an XML::Node object instead.
 
     def identify
-      return OAI::IdentifyResponse.new(do_request('Identify'))
+      OAI::IdentifyResponse.new(do_request('Identify'))
     end
 
     # Equivalent to a ListMetadataFormats request. A ListMetadataFormatsResponse
     # object is returned to you.
 
     def list_metadata_formats(opts={})
-      return OAI::ListMetadataFormatsResponse.new(do_request('ListMetadataFormats', opts))
+      OAI::ListMetadataFormatsResponse.new(do_request('ListMetadataFormats', opts))
     end
 
     # Equivalent to a ListIdentifiers request. Pass in :from, :until arguments
@@ -133,7 +134,7 @@ module OAI
     # supported by the server.
 
     def list_identifiers(opts={})
-      return OAI::ListIdentifiersResponse.new(do_request('ListIdentifiers', opts))
+      do_resumable(OAI::ListIdentifiersResponse, 'ListIdentifiers', opts)
     end
 
     # Equivalent to a GetRecord request. You must supply an identifier
@@ -141,7 +142,7 @@ module OAI
     # which you can extract a OAI::Record object from.
 
     def get_record(opts={})
-      return OAI::GetRecordResponse.new(do_request('GetRecord', opts))
+      OAI::GetRecordResponse.new(do_request('GetRecord', opts))
     end
 
     # Equivalent to the ListRecords request. A ListRecordsResponse
@@ -152,7 +153,7 @@ module OAI
     #   end
 
     def list_records(opts={})
-      return OAI::ListRecordsResponse.new(do_request('ListRecords', opts))
+      do_resumable(OAI::ListRecordsResponse, 'ListRecords', opts)
     end
 
     # Equivalent to the ListSets request. A ListSetsResponse object
@@ -164,7 +165,7 @@ module OAI
     #   end
 
     def list_sets(opts={})
-      return OAI::ListSetsResponse.new(do_request('ListSets', opts))
+      do_resumable(OAI::ListSetsResponse, 'ListSets', opts)
     end
 
     private
@@ -181,6 +182,13 @@ module OAI
           /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
       end
       return load_document(xml)
+    end
+
+    def do_resumable(responseClass, verb, opts)
+      responseClass.new(do_request(verb, opts)) do |response|
+        responseClass.new \
+          do_request(verb, :resumption_token => response.resumption_token)
+      end
     end
 
     def build_uri(verb, opts)

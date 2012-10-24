@@ -4,7 +4,7 @@ class CachingPagingProviderTest < TransactionalTestCase
   include REXML
 
   def test_full_harvest
-    doc = Document.new(@provider.list_records)
+    doc = Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].size
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
@@ -31,6 +31,7 @@ class CachingPagingProviderTest < TransactionalTestCase
     # Should return 50 records broken into 2 groups of 25.
     doc = Document.new(
       @provider.list_records(
+        :metadata_prefix => 'oai_dc',
         :from => Time.parse("September 1 2005"),
         :until => Time.parse("November 30 2005"))
       )

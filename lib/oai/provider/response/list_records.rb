@@ -1,7 +1,8 @@
 module OAI::Provider::Response
 
   class ListRecords < RecordResponse
-    
+    required_parameters :metadata_prefix
+
     def to_xml
       result = provider.model.find(:all, options)
       # result may be an array of records, or a partial result
@@ -27,8 +28,8 @@ module OAI::Provider::Response
         end
       end
     end
-    
+
   end
-  
+
 end
-  
+

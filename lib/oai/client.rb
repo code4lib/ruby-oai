@@ -26,57 +26,60 @@ require 'oai/client/list_sets'
 
 module OAI
 
-  # A OAI::Client provides a client api for issuing OAI-PMH verbs against
+  # A `OAI::Client` provides a client api for issuing OAI-PMH verbs against
   # a OAI-PMH server. The 6 OAI-PMH verbs translate directly to methods you
-  # can call on a OAI::Client object. Verb arguments are passed as a hash:
+  # can call on a `OAI::Client` object. Verb arguments are passed as a hash:
   #
+  # ```ruby
   #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
   #   record = client.get_record :identifier => 'oai:pubmedcentral.gov:13901'
   #   for identifier in client.list_identifiers
   #     puts identifier
   #   end
+  # ```
   #
-  # It is worth noting that the api uses methods and parameter names with
-  # underscores in them rather than studly caps. So above list_identifiers
-  # and metadata_prefix are used instead of the listIdentifiers and
-  # metadataPrefix used in the OAI-PMH specification.
+  # It is worth noting that the API uses methods and parameter names with
+  # underscores in them rather than studly caps. So above `list_identifiers`
+  # and `metadata_prefix` are used instead of the `listIdentifiers` and
+  # `metadataPrefix` used in the OAI-PMH specification.
   #
   # Also, the from and until arguments which specify dates should be passed
-  # in as Date or DateTime objects depending on the granularity supported
+  # in as `Date` or `DateTime` objects depending on the granularity supported
   # by the server.
   #
   # For detailed information on the arguments that can be used please consult
-  # the OAI-PMH docs at:
-  #
-  #     http://www.openarchives.org/OAI/openarchivesprotocol.html
+  # the OAI-PMH docs at
+  # <http://www.openarchives.org/OAI/openarchivesprotocol.html>.
 
   class Client
 
     # The constructor which must be passed a valid base url for an oai
     # service:
     #
-    #   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+    #     client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
     #
-    # If you want to see debugging messages on STDERR use:
+    # If you want to see debugging messages on `STDERR` use:
     #
-    #   client = OAI::Client.new 'http://example.com', :debug => true
+    #     client = OAI::Client.new 'http://example.com', :debug => true
     #
-    # By default OAI verbs called on the client will return REXML::Element
+    # By default OAI verbs called on the client will return `REXML::Element`
     # objects for metadata records, however if you wish you can use the
-    # :parser option to indicate you want to use 'libxml' instead, and get
-    # back XML::Node objects
+    # `:parser` option to indicate you want to use `libxml` instead, and get
+    # back `XML::Node` objects
     #
-    #   client = OAI::Client.new 'http://example.com', :parser => 'libxml'
+    #     client = OAI::Client.new 'http://example.com', :parser => 'libxml'
     #
     # You can configure the Faraday HTTP client by providing an alternate
     # Faraday instance:
     #
-    #   client = OAI::Client.new 'http://example.com', :http => Faraday.new { |c| }
+    # ```ruby
+    # client = OAI::Client.new 'http://example.com', :http => Faraday.new {|c|}
+    # ```
     #
-    # === HIGH PERFORMANCE
+    # ### HIGH PERFORMANCE
     #
-    # If you want to supercharge this api install libxml-ruby >= 0.3.8 and
-    # use the :parser option when you construct your OAI::Client.
+    # If you want to supercharge this api install `libxml-ruby >= 0.3.8` and
+    # use the `:parser` option when you construct your `OAI::Client`.
     #
     def initialize(base_url, options={})
       @base = URI.parse base_url
@@ -113,57 +116,80 @@ module OAI
       end
     end
 
-    # Equivalent to a Identify request. You'll get back a OAI::IdentifyResponse
-    # object which is essentially just a wrapper around a REXML::Document
-    # for the response. If you created your client using the libxml
-    # parser then you will get an XML::Node object instead.
-
+    # Equivalent to a `Identify` request.
+    # You'll get back a `OAI::IdentifyResponse`
+    # object which is essentially just a wrapper around a `REXML::Document`
+    # for the response. If you created your client using the `libxml`
+    # parser then you will get an `XML::Node` object instead.
     def identify
       OAI::IdentifyResponse.new(do_request('Identify'))
     end
 
-    # Equivalent to a ListMetadataFormats request. A ListMetadataFormatsResponse
-    # object is returned to you.
+    # Equivalent to a `ListMetadataFormats` request.
+    # A `ListMetadataFormatsResponse` object is returned to you.
 
     def list_metadata_formats(opts={})
       OAI::ListMetadataFormatsResponse.new(do_request('ListMetadataFormats', opts))
     end
 
-    # Equivalent to a ListIdentifiers request. Pass in :from, :until arguments
-    # as Date or DateTime objects as appropriate depending on the granularity
-    # supported by the server.
-
+    # Equivalent to a `ListIdentifiers` request. Pass in `:from`,
+    # `:until` arguments as `Date` or `DateTime` objects as appropriate
+    # depending on the granularity supported by the server.
+    #
+    # You can use seamless resumption with this verb, which allows you to
+    # mitigate (to some extent) the lack of a `Count` verb:
+    #
+    #     client.list_identifiers.full.count # Don't try this on PubMed though!
+    #
     def list_identifiers(opts={})
       do_resumable(OAI::ListIdentifiersResponse, 'ListIdentifiers', opts)
     end
 
-    # Equivalent to a GetRecord request. You must supply an identifier
-    # argument. You should get back a OAI::GetRecordResponse object
-    # which you can extract a OAI::Record object from.
-
+    # Equivalent to a `GetRecord` request. You must supply an `:identifier`
+    # argument. You should get back a `OAI::GetRecordResponse` object
+    # which you can extract a `OAI::Record` object from.
     def get_record(opts={})
       OAI::GetRecordResponse.new(do_request('GetRecord', opts))
     end
 
-    # Equivalent to the ListRecords request. A ListRecordsResponse
+    # Equivalent to the `ListRecords` request. A `ListRecordsResponse`
     # will be returned which you can use to iterate through records
     #
-    #   for record in client.list_records
-    #     puts record.metadata
-    #   end
-
+    #     response = client.list_records
+    #     response.each do |record|
+    #       puts record.metadata
+    #     end
+    #
+    # Alternately, you can use seamless resumption to avoid handling
+    # resumption tokens:
+    #
+    #     client.list_records.full.each do |record|
+    #       puts record.metadata
+    #     end
+    #
+    # ### Memory Use
+    # `:full` will avoid storing more than one page of records in
+    # memory, but your use it in ways that override that behaviour. Be careful
+    # to avoid using `client.list_records.full.entries` unless you really want
+    # to hold all the records in the feed in memory!
     def list_records(opts={})
       do_resumable(OAI::ListRecordsResponse, 'ListRecords', opts)
     end
 
-    # Equivalent to the ListSets request. A ListSetsResponse object
+    # Equivalent to the `ListSets` request. A `ListSetsResponse` object
     # will be returned which you can use for iterating through the
-    # OAI::Set objects
+    # `OAI::Set` objects
     #
-    #   for set in client.list_sets
-    #     puts set
-    #   end
-
+    #     for set in client.list_sets
+    #       puts set
+    #     end
+    #
+    # A large number of sets is not unusual for some OAI-PMH feeds, so
+    # using seamless resumption may be preferable:
+    #
+    #     client.list_sets.full.each do |set|
+    #       puts set
+    #     end
     def list_sets(opts={})
       do_resumable(OAI::ListSetsResponse, 'ListSets', opts)
     end

@@ -2,15 +2,17 @@ ruby-oai
 ========
 
 ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH)
-library for Ruby. OAI-PMH[http://openarchives.org] it is a somewhat 
+library for Ruby. [OAI-PMH](http://openarchives.org) is a somewhat 
 archaic protocol for sharing metadata between digital library repositories. 
 If you are looking to share metadata on the web you are probably better off
-using a feed format like RSS or Atom. If have to work with a backwards 
+using a feed format like [RSS](http://www.rssboard.org/rss-specification) or 
+[Atom](http://www.atomenabled.org/). If have to work with a backwards 
 digital repository that only offers OAI-PMH access then ruby-oai is your 
 friend.
 
-The [OAI-PMH](http://openarchives.org) spec defines six verbs (Identify, ListIdentifiers, ListRecords, 
-GetRecords, ListSets, ListMetadataFormat) used for discovery and sharing of
+The [OAI-PMH](http://openarchives.org) spec defines six verbs 
+(`Identify`, `ListIdentifiers`, `ListRecords`, 
+`GetRecords`, `ListSets`, `ListMetadataFormat`) used for discovery and sharing of
 metadata.
 
 The ruby-oai gem includes a client library, a server/provider library and
@@ -25,12 +27,23 @@ For example to initiate a ListRecords request to pubmed you can:
 ```ruby
   require 'oai'
   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
-  for record in client.list_records
+  response = client.list_records
+  # Get the first page of records
+  response.each do |record| 
+    puts record.metadata
+  end
+  # Get the second page of records
+  response = client.list_records(:resumption_token => response.resumption_token)
+  response.each do |record|
+    puts record.metadata
+  end
+  # Get all pages together (may take a *very* long time to complete)
+  client.list_records.full.each do |record|
     puts record.metadata
   end
 ```
 
-See OAI::Client for more details
+See {OAI::Client} for more details
 
 Server
 ------
@@ -47,36 +60,28 @@ The OAI provider library handles serving local content to other clients. Here's 
   end
 ```
 
-See OAI::Provider for more details
+See {OAI::Provider} for more details
 
 Interactive Harvester
 ---------------------
 
-The OAI-PMH client shell allows OAI Harvesting to be configured in an interactive manner.  Typing 'oai' on the command line starts the shell. After initial configuration, the shell can be used to manage harvesting operations.
+The OAI-PMH client shell allows OAI Harvesting to be configured in an interactive manner.  Typing `oai` on the command line starts the shell. After initial configuration, the shell can be used to manage harvesting operations.
 
-See OAI::Harvester::Shell for more details
+See {OAI::Harvester::Shell} for more details
 
 Installation
 ------------
 
-Normally the best way to install oai is from rubyforge using the gem
-command line tool:
+Normally the best way to install oai is as part of your `Gemfile`:
 
-```
-  % gem install oai
-```
+    source :rubygems
+    gem 'oai'
 
-If you're reading this you've presumably got the tarball or zip distribution.
-So you'll need to:
+Alternately it can be installed globally using RubyGems:
 
-```
-  % rake package
-  % gem install pkg/oai-x.y.z.gem 
-```
-
-Where x.y.z is the version of the gem that was generated.
+    $ gem install oai
 
 License
 -------
 
-[Public Domain](http://creativecommons.org/publicdomain/zero/1.0/)
+[![CC0 - Public Domain](http://i.creativecommons.org/p/zero/1.0/88x15.png)](http://creativecommons.org/publicdomain/zero/1.0/)

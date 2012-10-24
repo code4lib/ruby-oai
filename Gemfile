@@ -9,7 +9,8 @@ group :test do
   gem 'activerecord-jdbcsqlite3-adapter', :platform => [:jruby]
   gem 'libxml-ruby', :platform => [:ruby, :mswin]
   gem 'rake'
-  gem 'rdoc'
+  gem 'yard'
+  gem 'redcarpet' # For Markdown
   gem 'rcov', '~> 0.9', :platform => [:ruby_18, :jruby]
   gem 'simplecov', :platform => :ruby_19
   gem 'simplecov-rcov', :platform => :ruby_19

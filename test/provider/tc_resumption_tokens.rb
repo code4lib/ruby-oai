@@ -3,13 +3,13 @@ require 'test_helper'
 class ResumptionTokenTest < Test::Unit::TestCase
   include REXML
   include OAI::Provider
-  
+
   def setup
     @token = ResumptionToken.new(
       :from => Time.utc(2005,"jan",1,17,0,0),
       :until => Time.utc(2005,"jan",31,17,0,0),
       :set => "A",
-      :metadata_prefix => "oai_dc", 
+      :metadata_prefix => "oai_dc",
       :last => 1
     )
   end
@@ -18,11 +18,11 @@ class ResumptionTokenTest < Test::Unit::TestCase
     assert_equal "oai_dc.s(A).f(2005-01-01T17:00:00Z).u(2005-01-31T17:00:00Z)",
       @token.to_s
   end
-  
+
   def test_resumption_token_next_method
     assert_equal 100, @token.next(100).last
   end
-  
+
   def test_resumption_token_to_condition_hash
     hash = @token.to_conditions_hash
     assert_equal @token.from, hash[:from]
@@ -37,10 +37,10 @@ class ResumptionTokenTest < Test::Unit::TestCase
     )
     assert_equal @token, new_token
   end
-  
+
   def test_resumption_token_to_xml
     doc = REXML::Document.new(@token.to_xml)
     assert_equal "#{@token.to_s}:#{@token.last}", doc.elements['/resumptionToken'].text
   end
-    
+
 end

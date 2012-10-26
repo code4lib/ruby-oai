@@ -20,8 +20,11 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_list_records
-    assert_nothing_raised { REXML::Document.new(@provider.list_records) }
-    doc = REXML::Document.new(@provider.list_records)
+    assert_nothing_raised do
+      REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
+    end
+    doc = REXML::Document.new(@provider.list_records(
+      :metadata_prefix => 'oai_dc'))
     assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
@@ -33,8 +36,12 @@ class ActiveRecordProviderTest < TransactionalTestCase
 
   def test_get_record
     record_id = DCField.find(:first).id
-    assert_nothing_raised { REXML::Document.new(@provider.get_record(:identifier => "oai:test/#{record_id}")) }
-    doc = REXML::Document.new(@provider.get_record(:identifier => "#{record_id}"))
+    assert_nothing_raised do
+      REXML::Document.new(@provider.get_record(
+        :identifier => "oai:test/#{record_id}", :metadata_prefix => 'oai_dc'))
+    end
+    doc = REXML::Document.new(@provider.get_record(
+      :identifier => "#{record_id}", :metadata_prefix => 'oai_dc'))
     assert_equal "oai:test/#{record_id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
   end
 
@@ -42,7 +49,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
     record = DCField.find(:first)
     record.deleted = true;
     record.save
-    doc = REXML::Document.new(@provider.get_record(:identifier => "oai:test/#{record.id}"))
+    doc = REXML::Document.new(@provider.get_record(
+      :identifier => "oai:test/#{record.id}", :metadata_prefix => 'oai_dc'))
     assert_equal "oai:test/#{record.id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
     assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
   end
@@ -57,14 +65,16 @@ class ActiveRecordProviderTest < TransactionalTestCase
     from_param = Time.parse("January 1 2006")
 
     doc = REXML::Document.new(
-      @provider.list_records(:from => from_param)
-      )
+      @provider.list_records(
+        :metadata_prefix => 'oai_dc', :from => from_param)
+    )
     assert_equal DCField.find(:all, :conditions => ["updated_at >= ?", from_param]).size,
       doc.elements['OAI-PMH/ListRecords'].size
 
     doc = REXML::Document.new(
-      @provider.list_records(:from => Time.parse("May 30 2005"))
-      )
+      @provider.list_records(
+        :metadata_prefix => 'oai_dc', :from => Time.parse("May 30 2005"))
+    )
     assert_equal 20, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
@@ -74,8 +84,9 @@ class ActiveRecordProviderTest < TransactionalTestCase
       "id < #{first_id + 10}")
 
     doc = REXML::Document.new(
-      @provider.list_records(:until => Time.parse("June 1 2005"))
-      )
+      @provider.list_records(
+        :metadata_prefix => 'oai_dc', :until => Time.parse("June 1 2005"))
+    )
     assert_equal 10, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
@@ -88,7 +99,9 @@ class ActiveRecordProviderTest < TransactionalTestCase
       "id < #{first_id + 10}")
 
     doc = REXML::Document.new(
-      @provider.list_records(:from => Time.parse("June 3 2005"),
+      @provider.list_records(
+        :metadata_prefix => 'oai_dc',
+        :from => Time.parse("June 3 2005"),
         :until => Time.parse("June 16 2005"))
       )
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
@@ -101,12 +114,12 @@ class ActiveRecordProviderTest < TransactionalTestCase
     test_identify
     test_metadata_formats
     # ListIdentifiers and ListRecords should return "noRecordsMatch" error code
-    assert_raises(OAI::NoMatchException) {
+    assert_raises(OAI::NoMatchException) do
       REXML::Document.new(@provider.list_identifiers)
-    }
-    assert_raises(OAI::NoMatchException) {
-      REXML::Document.new(@provider.list_records)
-    }
+    end
+    assert_raises(OAI::NoMatchException) do
+      REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
+    end
   end
 
   def setup

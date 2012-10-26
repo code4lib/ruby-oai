@@ -1,6 +1,7 @@
 module OAI
   class ListIdentifiersResponse < Response
     include Enumerable
+    include OAI::Resumable
     include OAI::XPath
 
     def each

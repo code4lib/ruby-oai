@@ -1,6 +1,6 @@
 module OAI
 
-  # An OAI::Response contains entries and a resumption token. If a resumption token is present, 
+  # An OAI::Response contains entries and a resumption token. If a resumption token is present,
   # then you must use it to fetch the rest of the entries for your query. For example:
   #  # List all records in a given set
   #  client = OAI::Client.new 'http://my-oai-provider.example.com/oai'
@@ -16,11 +16,12 @@ module OAI
 
   class Response
     include OAI::XPath
-    attr_reader :doc, :resumption_token
+    attr_reader :doc, :resumption_token, :resumption_block
 
-    def initialize(doc)
+    def initialize(doc, &resumption_block)
       @doc = doc
       @resumption_token = xpath(doc, './/resumptionToken')
+      @resumption_block = resumption_block
 
       # throw an exception if there was an error
       error = xpath_first(doc, './/error')

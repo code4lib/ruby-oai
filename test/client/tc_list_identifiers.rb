@@ -3,10 +3,10 @@ require 'test_helper'
 class ListIdentifiersTest < Test::Unit::TestCase
 
   def test_list_with_resumption_token
-    client = OAI::Client.new 'http://localhost:3333/oai' 
+    client = OAI::Client.new 'http://localhost:3333/oai'
 
     # get a list of identifier headers
-    response = client.list_identifiers :metadata_prefix => 'oai_dc' 
+    response = client.list_identifiers :metadata_prefix => 'oai_dc'
     assert_kind_of OAI::ListIdentifiersResponse, response
     assert_kind_of OAI::Response, response
     assert response.entries.size > 0
@@ -25,6 +25,25 @@ class ListIdentifiersTest < Test::Unit::TestCase
     response = client.list_identifiers :resumption_token => token
     assert response.entries.size > 0
     assert_not_equal response.entries[0].identifier, first_identifier
+  end
+
+  def test_list_full
+    client = OAI::Client.new 'http://localhost:3333/oai'
+
+    # get a list of identifier headers
+    response = client.list_identifiers :metadata_prefix => 'oai_dc'
+    assert_kind_of OAI::ListIdentifiersResponse, response
+    assert_kind_of OAI::Response, response
+    assert response.respond_to?(:full), "Should expose :full"
+
+    # Check that it runs through the pages
+    assert_equal 1150, response.full.count
+    response.full.each do |header|
+      assert_kind_of OAI::Header, header
+      assert header.identifier
+      assert header.datestamp
+      assert header.set_spec
+    end
   end
 
   def test_list_with_date_range
@@ -48,5 +67,5 @@ class ListIdentifiersTest < Test::Unit::TestCase
     client = OAI::Client.new 'http://localhost:3333/oai'
     assert_raise(OAI::ArgumentException) {client.list_identifiers :foo => 'bar'}
   end
-  
+
 end

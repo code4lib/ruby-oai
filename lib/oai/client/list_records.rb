@@ -7,10 +7,11 @@ module OAI
   #   end
   #
   # you'll need to handle resumption tokens
-  
+
   class ListRecordsResponse < Response
-    include OAI::XPath
     include Enumerable
+    include OAI::Resumable
+    include OAI::XPath
 
     def each
       for record_element in xpath_all(@doc, './/ListRecords/record')

@@ -2,9 +2,9 @@ module OAI
 
   # allows for iteration across a list of records
   #
-  #   for record in client.list_records :metadata_prefix => 'oai_dc':
-  #     puts record.metadata
-  #   end
+  #     client.list_records(:metadata_prefix => 'oai_dc').each do |record|
+  #       puts record.metadata
+  #     end
   #
   # you'll need to handle resumption tokens
 

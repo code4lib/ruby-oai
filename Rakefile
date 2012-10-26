@@ -10,9 +10,9 @@ end
 Bundler::GemHelper.install_tasks
 
 require 'rake/testtask'
-require 'rdoc/task'
+require 'yard'
 
-task :default => ["test"]
+task :default => ["test", "yard"]
 
 task :test => ["test:client", "test:provider", "test:activerecord_provider"]
 
@@ -84,8 +84,7 @@ if RUBY_VERSION =~ /^1.8/
   end
 end
 
-Rake::RDocTask.new('doc') do |rd|
-  rd.rdoc_files.include("lib/**/*.rb", "README.md")
-  rd.main = 'README.md'
-  rd.rdoc_dir = 'doc'
+YARD::Rake::YardocTask.new do |t|
+  t.files = ["lib/**/*.rb"]
+  t.options = ['--output-dir', 'doc']
 end

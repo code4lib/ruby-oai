@@ -2,9 +2,9 @@ module OAI
 
   # allows for iteration of the sets found in a oai-pmh server
   #
-  #   for set in client.list_sets
-  #     puts set
-  #   end
+  #     for set in client.list_sets
+  #       puts set
+  #     end
 
   class ListSetsResponse < Response
     include Enumerable

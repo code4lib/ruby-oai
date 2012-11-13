@@ -1,8 +1,6 @@
 require 'active_record'
 
 module OAI::Provider
-  # = OAI::Provider::ActiveRecordWrapper
-  #
   # This class wraps an ActiveRecord model and delegates all of the record
   # selection/retrieval to the AR model.  It accepts options for specifying
   # the update timestamp field, a timeout, and a limit.  The limit option

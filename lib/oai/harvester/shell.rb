@@ -1,13 +1,12 @@
 module OAI
   module Harvester
-    # = OAI::Harvester::Shell
-    # 
     # A OAI-PMH client shell allowing OAI Harvesting to be configured in
-    # an interactive manner.  Typing 'oai' on the command line starts the
+    # an interactive manner.  Typing `oai` on the command line starts the
     # shell.  The first time the shell is run it will prompt for the following
     # configuration details:
-    # 1. A storage directory for all harvested records.  Harvests will be 
-    #    stored under this directory in a directory structure based on the 
+    #
+    # 1. A storage directory for all harvested records.  Harvests will be
+    #    stored under this directory in a directory structure based on the
     #    date of the harvest.
     # 2. A log file directory.
     # 3. Email address(es) for sending daily harvesting activity reports.
@@ -21,15 +20,15 @@ module OAI
     #
     # The shell automatically pulls down the list of sets in the repository, and
     # the supported metadata prefixes.  Making it very simple to setup harvests.
-    #  
+    #
     class Shell
       include Readline
-    
+
       def initialize(config)
         @conf = config
         @conf.sites ||= {} # Initialize sites hash there isn't one
       end
-    
+
       def start
         unless @conf.storage
           banner "Entering first-time setup"
@@ -54,9 +53,9 @@ module OAI
           end
         end
       end
-    
+
       private
-    
+
       def help
         banner "Commands:"
         puts "\tharvest site [date]     - Harvest site(s) manually"
@@ -68,7 +67,7 @@ module OAI
         puts "\tedit [site]             - Change settings for a provider site"
         puts "\texit                    - Exit the harvester shell.\n\n"
       end
-    
+
       def harvest(options)
         site, *date = options.split(/\s/)
         if @conf.sites.keys.include?(site)
@@ -80,7 +79,7 @@ module OAI
                 puts "Couldn't parse the date supplied"
                 return
               end
-            else 
+            else
               date = nil
             end
             harvester = Harvest.new(@conf, @conf.storage, date)
@@ -91,7 +90,7 @@ module OAI
         end
         puts # blank line
       end
-    
+
       def list(args = nil)
         if 'config' == args
           banner "Current Configuration"
@@ -104,7 +103,7 @@ module OAI
         end
         puts # blank line
       end
-    
+
       def info(args)
         banner "Provider Site Information"
         sites = args.split(/[,\s|\s|,]/)
@@ -115,21 +114,21 @@ module OAI
       rescue
         puts args + " doesn't appear to be configured, use list to see configured repositories."
       end
-    
+
       def new
         banner "Define New Harvesting Site"
         name, site = form
         @conf.sites[name] = site
         @conf.save
       end
-    
+
       def edit(name)
         banner "Edit Harvesting Site"
         name, site = form(name)
         @conf.sites[name] = site
         @conf.save
       end
-    
+
       def remove(site)
         if 'Y' == readline("Remove #{site}? (Y/N): ").upcase
           @conf.sites.delete(site)
@@ -149,14 +148,14 @@ module OAI
             end
           end
           site = @conf.sites[name] || {}
-      
+
           # URL
           url = prompt("url", site['url'])
           while(not (site['url'] = verify(url)))
             puts "Trouble contacting provider, bad url?"
             url = prompt("url", site['url'])
           end
-      
+
           # Metadata formats
           formats = metadata(site['url'])
           report "Repository supports [#{formats.join(', ')}] metadata formats."
@@ -187,15 +186,15 @@ module OAI
             puts "Must be daily, weekly, or monthly"
             period = expand_period(prompt("period", "daily"))
           end
-      
+
           site['period'] = period
-      
+
           return [name, site]
-        rescue 
+        rescue
           puts "Problem adding/updating provider, aborting. (#{$!})"
         end
       end
-    
+
       def config
         begin
           directory = prompt("storage directory", @conf.storage)
@@ -205,7 +204,7 @@ module OAI
 
           email = @conf.email.join(', ') rescue nil
           @conf.email = parse_emails(prompt("email", email))
-        
+
           @conf.mail_server = prompt("mail server", @conf.mail_server)
 
           logfile = prompt("log file(s) directory", @conf.logfile)
@@ -215,22 +214,22 @@ module OAI
           @conf.storage = directory
           @conf.logfile = logfile
           @conf.save
-        rescue 
+        rescue
           nil
         end
       end
-        
+
       def display(key, value, split = 40)
         (split - key.size).times { print " " } if key.size < split
         puts "#{key}: #{value}"
       end
-    
+
       def banner(str)
         puts "\n#{str}"
         str.size.times { print "-" }
         puts "\n"
       end
-      
+
       def report(str)
         puts "\n#{str}\n"
       end
@@ -240,7 +239,7 @@ module OAI
           print "\t"
         end
       end
-    
+
       def prompt(text, default = nil, split = 20)
         prompt_text = "#{text} [#{default}]: "
         (split - prompt_text.size).times { print " " } if prompt_text.size < split
@@ -248,7 +247,7 @@ module OAI
         raise RuntimeError.new("Exit loop") unless value
         return value.empty? ? default : value
       end
-    
+
       def verify(url)
         begin
           client = OAI::Client.new(url, :redirects => false)
@@ -264,7 +263,7 @@ module OAI
           end
         end
       end
-    
+
       def metadata(url)
         formats = []
         client = OAI::Client.new url
@@ -274,7 +273,7 @@ module OAI
         end
         formats
       end
-      
+
       def sets(url)
         sets = []
         client = OAI::Client.new url
@@ -292,35 +291,35 @@ module OAI
         end
         true
       end
-    
+
       def expand_period(str)
         return str if Config::PERIODS.include?(str)
         Config::PERIODS.each { |p| return p if p =~ /^#{str}/}
         nil
       end
-    
+
       def parse_emails(emails)
         return nil unless emails
         addresses = emails.split(/[,\s|\s|,]/)
       end
-        
+
       def list_config
         display("storage directory", @conf.storage, 20)
         display("email", @conf.email.join(', '), 20) if @conf.email
         display("mail server", @conf.mail_server, 20) if @conf.mail_server
         display("log location", @conf.logfile, 20) if @conf.logfile
       end
-    
+
       def list_sites
         banner "Sites"
         @conf.sites.each_key { |site| print_site(site) }
       end
-    
+
       def print_site(site)
         puts site
         @conf.sites[site].each { |k,v| display(k, v, 15)}
       end
-    
+
       def setup_cron
         banner "Scheduling Automatic Harvesting"
         puts "To activate automatic harvesting you must add an entry to"
@@ -330,9 +329,9 @@ module OAI
         puts "Windows users should use WinAt to schedule"
         puts "#{$0} to run every night.\n\n\n"
       end
-    
+
     end
 
   end
-end        
-      
+end
+

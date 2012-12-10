@@ -27,6 +27,7 @@ module OAI
     end
     def initialize(provider, options = {})
       @provider = provider
+      @request_options = options.dup
       @options = internalize(options)
       raise OAI::ArgumentException.new unless valid?
     end
@@ -35,10 +36,7 @@ module OAI
       @builder.instruct! :xml, :version=>"1.0", :encoding=>"UTF-8"
       @builder.tag!('OAI-PMH', header) do
         @builder.responseDate Time.now.utc.xmlschema
-        #options parameter has been removed here because with it
-        #the data won't validate against oai validators.  Without, it
-        #validates.
-        @builder.request(provider.url) #-- OAI 2.0 Hack - removed request options
+        @builder.request(provider.url, (@request_options.merge(:verb => verb) unless self.class == Error))
         yield @builder
       end
     end
@@ -111,6 +109,10 @@ module OAI
       internal[:until] = parse_date(internal[:until]) if internal[:until]
 
       internal
+    end
+
+    def verb
+      self.class.to_s.split('::').last
     end
 
   end

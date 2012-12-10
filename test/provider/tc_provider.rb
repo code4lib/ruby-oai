@@ -16,6 +16,8 @@ class OaiTest < Test::Unit::TestCase
 
   def test_list_identifiers_for_correct_xml
     doc = REXML::Document.new(@mapped_provider.list_identifiers)
+    assert_not_nil doc.elements['OAI-PMH/request']
+    assert_not_nil doc.elements['OAI-PMH/request/@verb']
     assert_not_nil doc.elements['OAI-PMH/ListIdentifiers']
     assert_not_nil doc.elements['OAI-PMH/ListIdentifiers/header']
     assert_not_nil doc.elements['OAI-PMH/ListIdentifiers/header/identifier']
@@ -26,6 +28,9 @@ class OaiTest < Test::Unit::TestCase
   def test_list_records_for_correct_xml
     doc = REXML::Document.new(
       @mapped_provider.list_records(:metadata_prefix => 'oai_dc'))
+    assert_not_nil doc.elements['OAI-PMH/request']
+    assert_not_nil doc.elements['OAI-PMH/request/@verb']
+    assert_not_nil doc.elements['OAI-PMH/request/@metadata_prefix']
     assert_not_nil doc.elements['OAI-PMH/ListRecords/record/header']
     assert_not_nil doc.elements['OAI-PMH/ListRecords/record/metadata']
   end
@@ -85,6 +90,12 @@ class OaiTest < Test::Unit::TestCase
         :from => Time.parse("November 1 2000"),
         :until => Time.parse("November 30 2000"))
     )
+
+    assert_not_nil doc.elements['OAI-PMH/request']
+    assert_not_nil doc.elements['OAI-PMH/request/@verb']
+    assert_not_nil doc.elements['OAI-PMH/request/@from']
+    assert_not_nil doc.elements['OAI-PMH/request/@until']
+
     assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
 
     doc = REXML::Document.new(

@@ -94,7 +94,7 @@ module OAI
       Date.parse(value) # This will raise an exception for badly formatted dates
       Time.parse(value).utc #  -- UTC Bug fix hack 8/08 not in core
     rescue
-      raise OAI::ArgumentException.new "unparsable date: '#{value}'"
+      raise OAI::ArgumentException.new, "unparsable date: '#{value}'"
     end
 
     def internalize(hash = {})

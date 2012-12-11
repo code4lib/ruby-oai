@@ -314,7 +314,7 @@ module OAI
       Date.parse(value) # This will raise an exception for badly formatted dates
       Time.parse(value).utc # Sadly, this will not
     rescue
-      raise OAI::ArgumentException.new "unparsable date: '#{value}'"
+      raise OAI::ArgumentException.new, "unparsable date: '#{value}'"
     end
 
     # Strip out invalid UTF-8 characters.  Regex from the W3C, inverted.

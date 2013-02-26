@@ -87,7 +87,7 @@ module OAI
       @parser = options.fetch(:parser, 'rexml')
 
       @http_client = options.fetch(:http) do
-        Faraday.new(:url => @base) do |builder|
+        Faraday.new(:url => @base.clone) do |builder|
           follow_redirects = options.fetch(:redirects, true)
           if follow_redirects
             count = follow_redirects.is_a?(Fixnum) ? follow_redirects : 5
@@ -219,7 +219,7 @@ module OAI
 
     def build_uri(verb, opts)
       opts = validate_options(verb, opts)
-      uri = @base.clone
+      uri = @base
       uri.query = "verb=" << verb
       opts.each_pair { |k,v| uri.query << '&' << externalize(k) << '=' << encode(v) }
       uri

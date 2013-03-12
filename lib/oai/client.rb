@@ -205,7 +205,7 @@ module OAI
         # isn't able to use our xpaths to get at them
         # if you know a way around thins please let me know
         xml = xml.gsub(
-          /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
+        /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
       end
       return load_document(xml)
     end
@@ -213,7 +213,7 @@ module OAI
     def do_resumable(responseClass, verb, opts)
       responseClass.new(do_request(verb, opts)) do |response|
         responseClass.new \
-          do_request(verb, :resumption_token => response.resumption_token)
+        do_request(verb, :resumption_token => response.resumption_token)
       end
     end
 
@@ -257,6 +257,21 @@ module OAI
     # Do the actual HTTP get, following any temporary redirects
     def get(uri)
       response = @http_client.get uri
+      max_retry=3
+      if response.status == 503
+        max_retry.times do
+          sleep_time = response.headers['retry-after'] ? response.headers['retry-after'].to_i : 5
+          debug "503 from OAI provider for #{uri.to_s} retrying in #{sleep_time} seconds"
+          sleep(sleep_time)
+          response = @http_client.get uri
+          if response.status != 503
+            break;
+          end 
+        end
+      end
+      if not response.success?
+        raise 'OAI provider returned an error code:'+response.status.to_s
+      end
       response.body
     end
 
@@ -324,14 +339,13 @@ module OAI
     #   http://webcollab.sourceforge.net/unicode.html
     def strip_invalid_utf_8_chars(xml)
       xml && xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
-                             | [\x00-\x7F][\x80-\xBF]+
-                             | ([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*
-                             | [\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})
-                             | [\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))
-                             | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')\
-                .gsub(/\xE0[\x80-\x9F][\x80-\xBF]
-                       | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
+      | [\x00-\x7F][\x80-\xBF]+
+      | ([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*
+      | [\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})
+      | [\xE0-\xEF](([\x80-\xBF](?![\x80-\xBF]))
+      | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')\
+      .gsub(/\xE0[\x80-\x9F][\x80-\xBF]
+      | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
     end
-
   end
 end

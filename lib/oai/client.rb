@@ -1,3 +1,5 @@
+# encoding: us-ascii
+
 # External dependencies
 require 'uri'
 require 'faraday'

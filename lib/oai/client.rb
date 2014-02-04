@@ -249,6 +249,7 @@ module OAI
         end
       when 'rexml'
         begin
+          xml = strip_invalid_xml_chars(xml)
           return REXML::Document.new(xml)
         rescue REXML::ParseException => e
           raise OAI::Exception, 'response not well formed XML: '+e.message, caller
@@ -333,6 +334,19 @@ module OAI
                              | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')\
                 .gsub(/\xE0[\x80-\x9F][\x80-\xBF]
                        | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
+    end
+
+    def strip_invalid_xml_chars(xml)
+      invalid = false
+
+      begin
+        REXML::Document.new(xml)
+      rescue REXML::ParseException => e
+        invalid = true
+      end
+
+      return xml.gsub!(/&(?!(?:amp|lt|gt|quot|apos);)/, '&amp;') if invalid
+      return xml
     end
 
   end

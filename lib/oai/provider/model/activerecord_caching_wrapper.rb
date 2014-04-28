@@ -60,15 +60,15 @@ module OAI::Provider
       conditions = sql_conditions(options)
 
       if :all == selector
-        total = model.count(:id, :conditions => conditions)
+        total = model.where(conditions).count
         if @limit && total > @limit
           select_partial(
             ResumptionToken.new(options.merge({:last => 0})))
         else
-          model.find(:all, :conditions => conditions)
+          model.where(conditions)
         end
       else
-        model.find(selector, :conditions => conditions)
+        model.where(conditions).find(selector)
       end
     end
 
@@ -78,7 +78,7 @@ module OAI::Provider
       raise ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = model.count(:id, :conditions => token_conditions(token))
+      total = model.where(token_conditions(token)).count
 
       if token.last * @limit + @limit < total
         select_partial(token)
@@ -91,7 +91,7 @@ module OAI::Provider
     # resumption token to get the next subset
     def select_partial(token)
       if 0 == token.last
-        oaitoken = OaiToken.find_or_create_by_token(token.to_s)
+        oaitoken = OaiToken.find_or_create_by(token: token.to_s)
         if oaitoken.new_record_before_save?
           OaiToken.connection.execute("insert into " +
             "#{OaiEntry.table_name} (oai_token_id, record_id) " +
@@ -104,8 +104,9 @@ module OAI::Provider
       raise ResumptionTokenException.new unless oaitoken
 
       PartialResult.new(
-        hydrate_records(oaitoken.entries.find(:all, :limit => @limit,
-          :offset => token.last * @limit)), token.next(token.last + 1)
+        hydrate_records(
+          oaitoken.entries.limit(@limit).offset(token.last * @limit)),
+        token.next(token.last + 1)
       )
     end
 

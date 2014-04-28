@@ -25,12 +25,12 @@ module OAI::Provider
     end
 
     def earliest
-      earliest_obj = model.find(:first, :order => "#{timestamp_field} asc")
+      earliest_obj = model.order("#{timestamp_field} asc").first
       earliest_obj.nil? ? Time.at(0) : earliest_obj.send(timestamp_field)
     end
 
     def latest
-      latest_obj = model.find(:first, :order => "#{timestamp_field} desc")
+      latest_obj = model.order("#{timestamp_field} desc").first
       latest_obj.nil? ? Time.now : latest_obj.send(timestamp_field)
     end
     # A model class is expected to provide a method Model.sets that
@@ -46,15 +46,15 @@ module OAI::Provider
         options[:resumption_token]) if options[:resumption_token]
       conditions = sql_conditions(options)
       if :all == selector
-        total = find_scope.count(:id, :conditions => conditions)
+        total = find_scope.where(conditions).count
         if @limit && total > @limit
           select_partial(find_scope,
             ResumptionToken.new(options.merge({:last => 0})))
         else
-          find_scope.find(:all, :conditions => conditions)
+          find_scope.where(conditions)
         end
       else
-        find_scope.find(selector, :conditions => conditions)
+        find_scope.where(conditions).find(selector)
       end
     end
 
@@ -90,19 +90,19 @@ module OAI::Provider
 
       # Find the set or return an empty scope
       set = find_set_by_spec(options[:set])
-      return model.scoped(:limit => 0) if set.nil?
+      return model.limit(0) if set.nil?
 
       # If the set has a backward relationship, we'll use it
       if set.class.respond_to?(:reflect_on_all_associations)
         set.class.reflect_on_all_associations.each do |assoc|
-          return set.send(assoc.name).scoped if assoc.klass == model
+          return set.send(assoc.name) if assoc.klass == model
         end
       end
 
       # Search the attributes for 'set'
       if model.column_names.include?('set')
         # Scope using the set attribute as the spec
-        model.scoped(:conditions => {:set => options[:set]})
+        model.where(set: options[:set])
       else
         # Default to empty set, as we've tried everything else
         model.scoped(:limit => 0)
@@ -122,24 +122,23 @@ module OAI::Provider
       raise OAI::ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = find_scope.count(:id, :conditions => token_conditions(token))
+      total = find_scope.where(token_conditions(token)).count
 
       if @limit < total
         select_partial(find_scope, token)
       else # end of result set
-        find_scope.find(:all,
-          :conditions => token_conditions(token),
-          :limit => @limit, :order => "#{model.primary_key} asc")
+        find_scope.where(token_conditions(token))
+          .limit(@limit)
+          .order("#{model.primary_key} asc")
       end
     end
 
     # select a subset of the result set, and return it with a
     # resumption token to get the next subset
     def select_partial(find_scope, token)
-      records = find_scope.find(:all,
-        :conditions => token_conditions(token),
-        :limit => @limit,
-        :order => "#{model.primary_key} asc")
+      records = find_scope.where(token_conditions(token))
+        .limit(@limit)
+        .order("#{model.primary_key} asc")
       raise OAI::ResumptionTokenException.new unless records
       offset = records.last.send(model.primary_key.to_sym)
 

@@ -22,11 +22,9 @@ class CachingPagingProviderTest < TransactionalTestCase
   end
 
   def test_from_and_until
-    first_id = DCField.find(:first, :order => "id asc").id
-    DCField.update_all(['updated_at = ?', Time.parse("September 15 2005")],
-      "id <= #{first_id + 25}")
-    DCField.update_all(['updated_at = ?', Time.parse("November 1 2005")],
-      "id < #{first_id + 50} and id > #{first_id + 25}")
+    first_id = DCField.order("id asc").first.id
+    DCField.where("id <= #{first_id + 25}").update_all(updated_at: Time.parse("September 15 2005"))
+    DCField.where("id < #{first_id + 50} and id > #{first_id + 25}").update_all(updated_at: Time.parse("November 1 2005"))
 
     # Should return 50 records broken into 2 groups of 25.
     doc = Document.new(

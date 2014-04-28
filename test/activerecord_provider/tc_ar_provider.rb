@@ -13,7 +13,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_metadata_formats_for_record
-    record_id = DCField.find(:first).id
+    record_id = DCField.first.id
     assert_nothing_raised { REXML::Document.new(@provider.list_metadata_formats(:identifier => "oai:test/#{record_id}")) }
     doc =  REXML::Document.new(@provider.list_metadata_formats)
     assert doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text == 'oai_dc'
@@ -35,7 +35,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_get_record
-    record_id = DCField.find(:first).id
+    record_id = DCField.first.id
     assert_nothing_raised do
       REXML::Document.new(@provider.get_record(
         :identifier => "oai:test/#{record_id}", :metadata_prefix => 'oai_dc'))
@@ -46,7 +46,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_deleted
-    record = DCField.find(:first)
+    record = DCField.first
     record.deleted = true;
     record.save
     doc = REXML::Document.new(@provider.get_record(
@@ -56,11 +56,11 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_from
-    first_id = DCField.find(:first, :order => "id asc").id
-    DCField.update_all(['updated_at = ?', Time.parse("January 1 2005")],
-      "id < #{first_id + 90}")
-    DCField.update_all(['updated_at = ?', Time.parse("June 1 2005")],
-      "id < #{first_id + 10}")
+    first_id = DCField.order("id asc").first.id
+    DCField.where("id < #{first_id + 90}").update_all(updated_at: Time.parse("January 1 2005"))
+
+    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
+
 
     from_param = Time.parse("January 1 2006")
 
@@ -68,7 +68,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
       @provider.list_records(
         :metadata_prefix => 'oai_dc', :from => from_param)
     )
-    assert_equal DCField.find(:all, :conditions => ["updated_at >= ?", from_param]).size,
+    assert_equal DCField.where(["updated_at >= ?", from_param]).size,
       doc.elements['OAI-PMH/ListRecords'].size
 
     doc = REXML::Document.new(
@@ -79,9 +79,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_until
-    first_id = DCField.find(:first, :order => "id asc").id
-    DCField.update_all(['updated_at = ?', Time.parse("June 1 2005")],
-      "id < #{first_id + 10}")
+    first_id = DCField.order("id asc").first.id
+    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
 
     doc = REXML::Document.new(
       @provider.list_records(
@@ -91,12 +90,10 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_from_and_until
-    first_id = DCField.find(:first, :order => "id asc").id
-    DCField.update_all(['updated_at = ?', Time.parse("June 1 2005")])
-    DCField.update_all(['updated_at = ?', Time.parse("June 15 2005")],
-      "id < #{first_id + 50}")
-    DCField.update_all(['updated_at = ?', Time.parse("June 30 2005")],
-      "id < #{first_id + 10}")
+    first_id = DCField.order("id asc").first.id
+    DCField.update_all(updated_at: Time.parse("June 1 2005"))
+    DCField.where("id < #{first_id + 50}").update_all(updated_at: Time.parse("June 15 2005"))
+    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 30 2005"))
 
     doc = REXML::Document.new(
       @provider.list_records(

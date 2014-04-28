@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
     s.bindir = 'bin'
     s.executables = 'oai'
 
-    s.add_dependency('builder', '>=2.0.0')
+    s.add_dependency('builder', '>=3.1.0')
     s.add_dependency('faraday')
     s.add_dependency('faraday_middleware')
 

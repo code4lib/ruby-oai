@@ -4,8 +4,8 @@ module OAI::Provider
 
   # ActiveRecord model class in support of the caching wrapper.
   class OaiToken < ActiveRecord::Base
-    has_many :entries, :class_name => 'OaiEntry',
-      :order => "record_id", :dependent => :destroy
+    has_many :entries, -> { order("record_id ASC") },
+      :class_name => 'OaiEntry', :dependent => :destroy
 
     validates_uniqueness_of :token
 

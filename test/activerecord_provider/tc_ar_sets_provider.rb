@@ -150,6 +150,8 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
     )
     disable_logging do
       fixtures.keys.sort.each do |key|
+        p key
+        p fixtures[key]
         ExclusiveSetDCField.create(fixtures[key])
       end
     end

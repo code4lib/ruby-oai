@@ -48,7 +48,7 @@ class OaipmhTables < ActiveRecord::Migration
       t.column :description,    :string
     end
 
-    add_index :oai_tokens, [:token], :uniq => true
+    add_index :oai_tokens, [:token], :unique => true
     add_index :oai_tokens, :created_at
     add_index :oai_entries, [:oai_token_id]
     add_index :dc_fields, :updated_at

@@ -1,5 +1,5 @@
 class ExclusiveSetDCField < ActiveRecord::Base
-  inheritance_column = 'DONOTINHERIT'
+  self.inheritance_column = 'DONOTINHERIT'
 
   def self.sets
     klass = Struct.new(:name, :spec)

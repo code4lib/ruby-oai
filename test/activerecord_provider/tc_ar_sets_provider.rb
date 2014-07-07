@@ -28,7 +28,7 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
   end
 
   def test_record_with_multiple_sets
-    record = DCSet.find(:first, :conditions => "spec = 'C'").dc_fields.first
+    record = DCSet.where("spec = 'C'").first.dc_fields.first
     assert_equal 2, record.sets.size
   end
 
@@ -51,22 +51,22 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
     set_ab = DCSet.create(:name => "Set A:B", :spec => "A:B")
 
     next_id = 0
-    DCField.find(:all, :limit => 10, :order => "id asc").each do |record|
+    DCField.limit(10).order("id asc").each do |record|
       set_a.dc_fields << record
       next_id = record.id
     end
 
-    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       set_b.dc_fields << record
       next_id = record.id
     end
 
-    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       set_ab.dc_fields << record
       next_id = record.id
     end
 
-    DCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       set_a.dc_fields << record
       set_c.dc_fields << record
       next_id = record.id
@@ -117,25 +117,25 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
   def define_sets
     next_id = 0
 
-    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc").each do |record|
+    ExclusiveSetDCField.limit(10).order("id asc").each do |record|
       record.set = "A"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       record.set = "B"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       record.set = "A:B"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.find(:all, :limit => 10, :order => "id asc", :conditions => "id > #{next_id}").each do |record|
+    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
       record.set = "A"
       record.save!
       next_id = record.id

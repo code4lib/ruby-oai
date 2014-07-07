@@ -3,7 +3,7 @@ class SetModel < OAI::Provider::ActiveRecordWrapper
 
   # Return all available sets
   def sets
-    DCSet.scoped
+    DCSet.all
   end
 
 end

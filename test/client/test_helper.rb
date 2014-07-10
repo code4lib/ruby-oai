@@ -8,6 +8,7 @@ end
 
 require 'oai'
 require 'test/unit'
+require "mocha/setup"
 
 require File.dirname(__FILE__) + '/helpers/provider'
 require File.dirname(__FILE__) + '/helpers/test_wrapper'

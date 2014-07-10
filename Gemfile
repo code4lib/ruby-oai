@@ -16,4 +16,5 @@ group :test do
   gem 'simplecov', :platform => :ruby_19
   gem 'simplecov-rcov', :platform => :ruby_19
   gem 'sqlite3', :platform => [:ruby, :mswin]
+  gem "mocha", :require => false
 end

@@ -1,5 +1,6 @@
 require 'test_helper'
 require 'webrick'
+require 'mocha'
 
 class HttpClientTest < Test::Unit::TestCase
 
@@ -22,6 +23,23 @@ eos
     assert_kind_of OAI::IdentifyResponse, response
     assert_equal 'Mock OAI Provider [http://nowhere.example.com]', response.to_s
 
+  end
+  
+  def test_get_retry
+    oai_response = <<-eos
+    Unavailable
+eos
+    faraday_stub = Faraday.new do |builder|
+      builder.adapter :test do |stub|
+        stub.get('/oai?verb=Identify') { [503, {"retry-after"=>1}, oai_response] }
+      end
+    end
+    client = OAI::Client.new 'http://localhost:3333/oai', :http => faraday_stub
+    #it should retry 3 times and log the attempts via debug
+    client.expects(:debug).with('503 from OAI provider for http://localhost:3333/oai?verb=Identify retrying in 1 seconds').at_least(3)
+    assert_raise RuntimeError do
+      response = client.send :identify
+    end
   end
 
   def test_http_client_handles_trailing_slash_redirects
@@ -108,7 +126,6 @@ eos
       #path = path + '/' unless $&
       path.gsub('//', '/')
     end
-
   end
 end
 

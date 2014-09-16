@@ -25,12 +25,12 @@ module OAI::Provider
     end
 
     def earliest
-      earliest_obj = model.order("#{timestamp_field} asc").first
+      earliest_obj = model.order("#{model.base_class.table_name}.#{timestamp_field} asc").first
       earliest_obj.nil? ? Time.at(0) : earliest_obj.send(timestamp_field)
     end
 
     def latest
-      latest_obj = model.order("#{timestamp_field} desc").first
+      latest_obj = model.order("#{model.base_class.table_name}.#{timestamp_field} desc").first
       latest_obj.nil? ? Time.now : latest_obj.send(timestamp_field)
     end
     # A model class is expected to provide a method Model.sets that
@@ -129,7 +129,7 @@ module OAI::Provider
       else # end of result set
         find_scope.where(token_conditions(token))
           .limit(@limit)
-          .order("#{model.primary_key} asc")
+          .order("#{model.base_class.table_name}.#{model.primary_key} asc")
       end
     end
 
@@ -138,7 +138,7 @@ module OAI::Provider
     def select_partial(find_scope, token)
       records = find_scope.where(token_conditions(token))
         .limit(@limit)
-        .order("#{model.primary_key} asc")
+        .order("#{model.base_class.table_name}.#{model.primary_key} asc")
       raise OAI::ResumptionTokenException.new unless records
       offset = records.last.send(model.primary_key.to_sym)
 
@@ -157,7 +157,7 @@ module OAI::Provider
 
       return sql if 0 == last
       # Now add last id constraint
-      sql.first << " AND #{model.primary_key} > :id"
+      sql.first << " AND #{model.base_class.table_name}.#{model.primary_key} > :id"
       sql.last[:id] = last
 
       return sql
@@ -168,12 +168,12 @@ module OAI::Provider
       sql = []
       esc_values = {}
       if opts.has_key?(:from)
-        sql << "#{timestamp_field} >= :from"
+        sql << "#{model.base_class.table_name}.#{timestamp_field} >= :from"
         esc_values[:from] = parse_to_local(opts[:from])
       end
       if opts.has_key?(:until)
         # Handle databases which store fractions of a second by rounding up
-        sql << "#{timestamp_field} < :until"
+        sql << "#{model.base_class.table_name}.#{timestamp_field} < :until"
         esc_values[:until] = parse_to_local(opts[:until]) { |t| t + 1 }
       end
       return [sql.join(" AND "), esc_values]
@@ -191,4 +191,3 @@ module OAI::Provider
 
   end
 end
-

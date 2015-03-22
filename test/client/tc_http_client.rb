@@ -2,6 +2,21 @@ require 'test_helper'
 require 'webrick'
 
 class HttpClientTest < Test::Unit::TestCase
+  def test_user_agent_and_from_headers
+    faraday_stub = Faraday.new do |builder|
+      builder.adapter :test do |stub|
+        stub.get('/echo') { |env| [200, {}, Marshal.dump(env)] }
+      end
+    end
+
+    client = OAI::Client.new 'http://localhost:3333/oai', :headers => { 'From' => 'oai@example.com', 'User-Agent' => 'ruby-oai' }, :http => faraday_stub
+
+    response = client.send(:get, '/echo')
+    env = Marshal.load(response)
+
+    assert_equal('oai@example.com', env.request_headers['From'])
+    assert_equal('ruby-oai', env.request_headers['User-Agent'])
+  end
 
   def test_pluggable_http_client
     oai_response = <<-eos

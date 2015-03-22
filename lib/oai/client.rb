@@ -87,6 +87,7 @@ module OAI
       @base = URI.parse base_url
       @debug = options.fetch(:debug, false)
       @parser = options.fetch(:parser, 'rexml')
+      @headers = options.fetch(:headers, {})
 
       @http_client = options.fetch(:http) do
         Faraday.new(:url => @base.clone) do |builder|
@@ -258,7 +259,11 @@ module OAI
 
     # Do the actual HTTP get, following any temporary redirects
     def get(uri)
-      response = @http_client.get uri
+      response = @http_client.get do |req|
+        req.url uri
+        req.headers.merge! @headers
+      end
+
       response.body
     end
 

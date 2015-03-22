@@ -9,9 +9,10 @@ module OAI
   # metadata will return a `XML::Node` object instead.
   class Record
     include OAI::XPath
-    attr_accessor :header, :metadata, :about
+    attr_accessor :header, :metadata, :about, :_source
 
     def initialize(element)
+      @_source = element
       @header = OAI::Header.new xpath_first(element, './/header')
       @metadata = xpath_first(element, './/metadata')
       @about = xpath_first(element, './/about')

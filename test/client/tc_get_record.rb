@@ -7,6 +7,7 @@ class GetRecordTest < Test::Unit::TestCase
     response = client.get_record :identifier => 'oai:test/3'
     assert_kind_of OAI::GetRecordResponse, response
     assert_kind_of OAI::Record, response.record
+    assert_kind_of REXML::Element, response.record._source
     assert_kind_of REXML::Element, response.record.metadata
     assert_kind_of OAI::Header, response.record.header
     assert_kind_of REXML::Element, response.record.about

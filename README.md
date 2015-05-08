@@ -26,7 +26,7 @@ For example to initiate a ListRecords request to pubmed you can:
 
 ```ruby
   require 'oai'
-  client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi'
+  client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi', :headers => { "From" => "oai@example.com" }
   response = client.list_records
   # Get the first page of records
   response.each do |record| 

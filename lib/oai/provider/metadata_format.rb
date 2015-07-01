@@ -34,7 +34,7 @@ module OAI::Provider::Metadata
               values = value_for(field, record, map)
               if values.respond_to?(:each)
                 values.each do |value|
-                  xml.tag! "#{element_namespace}:#{field}", value
+                  xml.tag! "#{element_namespace}:#{field}", *value
                 end
               else
                 xml.tag! "#{element_namespace}:#{field}", values

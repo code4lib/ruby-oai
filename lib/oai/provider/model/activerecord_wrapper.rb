@@ -182,7 +182,20 @@ module OAI::Provider
     private
 
     def parse_to_local(time)
-      time_obj = Time.parse(time.to_s)
+      if time.respond_to?(:strftime)
+        time_obj = time
+      else
+        begin
+          if time.ends_with?("Z")
+            time_obj = Time.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+          else
+            time_obj = Time.strptime(time, "%Y-%m-%d")
+          end
+        rescue
+          raise OAI::ArgumentException.new, "unparsable date: '#{time}'"
+        end
+      end
+        
       time_obj = yield(time_obj) if block_given?
       # Convert to same as DB - :local => :getlocal, :utc => :getutc
       tzconv = "get#{model.default_timezone.to_s}".to_sym

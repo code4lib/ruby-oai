@@ -10,7 +10,7 @@ class ProviderServer
     source_model ComplexModel.new(100)
   end
 
-  attr_reader :consumed, :server
+  attr_reader :consumed, :server, :provider
 
   def initialize(port, mount_point)
     @consumed = []

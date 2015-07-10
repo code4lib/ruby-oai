@@ -47,6 +47,7 @@ class ListIdentifiersTest < Test::Unit::TestCase
   end
 
   def test_list_with_date_range
+    $provider_server.provider.class.update_granularity OAI::Const::Granularity::LOW
     client = OAI::Client.new 'http://localhost:3333/oai'
     from_date = Date.new(1998,1,1)
     until_date  = Date.new(2002,1,1)

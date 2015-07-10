@@ -92,7 +92,7 @@ module OAI
       return value if value.respond_to?(:strftime)
       
       if value[-1] == "Z"
-        Time.strptime(value, "%Y-%m-%dT%H:%M:%SZ").utc
+        Time.strptime(value, "%Y-%m-%dT%H:%M:%S%Z").utc
       else
         Time.strptime(value, "%Y-%m-%d").utc
       end

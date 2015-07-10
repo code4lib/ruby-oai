@@ -94,7 +94,7 @@ module OAI
       if value[-1] == "Z"
         Time.strptime(value, "%Y-%m-%dT%H:%M:%S%Z").utc
       else
-        Time.strptime(value, "%Y-%m-%d").utc
+        Date.strptime(value, "%Y-%m-%d")
       end
     rescue ArgumentError => e
       raise OAI::ArgumentException.new, "unparsable date: '#{value}'"

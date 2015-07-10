@@ -10,7 +10,7 @@ end
 
 class ProviderServer
 
-  attr_reader :consumed, :server, :provider
+  attr_reader :consumed, :server
 
   def initialize(port, mount_point)
     @consumed = []

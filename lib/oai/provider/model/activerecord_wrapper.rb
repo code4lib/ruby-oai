@@ -187,7 +187,7 @@ module OAI::Provider
       else
         begin
           if time[-1] == "Z"
-            time_obj = Time.strptime(time, "%Y-%m-%dT%H:%M:%SZ")
+            time_obj = Time.strptime(time, "%Y-%m-%dT%H:%M:%S%Z")
           else
             time_obj = Time.strptime(time, "%Y-%m-%d")
           end

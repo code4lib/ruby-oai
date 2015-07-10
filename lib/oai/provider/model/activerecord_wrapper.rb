@@ -61,7 +61,7 @@ module OAI::Provider
           find_scope.where(conditions)
         end
       else
-        find_scope.where(conditions).find_by!(identifier_field => selector)
+        find_scope.where(conditions).where(identifier_field => selector).first
       end
     end
 

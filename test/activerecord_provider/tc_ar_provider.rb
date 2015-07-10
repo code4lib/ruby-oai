@@ -142,6 +142,21 @@ class ActiveRecordProviderTest < TransactionalTestCase
       REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
     end
   end
+  
+  def test_bad_id_raises_exception
+    badIdentifiers = [
+      'invalid"id',
+      'oai:test/5000',
+      'oai:test/-1',
+      'oai:test/one',
+      'oai:test/\\$1\1!']
+    badIdentifiers.each do |id|
+      assert_raise(OAI::IdException) do
+        @provider.get_record(:identifier => id, :metadata_prefix => 'oai_dc')
+      end
+    end
+  end
+  
 
   def setup
     @provider = ARProvider.new

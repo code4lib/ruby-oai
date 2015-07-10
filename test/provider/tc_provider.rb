@@ -78,6 +78,32 @@ class OaiTest < Test::Unit::TestCase
     )
     assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
+  
+  def test_from_and_until_match
+    assert_nothing_raised do
+      @big_provider.list_records(
+        :metadata_prefix => 'oai_dc',
+        :from => "2000-11-01T05:00:00Z",
+        :until =>  "2000-11-30T05:00:00Z"
+      )
+    end
+    
+    assert_nothing_raised do
+      @big_provider.list_records(
+        :metadata_prefix => 'oai_dc',
+        :from => "2000-11-01",
+        :until =>  "2000-11-30"
+      )
+    end
+    
+    assert_raise(OAI::ArgumentException) do
+      @big_provider.list_records(
+        :metadata_prefix => 'oai_dc',
+        :from => "2000-11-01T05:00:00Z",
+        :until =>  "2000-11-30"
+      )
+    end
+  end
 
   def test_from_and_until
     assert_nothing_raised do

@@ -76,8 +76,8 @@ class TestModel < OAI::Provider::Model
       else
         records = @records.select do |rec|
              ((opts[:set].nil? || rec.in_set(opts[:set])) &&
-	      (opts[:from].nil? || rec.updated_at >= opts[:from]) &&
-	      (opts[:until].nil? || rec.updated_at <= opts[:until]))
+	      (opts[:from].nil? || rec.updated_at >= opts[:from].to_time) &&
+	      (opts[:until].nil? || rec.updated_at <= opts[:until].to_time))
            #else
            #  ((opts[:set].nil? || rec.in_set(opts[:set])) &&
            #   (opts[:from].nil? || rec.updated_at >= opts[:from]) &&

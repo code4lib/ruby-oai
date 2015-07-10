@@ -91,7 +91,7 @@ module OAI
     def parse_date(value)
       return value if value.respond_to?(:strftime)
       
-      if provider.granularity == OAI::Const::Granularity::HIGH
+      if value[-1] == "Z"
         Time.strptime(value, "%Y-%m-%dT%H:%M:%SZ").utc
       else
         Time.strptime(value, "%Y-%m-%d").utc

@@ -54,7 +54,7 @@ module OAI::Provider
           find_scope.where(conditions)
         end
       else
-        find_scope.where(conditions).find(selector)
+        find_scope.where(conditions).where(model.primary_key => selector).first
       end
     end
 

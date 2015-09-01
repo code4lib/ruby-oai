@@ -105,6 +105,8 @@ module OAI::Provider
         model.where(set: options[:set])
       else
         # Default to empty set, as we've tried everything else
+        # model.scoped deprecated and removed in activerecord 4+
+        return model.all if ActiveRecord::VERSION::MAJOR >= 4
         model.scoped(:limit => 0)
       end
     end

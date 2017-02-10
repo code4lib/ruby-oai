@@ -122,6 +122,8 @@ module OAI::Provider
     end
 
     def encode_conditions
+      return "" if last_str.blank?
+
       encoded_token = @prefix.to_s.dup
       encoded_token << ".s(#{set})" if set
       encoded_token << ".f(#{self.from.utc.xmlschema})" if self.from

@@ -12,4 +12,7 @@ end
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.establish_connection :adapter => "sqlite3",
                                         :database => ":memory:"
-ActiveRecord::Migrator.up File.join(File.dirname(__FILE__), '..', 'database')
+
+ActiveRecord::MigrationContext.new(File.join(File.dirname(__FILE__), '..', 'database')).migrate
+
+

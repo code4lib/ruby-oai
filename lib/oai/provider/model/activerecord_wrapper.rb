@@ -105,7 +105,7 @@ module OAI::Provider
         model.where(set: options[:set])
       else
         # Default to empty set, as we've tried everything else
-        model.scoped(:limit => 0)
+        model.none
       end
     end
 

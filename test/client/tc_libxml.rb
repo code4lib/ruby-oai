@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_client'
 
 class LibXMLTest < Test::Unit::TestCase
 
@@ -13,7 +13,7 @@ class LibXMLTest < Test::Unit::TestCase
   def test_list_records
     return unless have_libxml
 
-    # since there is regex magic going on to remove default oai namespaces 
+    # since there is regex magic going on to remove default oai namespaces
     # it's worth trying a few different oai targets
     oai_targets = %w{
       http://localhost:3333/oai
@@ -46,7 +46,7 @@ class LibXMLTest < Test::Unit::TestCase
     response = client.get_record :identifier => 'oai:test/275'
     assert response.record.deleted?
   end
-  
+
   private
 
   def have_libxml

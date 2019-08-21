@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_provider'
 
 class ResumptionTokenFunctionalTest < Test::Unit::TestCase
   include REXML

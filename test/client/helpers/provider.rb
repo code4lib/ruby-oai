@@ -1,20 +1,20 @@
 require 'webrick'
 require File.dirname(__FILE__) + '/../../provider/models'
 
-class ComplexProvider < OAI::Provider::Base
-  repository_name 'Complex Provider'
-  repository_url 'http://localhost'
-  record_prefix 'oai:test'
-  source_model ComplexModel.new(100)
-end
 
 class ProviderServer
+  class ComplexClientProvider < OAI::Provider::Base
+    repository_name 'Complex Provider'
+    repository_url 'http://localhost'
+    record_prefix 'oai:test'
+    source_model ComplexModel.new(100)
+  end
 
   attr_reader :consumed, :server
 
   def initialize(port, mount_point)
     @consumed = []
-    @provider = ComplexProvider.new
+    @provider = ComplexClientProvider.new
     @server = WEBrick::HTTPServer.new(
       :BindAddress => '127.0.0.1',
       :Logger => WEBrick::Log.new('/dev/null'),

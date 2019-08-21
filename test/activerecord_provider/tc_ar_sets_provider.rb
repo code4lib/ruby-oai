@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_ar_provider'
 
 class ActiveRecordSetProviderTest < TransactionalTestCase
 

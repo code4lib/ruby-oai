@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_client'
 require 'webrick'
 
 class HttpClientTest < Test::Unit::TestCase

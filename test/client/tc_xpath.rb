@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_client'
 
 class XpathTest < Test::Unit::TestCase
   include OAI::XPath
@@ -11,7 +11,7 @@ class XpathTest < Test::Unit::TestCase
   end
 
   def test_libxml
-    begin 
+    begin
       require 'xml/libxml'
     rescue LoadError
       # libxml not available so nothing to test!

@@ -1,8 +1,8 @@
-require 'test_helper'
+require 'test_helper_client'
 
 class ListMetadataFormatsTest < Test::Unit::TestCase
   def test_list
-    client = OAI::Client.new 'http://localhost:3333/oai' 
+    client = OAI::Client.new 'http://localhost:3333/oai'
     response = client.list_metadata_formats
     assert_kind_of OAI::ListMetadataFormatsResponse, response
     assert response.entries.size > 0
@@ -13,6 +13,6 @@ class ListMetadataFormatsTest < Test::Unit::TestCase
     assert_equal 'http://www.openarchives.org/OAI/2.0/oai_dc.xsd', format.schema
     assert_equal 'http://www.openarchives.org/OAI/2.0/oai_dc/', format.namespace
   end
-  
+
 end
 

@@ -3,6 +3,9 @@ rvm:
   - 2.2.10
   - 2.5.5
   - 2.6.3
+gemfile:
+  - gemfiles/rails_52.gemfile
+  - gemfiles/rails_60.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.2.8.0

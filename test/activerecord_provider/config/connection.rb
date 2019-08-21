@@ -13,6 +13,14 @@ ActiveRecord::Migration.verbose = false
 ActiveRecord::Base.establish_connection :adapter => "sqlite3",
                                         :database => ":memory:"
 
-ActiveRecord::MigrationContext.new(File.join(File.dirname(__FILE__), '..', 'database')).migrate
-
+if ActiveRecord.version < Gem::Version.new("6.0.0")
+  ActiveRecord::MigrationContext.new(
+    File.join(File.dirname(__FILE__), '..', 'database')
+  ).migrate
+else
+  ActiveRecord::MigrationContext.new(
+    File.join(File.dirname(__FILE__), '..', 'database'),
+    ActiveRecord::Base.connection.schema_migration
+  ).migrate
+end
 

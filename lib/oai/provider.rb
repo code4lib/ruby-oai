@@ -137,6 +137,10 @@ end
 # It takes one required paramater, the class name of the AR class to wrap,
 # and optional hash of options.
 #
+# As of `oai` gem 1.0.0, Rails 5.2.x and Rails 6.0.x are supported.
+# Please check the .travis.yml file at root of repo to see what versions of ruby/rails
+# are being tested, in case this is out of date.
+#
 # Valid options include:
 #
 # * `timestamp_field` - Specifies the model field to use as the update

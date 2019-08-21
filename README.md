@@ -94,6 +94,19 @@ Tests are with Test::Unit, in a somewhat archaic/legacy style. Test setup especi
 
 There are also convenience tasks to run subsets of tests.
 
+We use [appraisal](https://github.com/thoughtbot/appraisal) to test ActiveRecord-related functionality under multiple versions of ActiveRecord. While the above commands will test with latest ActiveRecord (allowed in our .gemspec development dependency), you can test under a particular version defined in the [Appraisals](./Appraisals) file like so:
+
+    $ bundle exec appraisal rails-52 rake test
+    $ bundle exec appraisal rails-60 rake test
+
+If you run into trouble with appraisal's gemfiles getting out of date and bundler complaining,
+try:
+
+   $ bundle exec appraisal clean
+   $ appraisal generate
+
+That may make changes to appraisal gemfiles that you should commit to repo.
+
 License
 -------
 

@@ -3,7 +3,7 @@ class ExclusiveSetDCField < ActiveRecord::Base
 
   def self.sets
     klass = Struct.new(:name, :spec)
-    self.distinct.pluck('`set`').compact.map do |spec|
+    self.distinct.pluck(:set).compact.map do |spec|
       klass.new("Set #{spec}", spec)
     end
   end

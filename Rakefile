@@ -20,20 +20,23 @@ namespace :test do
   Rake::TestTask.new('client') do |t|
     t.libs << ['lib', 'test/client']
     t.pattern = 'test/client/tc_*.rb'
-    t.verbose = true
+    #t.verbose = true
+    t.warning = false
   end
 
   Rake::TestTask.new('provider') do |t|
     t.libs << ['lib', 'test/provider']
     t.pattern = 'test/provider/tc_*.rb'
-    t.verbose = true
+    #t.verbose = true
+    t.warning = false
   end
 
   desc "Active Record base Provider Tests"
   Rake::TestTask.new('activerecord_provider') do |t|
     t.libs << ['lib', 'test/activerecord_provider']
     t.pattern = 'test/activerecord_provider/tc_*.rb'
-    t.verbose = true
+    #t.verbose = true
+    t.warning = false
   end
 
   desc 'Measures test coverage'

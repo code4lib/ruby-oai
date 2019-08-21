@@ -90,17 +90,16 @@ module OAI::Provider
     # select a subset of the result set, and return it with a
     # resumption token to get the next subset
     def select_partial(token)
-      if 0 == token.last
-        oaitoken = OaiToken.find_or_create_by(token: token.to_s)
-        if oaitoken.new_record_before_save?
-          OaiToken.connection.execute("insert into " +
-            "#{OaiEntry.table_name} (oai_token_id, record_id) " +
-            "select #{oaitoken.id}, id from #{model.table_name} where " +
-            "#{OaiToken.sanitize_sql(token_conditions(token))}")
-        end
+      oaitoken = OaiToken.find_by(token: token.to_s)
+
+      if 0 == token.last && oaitoken.nil?
+        oaitoken = OaiToken.create!(token: token.to_s)
+        OaiToken.connection.execute("insert into " +
+          "#{OaiEntry.table_name} (oai_token_id, record_id) " +
+          "select #{oaitoken.id}, id from #{model.table_name} where " +
+          "#{OaiToken.sanitize_sql(token_conditions(token))}")
       end
 
-      oaitoken = OaiToken.find_by_token(token.to_s)
       raise ResumptionTokenException.new unless oaitoken
 
       PartialResult.new(

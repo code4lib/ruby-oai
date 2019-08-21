@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
     s.add_dependency('faraday')
     s.add_dependency('faraday_middleware')
 
+    s.add_development_dependency "appraisal"
+
     s.files = %w(README.md Rakefile) +
       Dir.glob("{bin,test,lib}/**/*") +
       Dir.glob("examples/**/*.rb")

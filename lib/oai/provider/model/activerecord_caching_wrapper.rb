@@ -111,7 +111,7 @@ module OAI::Provider
     end
 
     def sweep_cache
-      OaiToken.destroy_all(["created_at < ?", Time.now - expire])
+      OaiToken.where(["created_at < ?", Time.now - expire]).destroy_all
     end
 
     def hydrate_records(records)

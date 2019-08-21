@@ -1,4 +1,4 @@
-class OaipmhTables < ActiveRecord::Migration
+class OaipmhTables < ActiveRecord::Migration[4.2]
   def self.up
     create_table :oai_tokens do |t|
       t.column :token,      :string,  :null => false

@@ -12,9 +12,6 @@ group :test do
   gem 'yard'
   gem 'redcarpet', :platform => :ruby # For fast, Github-like Markdown
   gem 'kramdown', :platform => :jruby # For Markdown without a C compiler
-  gem 'rcov', '~> 0.9', :platform => [:ruby_18, :jruby]
   gem 'test-unit'
-  gem 'simplecov', :platform => :ruby_19
-  gem 'simplecov-rcov', :platform => :ruby_19
   gem 'sqlite3', :platform => [:ruby, :mswin]
 end

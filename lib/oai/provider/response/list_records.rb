@@ -2,6 +2,18 @@ module OAI::Provider::Response
 
   class ListRecords < RecordResponse
     required_parameters :metadata_prefix
+    
+    def valid?
+      super && matching_granularity?
+    end
+    
+    def matching_granularity?
+      if options[:from].nil? == false && options[:until].nil? == false && options[:from].class.name != options[:until].class.name
+        raise OAI::ArgumentException.new, "The 'from' and 'until' options specified must have the same granularity"
+      else
+        true
+      end
+    end
 
     def to_xml
       result = provider.model.find(:all, options)

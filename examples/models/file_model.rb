@@ -45,8 +45,8 @@ class FileModel < OAI::Provider::Model
     case selector
     when :all
       records = Dir["#{@directory}/*.xml"].sort.collect do |file|
-        File.new(file) unless File.stat(file).mtime.utc < opts[:from] or
-          File.stat(file).mtime.utc > opts[:until]
+        File.new(file) unless File.stat(file).mtime.utc < opts[:from].to_time or
+          File.stat(file).mtime.utc > opts[:until].to_time
       end
       records
     else

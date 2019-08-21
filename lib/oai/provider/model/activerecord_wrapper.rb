@@ -54,7 +54,7 @@ module OAI::Provider
           find_scope.where(conditions)
         end
       else
-        find_scope.where(conditions).find(selector)
+        find_scope.where(conditions).where(model.primary_key => selector).first
       end
     end
 
@@ -176,17 +176,35 @@ module OAI::Provider
         sql << "#{timestamp_field} < :until"
         esc_values[:until] = parse_to_local(opts[:until]) { |t| t + 1 }
       end
+      
       return [sql.join(" AND "), esc_values]
     end
 
     private
 
     def parse_to_local(time)
-      time_obj = Time.parse(time.to_s)
+      if time.respond_to?(:strftime)
+        time_obj = time
+      else
+        begin
+          if time[-1] == "Z"
+            time_obj = Time.strptime(time, "%Y-%m-%dT%H:%M:%S%Z")
+          else
+            time_obj = Date.strptime(time, "%Y-%m-%d")
+          end
+        rescue
+          raise OAI::ArgumentException.new, "unparsable date: '#{time}'"
+        end
+      end
+        
       time_obj = yield(time_obj) if block_given?
-      # Convert to same as DB - :local => :getlocal, :utc => :getutc
-      tzconv = "get#{model.default_timezone.to_s}".to_sym
-      time_obj.send(tzconv).strftime("%Y-%m-%d %H:%M:%S")
+      if time_obj.kind_of?(Date)
+        time_obj.strftime("%Y-%m-%d")
+      else
+        # Convert to same as DB - :local => :getlocal, :utc => :getutc
+        tzconv = "get#{model.default_timezone.to_s}".to_sym
+        time_obj.send(tzconv).strftime("%Y-%m-%d %H:%M:%S")
+      end
     end
 
   end

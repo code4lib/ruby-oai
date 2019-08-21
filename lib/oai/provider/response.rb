@@ -90,10 +90,13 @@ module OAI
 
     def parse_date(value)
       return value if value.respond_to?(:strftime)
-
-      Date.parse(value) # This will raise an exception for badly formatted dates
-      Time.parse(value).utc #  -- UTC Bug fix hack 8/08 not in core
-    rescue
+      
+      if value[-1] == "Z"
+        Time.strptime(value, "%Y-%m-%dT%H:%M:%S%Z").utc
+      else
+        Date.strptime(value, "%Y-%m-%d")
+      end
+    rescue ArgumentError => e
       raise OAI::ArgumentException.new, "unparsable date: '#{value}'"
     end
 

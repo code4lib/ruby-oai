@@ -62,7 +62,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
     DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
 
 
-    from_param = Time.parse("January 1 2006")
+    from_param = Time.parse("January 1 2006").getutc.iso8601
 
     doc = REXML::Document.new(
       @provider.list_records(
@@ -73,7 +73,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
 
     doc = REXML::Document.new(
       @provider.list_records(
-        :metadata_prefix => 'oai_dc', :from => Time.parse("May 30 2005"))
+        :metadata_prefix => 'oai_dc', :from => Time.parse("May 30 2005").getutc.iso8601)
     )
     assert_equal 20, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
@@ -98,10 +98,37 @@ class ActiveRecordProviderTest < TransactionalTestCase
     doc = REXML::Document.new(
       @provider.list_records(
         :metadata_prefix => 'oai_dc',
-        :from => Time.parse("June 3 2005"),
-        :until => Time.parse("June 16 2005"))
+        :from => Time.parse("June 3 2005").getutc.iso8601,
+        :until => Time.parse("June 16 2005").getutc.iso8601)
       )
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+  
+  def test_bad_until_raises_exception
+    DCField.order('id asc').limit(10).update_all(updated_at: 1.year.ago)
+    DCField.order('id desc').limit(10).update_all(updated_at: 1.year.from_now)
+    badTimes = [
+      'junk',
+      'February 92nd, 2015']
+    badTimes.each do |time|
+      assert_raise(OAI::ArgumentException) do
+        @provider.list_records(:metadata_prefix => 'oai_dc', :until => time)
+      end
+    end
+  end
+  
+  def test_bad_from_raises_exception
+    DCField.order('id asc').limit(10).update_all(updated_at: 1.year.ago)
+    DCField.order('id desc').limit(10).update_all(updated_at: 1.year.from_now)
+    
+    badTimes = [
+      'junk',
+      'February 92nd, 2015']
+    badTimes.each do |time|
+      assert_raise(OAI::ArgumentException) do
+        @provider.list_records(:metadata_prefix => 'oai_dc', :from => time)
+      end
+    end
   end
 
   def test_handles_empty_collections
@@ -118,6 +145,21 @@ class ActiveRecordProviderTest < TransactionalTestCase
       REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
     end
   end
+  
+  def test_bad_id_raises_exception
+    badIdentifiers = [
+      'invalid"id',
+      'oai:test/5000',
+      'oai:test/-1',
+      'oai:test/one',
+      'oai:test/\\$1\1!']
+    badIdentifiers.each do |id|
+      assert_raise(OAI::IdException) do
+        @provider.get_record(:identifier => id, :metadata_prefix => 'oai_dc')
+      end
+    end
+  end
+  
 
   def setup
     @provider = ARProvider.new

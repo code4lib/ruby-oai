@@ -2,16 +2,16 @@ ruby-oai
 ========
 
 ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH)
-library for Ruby. [OAI-PMH](http://openarchives.org) is a somewhat 
-archaic protocol for sharing metadata between digital library repositories. 
+library for Ruby. [OAI-PMH](http://openarchives.org) is a somewhat
+archaic protocol for sharing metadata between digital library repositories.
 If you are looking to share metadata on the web you are probably better off
-using a feed format like [RSS](http://www.rssboard.org/rss-specification) or 
-[Atom](http://www.atomenabled.org/). If have to work with a backwards 
-digital repository that only offers OAI-PMH access then ruby-oai is your 
+using a feed format like [RSS](http://www.rssboard.org/rss-specification) or
+[Atom](http://www.atomenabled.org/). If have to work with a backwards
+digital repository that only offers OAI-PMH access then ruby-oai is your
 friend.
 
-The [OAI-PMH](http://openarchives.org) spec defines six verbs 
-(`Identify`, `ListIdentifiers`, `ListRecords`, 
+The [OAI-PMH](http://openarchives.org) spec defines six verbs
+(`Identify`, `ListIdentifiers`, `ListRecords`,
 `GetRecords`, `ListSets`, `ListMetadataFormat`) used for discovery and sharing of
 metadata.
 
@@ -21,7 +21,7 @@ a interactive harvesting shell.
 Client
 ------
 
-The OAI client library is used for harvesting metadata from repositories. 
+The OAI client library is used for harvesting metadata from repositories.
 For example to initiate a ListRecords request to pubmed you can:
 
 ```ruby
@@ -29,7 +29,7 @@ For example to initiate a ListRecords request to pubmed you can:
   client = OAI::Client.new 'http://www.pubmedcentral.gov/oai/oai.cgi', :headers => { "From" => "oai@example.com" }
   response = client.list_records
   # Get the first page of records
-  response.each do |record| 
+  response.each do |record|
     puts record.metadata
   end
   # Get the second page of records
@@ -80,6 +80,15 @@ Normally the best way to install oai is as part of your `Gemfile`:
 Alternately it can be installed globally using RubyGems:
 
     $ gem install oai
+
+Running tests
+-------------
+
+Tests are with Test::Unit, in a somewhat archaic/legacy style. Test setup especially is not how we would do things today. Run all tests with:
+
+    $ bundle exec rake test
+
+There are also convenience tasks to run subsets of tests.
 
 License
 -------

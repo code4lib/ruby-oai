@@ -14,8 +14,18 @@ require 'yard'
 
 task :default => ["test", "yard"]
 
-task :test => ["test:client", "test:provider", "test:activerecord_provider"]
+Rake::TestTask.new('test') do |t|
+  t.description = "Run all Test::Unit tests"
 
+  t.libs << ['lib', 'test/client', 'test/provider', 'test/activerecord_provider']
+
+  t.pattern = 'test/{client,provider,activerecord_provider}/tc_*.rb'
+  #t.verbose = true
+  t.warning = false
+end
+
+
+# To run just subsets of tests
 namespace :test do
   Rake::TestTask.new('client') do |t|
     t.libs << ['lib', 'test/client']
@@ -31,8 +41,9 @@ namespace :test do
     t.warning = false
   end
 
-  desc "Active Record base Provider Tests"
   Rake::TestTask.new('activerecord_provider') do |t|
+    t.description = "Active Record base Provider Tests"
+
     t.libs << ['lib', 'test/activerecord_provider']
     t.pattern = 'test/activerecord_provider/tc_*.rb'
     #t.verbose = true

@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_client'
 
 class ExceptionTest < Test::Unit::TestCase
 
@@ -9,7 +9,7 @@ class ExceptionTest < Test::Unit::TestCase
 
   def test_xml_error
     client = OAI::Client.new 'http://www.yahoo.com'
-    begin 
+    begin
       client.identify
     rescue OAI::Exception => e
       assert_match /response not well formed XML/, e.to_s, 'xml error'
@@ -23,7 +23,7 @@ class ExceptionTest < Test::Unit::TestCase
     end
   end
 
-  # must pass in options as a hash 
+  # must pass in options as a hash
   def test_parameter_error
     client = OAI::Client.new 'http://localhost:3333/oai'
     assert_raises(OAI::ArgumentException) {client.get_record('foo')}
@@ -32,5 +32,5 @@ class ExceptionTest < Test::Unit::TestCase
     assert_raises(OAI::ArgumentException) {client.list_metadata_formats('foo')}
     assert_raises(OAI::ArgumentException) {client.list_sets('foo')}
   end
-  
+
 end

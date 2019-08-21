@@ -1,4 +1,4 @@
-require 'test_helper'
+require 'test_helper_client'
 
 class ListSetsTest < Test::Unit::TestCase
 

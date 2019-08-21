@@ -12,7 +12,7 @@ module OAI::Provider
     attr_reader :prefix, :set, :from, :until, :last, :expiration, :total
 
     # parses a token string and returns a ResumptionToken
-    def self.parse(token_string)
+    def self.parse(token_string, expiration = nil, total = nil)
       begin
         options = {}
         matches = /(.+):(\d+)$/.match(token_string)
@@ -30,7 +30,7 @@ module OAI::Provider
             options[:until] = Time.parse(part.sub(/^u\(/, '').sub(/\)$/, '')).localtime
           end
         end
-        self.new(options)
+        self.new(options, expiration, total)
       rescue => err
         raise OAI::ResumptionTokenException.new
       end
@@ -87,11 +87,15 @@ module OAI::Provider
     private
     
     def encode_conditions
-      encoded_token = @prefix.to_s.dup
-      encoded_token << ".s(#{set})" if set
-      encoded_token << ".f(#{self.from.utc.xmlschema})" if self.from
-      encoded_token << ".u(#{self.until.utc.xmlschema})" if self.until
-      encoded_token << ":#{last}"
+      if last.blank?
+        encoded_token = ""
+      else
+        encoded_token = @prefix.to_s.dup
+        encoded_token << ".s(#{set})" if set
+        encoded_token << ".f(#{self.from.utc.xmlschema})" if self.from
+        encoded_token << ".u(#{self.until.utc.xmlschema})" if self.until
+        encoded_token << ":#{last}"
+      end
     end
 
     def hash_of_attributes

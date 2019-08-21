@@ -92,11 +92,11 @@ module OAI
       @http_client = options.fetch(:http) do
         Faraday.new(:url => @base.clone) do |builder|
           follow_redirects = options.fetch(:redirects, true)
-          if follow_redirects
-            count = follow_redirects.is_a?(Fixnum) ? follow_redirects : 5
+          follow_redirects = 5 if follow_redirects == true
 
+          if follow_redirects
             require 'faraday_middleware'
-            builder.response :follow_redirects, :limit => count
+            builder.response :follow_redirects, :limit => follow_redirects.to_i
           end
           builder.adapter :net_http
         end

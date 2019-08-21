@@ -5,7 +5,7 @@ gemspec
 gem 'jruby-openssl', :platform => :jruby
 
 group :test do
-  gem 'activerecord', '~> 5.1.0'
+  gem 'activerecord', '~> 5.2.0'
   gem 'activerecord-jdbcsqlite3-adapter', :platform => [:jruby]
   gem 'libxml-ruby', :platform => [:ruby, :mswin]
   gem 'rake'

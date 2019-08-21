@@ -201,6 +201,11 @@ end
 #    end
 #  end
 # ```
+# ### Sets?
+#
+# There is some code written to support oai-pmh "sets" in the ActiveRecord::Wrapper, but
+# it's somewhat inflexible, and not well-documented, and as I write this I don't understand
+# it enough to say more. See https://github.com/code4lib/ruby-oai/issues/67
 #
 module OAI::Provider
   class Base

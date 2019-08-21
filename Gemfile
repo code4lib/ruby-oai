@@ -13,5 +13,7 @@ group :test do
   gem 'redcarpet', :platform => :ruby # For fast, Github-like Markdown
   gem 'kramdown', :platform => :jruby # For Markdown without a C compiler
   gem 'test-unit'
-  gem 'sqlite3', :platform => [:ruby, :mswin]
+  # This version of sqlite3 required for activerecord 4.2, not more recent.
+  # When bumping AR, may have to/want to adjust this to more recent versions.
+  gem 'sqlite3', "~> 1.3.0", :platform => [:ruby, :mswin]
 end

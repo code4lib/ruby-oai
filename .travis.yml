@@ -1,12 +1,18 @@
 language: ruby
-rvm:
-  - 2.2.10
-  - 2.5.5
-  - 2.6.3
-gemfile:
-  - gemfiles/rails_52.gemfile
-  - gemfiles/rails_60.gemfile
 matrix:
   allow_failures:
     - rvm: jruby-9.2.8.0
+      gemfile: gemfiles/rails_60.gemfile
+  include:
+    - rvm: 2.2.10
+      gemfile: gemfiles/rails_52.gemfile
+    - rvm: 2.5.5
+      gemfile: gemfiles/rails_52.gemfile
+    - rvm: 2.5.5
+      gemfile: gemfiles/rails_60.gemfile
+    - rvm: 2.6.3
+      gemfile: gemfiles/rails_60.gemfile
+    - rvm: jruby-9.2.8.0
+      gemfile: gemfiles/rails_60.gemfile
+
 script: bundle exec rake test

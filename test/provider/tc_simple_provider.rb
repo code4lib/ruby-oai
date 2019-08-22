@@ -35,7 +35,7 @@ class TestSimpleProvider < Test::Unit::TestCase
   end
 
   def test_metadata_formats_for_document
-    assert_nothing_raised { REXML::Document.new(@simple_provider.list_metadata_formats(:identifier => "oai:test/1")) }
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_metadata_formats(:identifier => "oai:test:1")) }
     doc =  REXML::Document.new(@simple_provider.list_metadata_formats)
     assert_equal "oai_dc",
       doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text
@@ -85,18 +85,18 @@ class TestSimpleProvider < Test::Unit::TestCase
     assert_nothing_raised do
       REXML::Document.new(
         @simple_provider.get_record(
-          :identifier => 'oai:test/1',
+          :identifier => 'oai:test:1',
           :metadataPrefix => 'oai_dc'
         )
       )
     end
     doc = REXML::Document.new(
       @simple_provider.get_record(
-        :identifier => 'oai:test/1',
+        :identifier => 'oai:test:1',
         :metadataPrefix => 'oai_dc'
       )
     )
-    assert_equal 'oai:test/1',
+    assert_equal 'oai:test:1',
       doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
   end
 
@@ -104,18 +104,18 @@ class TestSimpleProvider < Test::Unit::TestCase
     assert_nothing_raised do
       REXML::Document.new(
         @simple_provider.get_record(
-          :identifier => 'oai:test/6',
+          :identifier => 'oai:test:6',
           :metadataPrefix => 'oai_dc'
         )
       )
     end
     doc = REXML::Document.new(
       @simple_provider.get_record(
-        :identifier => 'oai:test/5',
+        :identifier => 'oai:test:5',
         :metadataPrefix => 'oai_dc'
       )
     )
-    assert_equal 'oai:test/5', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
+    assert_equal 'oai:test:5', doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
     assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
   end
 

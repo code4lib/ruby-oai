@@ -14,7 +14,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
 
   def test_metadata_formats_for_record
     record_id = DCField.first.id
-    assert_nothing_raised { REXML::Document.new(@provider.list_metadata_formats(:identifier => "oai:test/#{record_id}")) }
+    assert_nothing_raised { REXML::Document.new(@provider.list_metadata_formats(:identifier => "oai:test:#{record_id}")) }
     doc =  REXML::Document.new(@provider.list_metadata_formats)
     assert doc.elements['/OAI-PMH/ListMetadataFormats/metadataFormat/metadataPrefix'].text == 'oai_dc'
   end
@@ -38,11 +38,11 @@ class ActiveRecordProviderTest < TransactionalTestCase
     record_id = DCField.first.id
     assert_nothing_raised do
       REXML::Document.new(@provider.get_record(
-        :identifier => "oai:test/#{record_id}", :metadata_prefix => 'oai_dc'))
+        :identifier => "oai:test:#{record_id}", :metadata_prefix => 'oai_dc'))
     end
     doc = REXML::Document.new(@provider.get_record(
       :identifier => "#{record_id}", :metadata_prefix => 'oai_dc'))
-    assert_equal "oai:test/#{record_id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
+    assert_equal "oai:test:#{record_id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
   end
 
   def test_deleted
@@ -50,8 +50,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
     record.deleted = true;
     record.save
     doc = REXML::Document.new(@provider.get_record(
-      :identifier => "oai:test/#{record.id}", :metadata_prefix => 'oai_dc'))
-    assert_equal "oai:test/#{record.id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
+      :identifier => "oai:test:#{record.id}", :metadata_prefix => 'oai_dc'))
+    assert_equal "oai:test:#{record.id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
     assert_equal 'deleted', doc.elements['OAI-PMH/GetRecord/record/header'].attributes["status"]
   end
 

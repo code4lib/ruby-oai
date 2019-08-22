@@ -36,7 +36,7 @@ class ProviderExceptions < Test::Unit::TestCase
 
   def test_bad_format_raises_exception
     assert_raise(OAI::FormatException) do
-      @provider.get_record(:identifier => 'oai:test/1', :metadata_prefix => 'html')
+      @provider.get_record(:identifier => 'oai:test:1', :metadata_prefix => 'html')
     end
   end
 
@@ -45,16 +45,18 @@ class ProviderExceptions < Test::Unit::TestCase
       @provider.list_records()
     end
     assert_raise(OAI::ArgumentException) do
-      @provider.get_record(:identifier => 'oai:test/1')
+      @provider.get_record(:identifier => 'oai:test:1')
     end
   end
 
   def test_bad_id_raises_exception
     badIdentifiers = [
-      'oai:test/5000',
-      'oai:test/-1',
+      'oai:test:5000',
+      'oai:test:-1',
+      'oai:test:one',
       'oai:test/one',
-      'oai:test/\\$1\1!']
+      'oai:test/1',
+      'oai:test:\\$1\1!']
     badIdentifiers.each do |id|
       assert_raise(OAI::IdException) do
         @provider.get_record(:identifier => id, :metadata_prefix => 'oai_dc')

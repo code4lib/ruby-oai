@@ -43,7 +43,7 @@ class LibXMLTest < Test::Unit::TestCase
 
     uri = 'http://localhost:3333/oai'
     client = OAI::Client.new(uri, :parser => 'libxml')
-    response = client.get_record :identifier => 'oai:test/275'
+    response = client.get_record :identifier => 'oai:test:275'
     assert response.record.deleted?
   end
 

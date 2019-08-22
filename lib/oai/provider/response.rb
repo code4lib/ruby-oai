@@ -51,7 +51,7 @@ module OAI
       }
     end
     def extract_identifier(id)
-      id.sub("#{provider.prefix}/", '')
+      id.sub("#{provider.prefix}:", '')
     end
 
     def valid?

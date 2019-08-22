@@ -48,8 +48,9 @@ module OAI::Provider::Response
 
     private
 
+    # Namespace syntax suggested in http://www.openarchives.org/OAI/2.0/guidelines-oai-identifier.htm
     def identifier_for(record)
-      "#{provider.prefix}/#{record.id}"
+      "#{provider.prefix}:#{record.id}"
     end
 
     def timestamp_for(record)

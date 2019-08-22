@@ -12,6 +12,15 @@ class ARProvider < OAI::Provider::Base
   source_model ActiveRecordWrapper.new(DCField)
 end
 
+class ARProviderWithScope < OAI::Provider::Base
+  DATE_LESS_THAN_RESTRICTION = Time.parse("2007-03-12 19:30:22 UTC")
+
+  repository_name 'ActiveRecord Based Provider'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ActiveRecordWrapper.new(DCField.where("date < ?", DATE_LESS_THAN_RESTRICTION).includes(:sets))
+end
+
 class SimpleResumptionProvider < OAI::Provider::Base
   repository_name 'ActiveRecord Resumption Provider'
   repository_url 'http://localhost'

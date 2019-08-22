@@ -213,6 +213,21 @@ end
 #    end
 #  end
 # ```
+# ### Scopes for restrictions or eager-loading
+#
+# Instead of passing in a Model class to OAI::Provider::ActiveRecordWrapper, you can actually
+# pass in any scope (or ActiveRecord::Relation). This means you can use it for restrictions:
+#
+#     OAI::Provider::ActiveRecordWrapper.new(Post.where(published: true))
+#
+# Or eager-loading an association you will need to create serialization, to avoid n+1 query
+# performance problems:
+#
+#     OAI::Provider::ActiveRecordWrapper.new(Post.includes(:categories))
+#
+# Or both of those in combination, or anything else that returns an ActiveRecord::Relation,
+# including using custom scopes, etc.
+#
 # ### Sets?
 #
 # There is some code written to support oai-pmh "sets" in the ActiveRecord::Wrapper, but

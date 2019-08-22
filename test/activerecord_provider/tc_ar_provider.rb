@@ -28,6 +28,18 @@ class ActiveRecordProviderTest < TransactionalTestCase
     assert_equal 100, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
+  def test_list_records_scope
+    @provider = ARProviderWithScope.new
+
+    doc = nil
+    assert_nothing_raised do
+      doc = REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
+    end
+
+    expected_count = DCField.where("date < ?", ARProviderWithScope::DATE_LESS_THAN_RESTRICTION).count
+    assert_equal expected_count, doc.elements['OAI-PMH/ListRecords'].to_a.size
+  end
+
   def test_list_identifiers
     assert_nothing_raised { REXML::Document.new(@provider.list_identifiers) }
     doc = REXML::Document.new(@provider.list_identifiers)

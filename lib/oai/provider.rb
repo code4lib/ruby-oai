@@ -58,7 +58,7 @@ end
 #    repository_url 'http://localhost/provider'
 #    record_prefix 'oai:localhost'
 #    admin_email 'root@localhost'
-#    sample_identifier 'oai:pubmedcentral.gov:13900'
+#    sample_id 'oai:pubmedcentral.gov:13900'
 #    source_model MyModel.new
 #  end
 # ```
@@ -107,7 +107,7 @@ end
 #     record_prefix 'oai:blog'
 #     admin_email 'root@localhost'
 #     source_model OAI::Provider::ActiveRecordWrapper.new(Post)
-#     sample_identifier 'oai:pubmedcentral.gov:13900'
+#     sample_id 'oai:pubmedcentral.gov:13900'
 #   end
 # ```
 #

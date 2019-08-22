@@ -125,6 +125,12 @@ end
 #   end
 # ```
 #
+# And route to it in your `config/routes.rb` file:
+#
+# ```ruby
+#    match 'oai', to: "oai#index", via: [:get, :post]
+# ```
+#
 # Special thanks to Jose Hales-Garcia for this solution.
 #
 # ## Supporting custom metadata formats

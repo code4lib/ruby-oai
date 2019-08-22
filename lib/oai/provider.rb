@@ -146,8 +146,8 @@ end
 # * `timestamp_field` - Specifies the model field to use as the update
 #   filter.  Defaults to `updated_at`.
 # * `limit` -           Maximum number of records to return in each page/set.
-#   Defaults to 100.
-#   The wrapper will paginate the result via resumption tokens.
+#   Defaults to 100, set to `nil` for all records in one page. Otherwise
+#   the wrapper will paginate the result via resumption tokens.
 #   _Caution:  specifying too large a limit will adversely affect performance._
 #
 # Mapping from a ActiveRecord object to a specific metadata format follows

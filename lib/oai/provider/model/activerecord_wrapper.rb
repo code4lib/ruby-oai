@@ -15,7 +15,7 @@ module OAI::Provider
     def initialize(model, options={})
       @model = model
       @timestamp_field = options.delete(:timestamp_field) || 'updated_at'
-      @limit = options.delete(:limit)
+      @limit = options.delete(:limit) || 100
 
       unless options.empty?
         raise ArgumentError.new(

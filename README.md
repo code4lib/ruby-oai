@@ -64,7 +64,7 @@ The OAI provider library handles serving local content to other clients. Here's 
   end
 ```
 
-See {OAI::Provider} for more details
+See comment docs at top of [OAI::Provider](./lib/oai/provider.rb) for more details, including discussion of the `OAI::Provider::ActiveRecordWrapper` class for quich setup of an OAI provider for an ActiveRecord model class (single database table)
 
 Interactive Harvester
 ---------------------

@@ -10,11 +10,18 @@ module OAI::Provider
   #
   class ActiveRecordWrapper < Model
 
-    attr_reader :model, :timestamp_field
+    attr_reader :model, :timestamp_field, :identifier_field
 
+    # If custom 'timestamp_field' is used, be aware this will be an ActiveRecord
+    # attribute that we will limit on, so perhaps should be indexe appropriately.
+    #
+    # If custom `identifier_field` is used, be aware this will be an ActiveRecord
+    # attribute that we will sort on, and use in WHERE clauses with `=` as well as
+    # greater than/less than, so should be indexed appropriately.
     def initialize(model, options={})
       @model = model
       @timestamp_field = options.delete(:timestamp_field) || 'updated_at'
+      @identifier_field = options.delete(:identifier_field) || model.primary_key || "id"
       @limit = options.delete(:limit) || 100
 
       unless options.empty?
@@ -54,7 +61,7 @@ module OAI::Provider
           find_scope.where(conditions)
         end
       else
-        find_scope.where(conditions).find(selector)
+        find_scope.where(conditions).find_by!(identifier_field => selector)
       end
     end
 
@@ -129,7 +136,7 @@ module OAI::Provider
       else # end of result set
         find_scope.where(token_conditions(token))
           .limit(@limit)
-          .order("#{model.primary_key} asc")
+          .order("#{identifier_field} asc")
       end
     end
 
@@ -138,9 +145,9 @@ module OAI::Provider
     def select_partial(find_scope, token)
       records = find_scope.where(token_conditions(token))
         .limit(@limit)
-        .order("#{model.primary_key} asc")
+        .order("#{identifier_field} asc")
       raise OAI::ResumptionTokenException.new unless records
-      offset = records.last.send(model.primary_key.to_sym)
+      offset = records.last.send(identifier_field)
 
       PartialResult.new(records, token.next(offset))
     end
@@ -157,7 +164,7 @@ module OAI::Provider
 
       return sql if 0 == last
       # Now add last id constraint
-      sql.first << " AND #{model.primary_key} > :id"
+      sql.first << " AND #{identifier_field} > :id"
       sql.last[:id] = last
 
       return sql

@@ -50,7 +50,7 @@ module OAI::Provider::Response
 
     # Namespace syntax suggested in http://www.openarchives.org/OAI/2.0/guidelines-oai-identifier.htm
     def identifier_for(record)
-      "#{provider.prefix}:#{record.id}"
+      "#{provider.prefix}:#{record.send( provider.model.identifier_field )}"
     end
 
     def timestamp_for(record)

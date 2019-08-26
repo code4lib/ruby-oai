@@ -155,8 +155,10 @@ end
 #
 # Valid options include:
 #
-# * `timestamp_field` - Specifies the model field to use as the update
+# * `timestamp_field` - Specifies the model field/method to use as the update
 #   filter.  Defaults to `updated_at`.
+# * `identifier_field` -- specifies the model field/method to use to get value to use
+#    as oai identifier (method return value should not include prefix)
 # * `limit` -           Maximum number of records to return in each page/set.
 #   Defaults to 100, set to `nil` for all records in one page. Otherwise
 #   the wrapper will paginate the result via resumption tokens.

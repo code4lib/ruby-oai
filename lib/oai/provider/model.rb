@@ -1,12 +1,12 @@
 module OAI::Provider
   # = OAI::Provider::Model
   #
-  # Model implementers should subclass OAI::Provider::Model and override 
+  # Model implementers should subclass OAI::Provider::Model and override
   # Model#earliest, Model#latest, and Model#find.  Optionally Model#sets and
-  # Model#deleted? can be used to support sets and record deletions.  It 
-  # is also the responsibility of the model implementer to account for 
-  # resumption tokens if support is required.  Models that don't support 
-  # resumption tokens should raise an exception if a limit is requested     
+  # Model#deleted? can be used to support sets and record deletions.  It
+  # is also the responsibility of the model implementer to account for
+  # resumption tokens if support is required.  Models that don't support
+  # resumption tokens should raise an exception if a limit is requested
   # during initialization.
   #
   # earliest - should return the earliest update time in the repository.
@@ -14,8 +14,8 @@ module OAI::Provider
   # sets - should return an array of sets supported by the repository.
   # deleted? - individual records returned should respond true or false
   # when sent the deleted? message.
-  # available_formats - if overridden, individual records should return an 
-  # array of prefixes for all formats in which that record is available, 
+  # available_formats - if overridden, individual records should return an
+  # array of prefixes for all formats in which that record is available,
   # if other than ["oai_dc"]
   # about - if overridden, should return a String or Array of XML Strings to
   # insert into the OAI Record <about> chunks.
@@ -28,10 +28,9 @@ module OAI::Provider
   # There are several helper models for dealing with resumption tokens please
   # see the ResumptionToken class for more details.
   #
-
   class Model
     attr_reader :timestamp_field
-    
+
     def initialize(limit = nil, timestamp_field = 'updated_at')
       @limit = limit
       @timestamp_field = timestamp_field
@@ -41,16 +40,16 @@ module OAI::Provider
     def earliest
       raise NotImplementedError.new
     end
-    
+
     # should return the latest timestamp available from this model.
     def latest
       raise NotImplementedError.new
     end
-    
+
     def sets
       nil
     end
-  
+
     # find is the core method of a model, it returns records from the model
     # bases on the parameters passed in.
     #
@@ -61,12 +60,12 @@ module OAI::Provider
     # * :from => earliest timestamp to be included in the results
     # * :until => latest timestamp to be included in the results
     # * :set => the set from which to retrieve the results
-    # * :metadata_prefix => type of metadata requested (this may be useful if 
+    # * :metadata_prefix => type of metadata requested (this may be useful if
     #                       not all records are available in all formats)
     def find(selector, options={})
       raise NotImplementedError.new
     end
-    
+
     def deleted?
       false
     end
@@ -76,5 +75,5 @@ module OAI::Provider
       nil
     end
   end
-  
+
 end

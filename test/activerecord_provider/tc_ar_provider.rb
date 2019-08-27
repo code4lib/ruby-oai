@@ -40,6 +40,18 @@ class ActiveRecordProviderTest < TransactionalTestCase
     assert_equal expected_count, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
+
+  def test_get_record_alternate_identifier_column
+    @provider = ARProviderCustomIdentifierField.new
+
+    record_id = DCField.first.send(@provider.class.model.identifier_field)
+
+    doc = REXML::Document.new(@provider.get_record(
+        :identifier => "oai:test:#{record_id}", :metadata_prefix => 'oai_dc'))
+
+    assert_equal "oai:test:#{record_id}", doc.elements['OAI-PMH/GetRecord/record/header/identifier'].text
+  end
+
   def test_list_identifiers
     assert_nothing_raised { REXML::Document.new(@provider.list_identifiers) }
     doc = REXML::Document.new(@provider.list_identifiers)

@@ -22,12 +22,16 @@ module OAI
     # get text for first matching node
     def xpath(doc, path)
       el = xpath_first(doc, path)
-      return unless el
-      case parser_type(doc)
+      get_text el
+    end
+
+    def get_text(node)
+      return unless node
+      case parser_type(node)
       when 'libxml'
-        return el.content
+        return node.content
       when 'rexml'
-        return el.text 
+        return node.text 
       end
       return nil
     end

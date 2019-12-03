@@ -24,8 +24,7 @@ module OAI
           @logger.info { "Starting regular harvest" }
           orig_start(sites)
           begin
-            OAI::Harvester::
-              Mailer.send(@config.mail_server, @config.email, @summary)
+            OAI::Harvester::Mailer.send(@config.mail_server, @config.email, @summary)
           rescue
             @logger.error { "Error sending out summary email: #{$!}"}
           end

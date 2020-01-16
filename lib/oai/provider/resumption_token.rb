@@ -69,8 +69,7 @@ module OAI::Provider
     def initialize(options, expiration = nil, total = nil)
       @prefix = options[:metadata_prefix]
       @set = options[:set]
-      @last = options[:last].to_i
-      @last_str = options[:last].to_s
+      self.last = options[:last]
       @from = options[:from] if options[:from]
       @until = options[:until] if options[:until]
       @expiration = expiration if expiration
@@ -79,8 +78,7 @@ module OAI::Provider
 
     # convenience method for setting the offset of the next set of results
     def next(last)
-      @last_str = last.to_s
-      @last = last.to_i
+      self.last = last
       self
     end
 
@@ -116,6 +114,13 @@ module OAI::Provider
     end
 
     private
+
+    # take care of our logic to store an integer and a str version, for backwards
+    # compat where it was assumed to be an integer, as well as supporting string.
+    def last=(value)
+      @last = value.to_i
+      @last_str = value.to_s
+    end
 
     def encode_conditions
       encoded_token = @prefix.to_s.dup

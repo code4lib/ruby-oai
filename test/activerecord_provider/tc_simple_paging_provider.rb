@@ -8,17 +8,36 @@ class SimpleResumptionProviderTest < TransactionalTestCase
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
     assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
     assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+
     doc = Document.new(@provider.list_records(:resumption_token => token))
     assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+  end
+
+  def test_non_integer_identifiers_resumption
+    @provider = SimpleResumptionProviderWithNonIntegerID.new
+
+    doc = Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
+    assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+
+    next_doc = Document.new(@provider.list_records(:resumption_token => token))
+    assert_not_nil next_doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    next_token = next_doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+    assert_equal 26, next_doc.elements["/OAI-PMH/ListRecords"].to_a.size
+
+    assert_not_equal token, next_token
   end
 
   def test_from_and_until

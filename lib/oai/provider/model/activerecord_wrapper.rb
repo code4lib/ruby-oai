@@ -159,13 +159,13 @@ module OAI::Provider
     # the last 'id' of the previous set is used as the
     # filter to the next set.
     def token_conditions(token)
-      last = token.last
+      last_id = token.last_str
       sql = sql_conditions token.to_conditions_hash
 
-      return sql if 0 == last
+      return sql if "0" == last_id
       # Now add last id constraint
       sql.first << " AND #{identifier_field} > :id"
-      sql.last[:id] = last
+      sql.last[:id] = last_id
 
       return sql
     end

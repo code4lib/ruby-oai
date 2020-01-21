@@ -43,4 +43,10 @@ class ResumptionTokenTest < Test::Unit::TestCase
     assert_equal "#{@token.to_s}:#{@token.last}", doc.elements['/resumptionToken'].text
   end
 
+  def test_resumption_token_id_does_not_need_to_be_numeric
+    serialized = "oai_dc.s(A).f(2005-01-01T17:00:00Z).u(2005-01-31T17:00:00Z):FA129C"
+
+    token = ResumptionToken.parse(serialized)
+    assert_equal serialized, token.send(:encode_conditions)
+  end
 end

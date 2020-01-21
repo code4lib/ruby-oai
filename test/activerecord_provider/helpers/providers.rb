@@ -35,6 +35,13 @@ class SimpleResumptionProvider < OAI::Provider::Base
   source_model ActiveRecordWrapper.new(DCField, :limit => 25)
 end
 
+class SimpleResumptionProviderWithNonIntegerID < OAI::Provider::Base
+  repository_name 'ActiveRecord Resumption Provider With Non-Integer ID'
+  repository_url 'http://localhost'
+  record_prefix 'oai:test'
+  source_model ActiveRecordWrapper.new(DCField, :limit => 25, identifier_field: "source")
+end
+
 class CachingResumptionProvider < OAI::Provider::Base
   repository_name 'ActiveRecord Caching Resumption Provider'
   repository_url 'http://localhost'

@@ -240,9 +240,10 @@ module OAI::Provider
   class Base
     include OAI::Provider
 
+    OAI_PMH_ATTRIBUTES = [:name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description]
     class << self
       attr_reader :formats
-      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
+      attr_accessor(*OAI_PMH_ATTRIBUTES)
 
       def register_format(format)
         @formats ||= {}
@@ -292,39 +293,72 @@ module OAI::Provider
 
     Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
 
+    PROVIDER_CONTEXTS = {
+      :class_based => :class_based,
+      :instance_based => :instance_based
+    }
+
+    def initialize(provider_context = :class_based)
+      @provider_context = PROVIDER_CONTEXTS.fetch(provider_context)
+      OAI_PMH_ATTRIBUTES.each do |attr|
+        instance_variable_set("@#{attr}", self.class.public_send(attr))
+      end
+    end
+    attr_accessor(*OAI_PMH_ATTRIBUTES)
+
+    def provider_context
+      if @provider_context == :class_based
+        self.class
+      else
+        self
+      end
+    end
+
+    def format_supported?(*args)
+      self.class.format_supported?(*args)
+    end
+
+    def format(*args)
+      self.class.format(*args)
+    end
+
+    def formats
+      self.class.formats
+    end
+
     # Equivalent to '&verb=Identify', returns information about the repository
     def identify(options = {})
-      Response::Identify.new(self.class, options).to_xml
+      Response::Identify.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListSets', returns a list of sets that are supported
     # by the repository or an error if sets are not supported.
     def list_sets(options = {})
-      Response::ListSets.new(self.class, options).to_xml
+      Response::ListSets.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListMetadataFormats', returns a list of metadata formats
     # supported by the repository.
     def list_metadata_formats(options = {})
-      Response::ListMetadataFormats.new(self.class, options).to_xml
+      Response::ListMetadataFormats.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListIdentifiers', returns a list of record headers that
     # meet the supplied criteria.
     def list_identifiers(options = {})
-      Response::ListIdentifiers.new(self.class, options).to_xml
+      Response::ListIdentifiers.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListRecords', returns a list of records that meet the
     # supplied criteria.
     def list_records(options = {})
-      Response::ListRecords.new(self.class, options).to_xml
+      Response::ListRecords.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=GetRecord', returns a record matching the required
     # :identifier option
     def get_record(options = {})
-      Response::GetRecord.new(self.class, options).to_xml
+      Response::GetRecord.new(provider_context, options).to_xml
     end
 
     #  xml_response = process_verb('ListRecords', :from => 'October 1, 2005',
@@ -336,7 +370,7 @@ module OAI::Provider
       begin
 
         # Allow the request to pass in a url
-        self.class.url = params['url'] ? params.delete('url') : self.class.url
+        provider_context.url = params['url'] ? params.delete('url') : self.class.url
 
         verb = params.delete('verb') || params.delete(:verb)
 

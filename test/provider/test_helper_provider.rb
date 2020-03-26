@@ -43,3 +43,20 @@ class DescribedProvider < Provider::Base
   sample_id '13900'
   extra_description "<my_custom_xml />"
 end
+
+class InstanceProvider < Provider::Base
+  repository_name 'Instance Provider'
+  record_prefix 'oai:test'
+  repository_url 'http://localhost'
+  source_model SimpleModel.new
+
+  def initialize(context_provider, url_path)
+    super(context_provider)
+    @url_path = url_path
+  end
+  attr_reader :url_path
+
+  def url
+    File.join(super, url_path)
+  end
+end

@@ -139,6 +139,35 @@ end
 #
 # Special thanks to Jose Hales-Garcia for this solution.
 #
+# ### Leverage the Provider instance
+#
+# The traditional implementation of the OAI::Provider would pass the OAI::Provider
+# class to the different resposnes. This made it hard to inject context into a
+# common provider. Consider that we might have different request headers that
+# change the scope of the OAI::Provider queries.
+#
+# ```ruby
+# class InstanceProvider
+#   def initialize(options = {})
+#     super({ :provider_context => :instance_based })
+#     @controller = options.fetch(:controller)
+#   end
+#   attr_reader :controller
+# end
+#
+# class OaiController < ApplicationController
+#   def index
+#     provider = InstanceProvider.new({ :controller => self })
+#     request_body =  provider.process_request(oai_params.to_h)
+#     render :body => request_body, :content_type => 'text/xml'
+#   end
+# ```
+#
+# In the above example, the underlying response object will now receive an
+# instance of the InstanceProvider. Without the `super({ :provider_context => :instance_based })`
+# the response objects would have received the class InstanceProvider as the
+# given provider.
+#
 # ## Supporting custom metadata formats
 #
 # See {OAI::MetadataFormat} for details.
@@ -240,10 +269,9 @@ module OAI::Provider
   class Base
     include OAI::Provider
 
-    OAI_PMH_ATTRIBUTES = [:name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description]
     class << self
       attr_reader :formats
-      attr_accessor(*OAI_PMH_ATTRIBUTES)
+      attr_accessor :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
 
       def register_format(format)
         @formats ||= {}
@@ -298,19 +326,43 @@ module OAI::Provider
       :instance_based => :instance_based
     }
 
-    def initialize(provider_context = :class_based)
+    def initialize(options = {})
+      provider_context = options.fetch(:provider_context) { :class_based }
       @provider_context = PROVIDER_CONTEXTS.fetch(provider_context)
-      OAI_PMH_ATTRIBUTES.each do |attr|
-        instance_variable_set("@#{attr}", self.class.public_send(attr))
-      end
     end
-    attr_accessor(*OAI_PMH_ATTRIBUTES)
 
+    # @note These are the accessor methods on the class. If you need to overwrite
+    # them on the instance level you can do that. However, an instance of this
+    # class won't be used unless you initialize with:
+    # { :provider_context => :instance_based }
+    attr_writer :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
+
+    # The traditional interaction of a Provider has been to:
+    #
+    # 1) Assign attributes to the Provider class
+    # 2) Instantiate the Provider class
+    # 3) Call response instance methods for theProvider which pass
+    #    the Provider class and not the instance.
+    #
+    # The above behavior continues unless you initialize the Provider with
+    # { :provider_context => :instance_based }. If you do that, then the
+    # Provider behavior will be:
+    #
+    # 1) Assign attributes to Provider class
+    # 2) Instantiate the Provider class
+    # 3) Call response instance methods for theProvider which pass an
+    #    instance of the Provider to those response objects.
+    #    a) The instance will mirror all of the assigned Provider class
+    #       attributes, but allows for overriding and extending on a
+    #       case by case basis.
+    # (Dear reader, please note the second behavior is something most
+    # of us would've assumed to be the case, but for historic now lost
+    # reasons is not the case.)
     def provider_context
-      if @provider_context == :class_based
-        self.class
-      else
+      if @provider_context == :instance_based
         self
+      else
+        self.class
       end
     end
 
@@ -324,6 +376,42 @@ module OAI::Provider
 
     def formats
       self.class.formats
+    end
+
+    def name
+      @name || self.class.name
+    end
+
+    def url
+      @url || self.class.url
+    end
+
+    def prefix
+      @prefix || self.class.prefix
+    end
+
+    def email
+      @email || self.class.email
+    end
+
+    def delete_support
+      @delete_support || self.class.delete_support
+    end
+
+    def granularity
+      @granularity || self.class.granularity
+    end
+
+    def model
+      @model || self.class.model
+    end
+
+    def identifier
+      @identifier || self.class.identifier
+    end
+
+    def description
+      @description || self.class.description
     end
 
     # Equivalent to '&verb=Identify', returns information about the repository
@@ -370,7 +458,7 @@ module OAI::Provider
       begin
 
         # Allow the request to pass in a url
-        provider_context.url = params['url'] ? params.delete('url') : self.class.url
+        provider_context.url = params['url'] ? params.delete('url') : self.url
 
         verb = params.delete('verb') || params.delete(:verb)
 

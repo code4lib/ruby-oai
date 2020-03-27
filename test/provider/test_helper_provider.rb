@@ -50,9 +50,9 @@ class InstanceProvider < Provider::Base
   repository_url 'http://localhost'
   source_model SimpleModel.new
 
-  def initialize(context_provider, url_path)
-    super(context_provider)
-    @url_path = url_path
+  def initialize(options = {})
+    super
+    @url_path = options.fetch(:url_path)
   end
   attr_reader :url_path
 

@@ -13,7 +13,7 @@ class TestInstanceProvider < Test::Unit::TestCase
   # response object.
   def test_instance_used_in_responses
     @url_path = "/stringy-mc-string-face"
-    @instance_provider = InstanceProvider.new(:instance_based, @url_path)
+    @instance_provider = InstanceProvider.new({ :provider_context => :instance_based, :url_path => @url_path })
 
     xml = @instance_provider.identify
     doc =  REXML::Document.new(xml)
@@ -22,7 +22,16 @@ class TestInstanceProvider < Test::Unit::TestCase
 
   def test_class_used_in_responses
     @url_path = "/stringy-mc-string-face"
-    @instance_provider = InstanceProvider.new(:class_based, @url_path)
+    @instance_provider = InstanceProvider.new({ :provider_context => :class_based, :url_path => @url_path })
+
+    xml = @instance_provider.identify
+    doc =  REXML::Document.new(xml)
+    assert_equal "http://localhost", doc.elements["OAI-PMH/Identify/baseURL"].text
+  end
+
+  def test_by_default_class_used_in_responses
+    @url_path = "/stringy-mc-string-face"
+    @instance_provider = InstanceProvider.new({ :url_path => @url_path })
 
     xml = @instance_provider.identify
     doc =  REXML::Document.new(xml)

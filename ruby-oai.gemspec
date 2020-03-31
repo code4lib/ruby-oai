@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
     s.name = 'oai'
-    s.version = '1.0.1'
+    s.version = '1.1.0'
     s.author = 'Ed Summers'
     s.email = 'ehs@pobox.com'
     s.homepage = 'http://github.com/code4lib/ruby-oai'

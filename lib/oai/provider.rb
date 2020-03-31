@@ -139,6 +139,35 @@ end
 #
 # Special thanks to Jose Hales-Garcia for this solution.
 #
+# ### Leverage the Provider instance
+#
+# The traditional implementation of the OAI::Provider would pass the OAI::Provider
+# class to the different resposnes. This made it hard to inject context into a
+# common provider. Consider that we might have different request headers that
+# change the scope of the OAI::Provider queries.
+#
+# ```ruby
+# class InstanceProvider
+#   def initialize(options = {})
+#     super({ :provider_context => :instance_based })
+#     @controller = options.fetch(:controller)
+#   end
+#   attr_reader :controller
+# end
+#
+# class OaiController < ApplicationController
+#   def index
+#     provider = InstanceProvider.new({ :controller => self })
+#     request_body =  provider.process_request(oai_params.to_h)
+#     render :body => request_body, :content_type => 'text/xml'
+#   end
+# ```
+#
+# In the above example, the underlying response object will now receive an
+# instance of the InstanceProvider. Without the `super({ :provider_context => :instance_based })`
+# the response objects would have received the class InstanceProvider as the
+# given provider.
+#
 # ## Supporting custom metadata formats
 #
 # See {OAI::MetadataFormat} for details.
@@ -292,39 +321,132 @@ module OAI::Provider
 
     Base.register_format(OAI::Provider::Metadata::DublinCore.instance)
 
+    PROVIDER_CONTEXTS = {
+      :class_based => :class_based,
+      :instance_based => :instance_based
+    }
+
+    def initialize(options = {})
+      provider_context = options.fetch(:provider_context) { :class_based }
+      @provider_context = PROVIDER_CONTEXTS.fetch(provider_context)
+    end
+
+    # @note These are the accessor methods on the class. If you need to overwrite
+    # them on the instance level you can do that. However, an instance of this
+    # class won't be used unless you initialize with:
+    # { :provider_context => :instance_based }
+    attr_writer :name, :url, :prefix, :email, :delete_support, :granularity, :model, :identifier, :description
+
+    # The traditional interaction of a Provider has been to:
+    #
+    # 1) Assign attributes to the Provider class
+    # 2) Instantiate the Provider class
+    # 3) Call response instance methods for theProvider which pass
+    #    the Provider class and not the instance.
+    #
+    # The above behavior continues unless you initialize the Provider with
+    # { :provider_context => :instance_based }. If you do that, then the
+    # Provider behavior will be:
+    #
+    # 1) Assign attributes to Provider class
+    # 2) Instantiate the Provider class
+    # 3) Call response instance methods for theProvider which pass an
+    #    instance of the Provider to those response objects.
+    #    a) The instance will mirror all of the assigned Provider class
+    #       attributes, but allows for overriding and extending on a
+    #       case by case basis.
+    # (Dear reader, please note the second behavior is something most
+    # of us would've assumed to be the case, but for historic now lost
+    # reasons is not the case.)
+    def provider_context
+      if @provider_context == :instance_based
+        self
+      else
+        self.class
+      end
+    end
+
+    def format_supported?(*args)
+      self.class.format_supported?(*args)
+    end
+
+    def format(*args)
+      self.class.format(*args)
+    end
+
+    def formats
+      self.class.formats
+    end
+
+    def name
+      @name || self.class.name
+    end
+
+    def url
+      @url || self.class.url
+    end
+
+    def prefix
+      @prefix || self.class.prefix
+    end
+
+    def email
+      @email || self.class.email
+    end
+
+    def delete_support
+      @delete_support || self.class.delete_support
+    end
+
+    def granularity
+      @granularity || self.class.granularity
+    end
+
+    def model
+      @model || self.class.model
+    end
+
+    def identifier
+      @identifier || self.class.identifier
+    end
+
+    def description
+      @description || self.class.description
+    end
+
     # Equivalent to '&verb=Identify', returns information about the repository
     def identify(options = {})
-      Response::Identify.new(self.class, options).to_xml
+      Response::Identify.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListSets', returns a list of sets that are supported
     # by the repository or an error if sets are not supported.
     def list_sets(options = {})
-      Response::ListSets.new(self.class, options).to_xml
+      Response::ListSets.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListMetadataFormats', returns a list of metadata formats
     # supported by the repository.
     def list_metadata_formats(options = {})
-      Response::ListMetadataFormats.new(self.class, options).to_xml
+      Response::ListMetadataFormats.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListIdentifiers', returns a list of record headers that
     # meet the supplied criteria.
     def list_identifiers(options = {})
-      Response::ListIdentifiers.new(self.class, options).to_xml
+      Response::ListIdentifiers.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=ListRecords', returns a list of records that meet the
     # supplied criteria.
     def list_records(options = {})
-      Response::ListRecords.new(self.class, options).to_xml
+      Response::ListRecords.new(provider_context, options).to_xml
     end
 
     # Equivalent to '&verb=GetRecord', returns a record matching the required
     # :identifier option
     def get_record(options = {})
-      Response::GetRecord.new(self.class, options).to_xml
+      Response::GetRecord.new(provider_context, options).to_xml
     end
 
     #  xml_response = process_verb('ListRecords', :from => 'October 1, 2005',
@@ -336,7 +458,7 @@ module OAI::Provider
       begin
 
         # Allow the request to pass in a url
-        self.class.url = params['url'] ? params.delete('url') : self.class.url
+        provider_context.url = params['url'] ? params.delete('url') : self.url
 
         verb = params.delete('verb') || params.delete(:verb)
 

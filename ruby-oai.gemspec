@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
     s.autorequire = 'oai'
     s.bindir = 'bin'
     s.executables = 'oai'
+    s.license = "CC0-1.0"
 
     s.add_dependency('builder', '>=3.1.0')
     s.add_dependency('faraday')

@@ -6,11 +6,13 @@ module OAI
   
     class Harvest
     
-      def initialize(config = nil, directory = nil, date = nil)
+      def initialize(config = nil, directory = nil, date = nil, to = nil)
         @config = config || Config.load
         @directory = directory || @config.storage
         @from = date
         @from.freeze
+        @until = to
+        @until.freeze
         @parser = defined?(XML::Document) ? 'libxml' : 'rexml'
       end
     
@@ -30,7 +32,11 @@ module OAI
     
       def harvest(site)
         opts = build_options_hash(@config.sites[site])
-        harvest_time = Time.now.utc
+        if @until
+          harvest_time = @until.to_time.utc.iso8601
+        else
+          harvest_time = Time.now.utc
+        end
 
         if "YYYY-MM-DD" == granularity(opts[:url])
           opts[:until] = harvest_time.strftime("%Y-%m-%d")

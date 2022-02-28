@@ -1,5 +1,4 @@
 require 'time'
-require 'enumerator'
 require File.dirname(__FILE__) + "/partial_result"
 
 module OAI::Provider

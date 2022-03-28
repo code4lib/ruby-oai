@@ -149,18 +149,4 @@ class ActiveRecordProviderTest < TransactionalTestCase
 
 end
 
-class ActiveRecordProviderTimezoneTest < ActiveRecordProviderTest
 
-  def setup
-    require 'active_record'
-    ActiveRecord::Base.default_timezone = :utc
-    super
-  end
-
-  def teardown
-    require 'active_record'
-    ActiveRecord::Base.default_timezone = :local
-    super
-  end
-
-end

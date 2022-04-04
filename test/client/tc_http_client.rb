@@ -58,8 +58,8 @@ eos
     end
 
     faraday_stub = Faraday.new do |builder|
-      require 'faraday_middleware'
-      builder.use FaradayMiddleware::FollowRedirects
+      require 'faraday/follow_redirects'
+      builder.use Faraday::FollowRedirects::Middleware
       builder.adapter :test, stubs
     end
 

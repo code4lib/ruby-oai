@@ -12,8 +12,10 @@ Gem::Specification.new do |s|
     s.executables = 'oai'
 
     s.add_dependency('builder', '>=3.1.0')
-    s.add_dependency('faraday')
-    s.add_dependency('faraday_middleware')
+    s.add_dependency('faraday', "< 3")
+    #s.add_dependency('faraday_middleware')
+    s.add_dependency("faraday-follow_redirects", ">= 0.3.0", "< 2")
+
 
     s.add_development_dependency "activerecord", ">= 5.2.0", "< 6.1"
     s.add_development_dependency "appraisal"

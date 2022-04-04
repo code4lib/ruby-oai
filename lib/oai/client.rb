@@ -95,7 +95,8 @@ module OAI
           follow_redirects = 5 if follow_redirects == true
 
           if follow_redirects
-            require 'faraday_middleware'
+            require 'faraday/follow_redirects'
+            builder.use Faraday::FollowRedirects::Middleware
             builder.response :follow_redirects, :limit => follow_redirects.to_i
           end
           builder.adapter :net_http

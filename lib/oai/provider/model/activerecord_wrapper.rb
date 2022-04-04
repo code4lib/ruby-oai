@@ -192,7 +192,12 @@ module OAI::Provider
       time_obj = Time.parse(time.to_s)
       time_obj = yield(time_obj) if block_given?
       # Convert to same as DB - :local => :getlocal, :utc => :getutc
-      tzconv = "get#{model.default_timezone.to_s}".to_sym
+
+      if ActiveRecord::VERSION::MAJOR >= 7
+        tzconv = "get#{ActiveRecord.default_timezone.to_s}".to_sym
+      else
+        tzconv = "get#{model.default_timezone.to_s}".to_sym
+      end
       time_obj.send(tzconv).strftime("%Y-%m-%d %H:%M:%S")
     end
 

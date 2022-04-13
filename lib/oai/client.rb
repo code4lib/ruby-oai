@@ -331,7 +331,7 @@ module OAI
     # Regex is from WebCollab:
     #   http://webcollab.sourceforge.net/unicode.html
     def strip_invalid_utf_8_chars(xml)
-      return xml unless xml
+      return nil unless xml
 
       # If it's in a specific encoding other than BINARY, it may trigger
       # an exception to try to gsub these illegal bytes. Temporarily

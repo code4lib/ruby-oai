@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [ '*' ]
+
+jobs:
+  test_matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: ['2.5.8', '2.7.6', 'jruby-9.2.20.1']
+        gemfile:
+          - rails_52
+          - rails_60
+          - rails_61
+        include:
+          - ruby-version: 2.2.10
+            gemfile: rails_52
+          - ruby-version: 2.7.6
+            gemfile: rails_70
+        exclude:
+          - ruby-version: 2.7.6
+            gemfile: rails_52
+
+    env:
+      RAILS_ENV: test
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Add --no-document option to .gemrc file to speed up bundle install
+        run: "echo 'gem: --no-document' > ~/.gemrc"
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+      - name: Run CI task
+        run: bundle exec rake

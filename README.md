@@ -1,7 +1,6 @@
 ruby-oai
 ========
-
-[![Build Status](https://travis-ci.org/code4lib/ruby-oai.svg?branch=master)](https://travis-ci.org/code4lib/ruby-oai)
+[![Build Status](https://github.com/code4lib/ruby-oai/workflows/CI/badge.svg)](https://github.com/code4lib/ruby-oai/actions)
 
 [![Gem Version](https://badge.fury.io/rb/kithe.svg)](https://badge.fury.io/rb/oai)
 

@@ -6,6 +6,7 @@ Gem::Specification.new do |s|
     s.homepage = 'http://github.com/code4lib/ruby-oai'
     s.platform = Gem::Platform::RUBY
     s.summary = 'A ruby library for working with the Open Archive Initiative Protocol for Metadata Harvesting (OAI-PMH)'
+    s.license = 'MIT'
     s.require_path = 'lib'
     s.autorequire = 'oai'
     s.bindir = 'bin'

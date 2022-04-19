@@ -95,7 +95,8 @@ module OAI
           follow_redirects = 5 if follow_redirects == true
 
           if follow_redirects
-            require 'faraday_middleware'
+            require 'faraday/follow_redirects'
+            builder.use Faraday::FollowRedirects::Middleware
             builder.response :follow_redirects, :limit => follow_redirects.to_i
           end
           builder.adapter :net_http
@@ -330,7 +331,16 @@ module OAI
     # Regex is from WebCollab:
     #   http://webcollab.sourceforge.net/unicode.html
     def strip_invalid_utf_8_chars(xml)
-      xml && xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
+      return nil unless xml
+
+      # If it's in a specific encoding other than BINARY, it may trigger
+      # an exception to try to gsub these illegal bytes. Temporarily
+      # put it in BINARY. NOTE: We're not totally sure what's going on
+      # with encodings in this gem in general, it might not be totally reasonable.
+      orig_encoding = xml.encoding
+      xml.force_encoding("BINARY")
+
+      xml = xml.gsub(/[\x00-\x08\x10\x0B\x0C\x0E-\x19\x7F]
                              | [\x00-\x7F][\x80-\xBF]+
                              | ([\xC0\xC1]|[\xF0-\xFF])[\x80-\xBF]*
                              | [\xC2-\xDF]((?![\x80-\xBF])|[\x80-\xBF]{2,})
@@ -338,6 +348,10 @@ module OAI
                              | (?![\x80-\xBF]{2})|[\x80-\xBF]{3,})/x, '?')\
                 .gsub(/\xE0[\x80-\x9F][\x80-\xBF]
                        | \xED[\xA0-\xBF][\x80-\xBF]/,'?')
+
+      xml.force_encoding(orig_encoding)
+
+      xml
     end
 
   end

@@ -25,6 +25,7 @@ jobs:
 
     env:
       RAILS_ENV: test
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/${{ matrix.gemfile }}.gemfile
 
     steps:
       - uses: actions/checkout@v2

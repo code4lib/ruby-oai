@@ -11,10 +11,9 @@ module OAI
       def initialize(*args)
         orig_init(*args)
         @summary = []
-        @logger = Logger.new(File.join(@config.logfile, "harvester.log"), 
-          shift_age = 'weekly') if @config.logfile
+        @logger = @config.logfile ? Logger.new(File.join(@config.logfile, "harvester.log"), 'weekly') : Logger.new(STDOUT)
         @logger.datetime_format = "%Y-%m-%d %H:%M"
-      
+
         # Turn off logging if no logging directory is specified.
         @logger.level = Logger::FATAL unless @config.logfile
       end
@@ -25,7 +24,7 @@ module OAI
           orig_start(sites)
           begin
             OAI::Harvester::
-              Mailer.send(@config.mail_server, @config.email, @summary)
+              Mailer.send(@config.mail_server, @config.email, @summary) if @config.email
           rescue
             @logger.error { "Error sending out summary email: #{$!}"}
           end

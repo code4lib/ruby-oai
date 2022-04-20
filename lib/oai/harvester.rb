@@ -7,7 +7,6 @@ require 'logger'
 require 'fileutils'
 require 'ostruct'
 require 'readline'
-require 'chronic'
 require 'socket'
 
 require 'oai/client'

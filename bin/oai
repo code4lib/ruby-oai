@@ -5,8 +5,6 @@
 
 require 'optparse'
 
-DIRECTORY_LAYOUT = "%Y/%m".freeze
-
 require 'oai/harvester'
 
 include OAI::Harvester

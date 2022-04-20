@@ -34,6 +34,13 @@ namespace :test do
     t.warning = false
   end
 
+  Rake::TestTask.new('harvester') do |t|
+    t.libs << ['lib', 'test/harvester']
+    t.pattern = 'test/harvester/tc_*.rb'
+    #t.verbose = true
+    t.warning = false
+  end
+
   Rake::TestTask.new('provider') do |t|
     t.libs << ['lib', 'test/provider']
     t.pattern = 'test/provider/tc_*.rb'

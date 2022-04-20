@@ -29,5 +29,14 @@ class HarvestTest < Test::Unit::TestCase
     last = config.sites.dig('test', 'last')
     assert_kind_of NilClass, last
   end
+
+  def test_harvest_with_until
+    until_value = Time.parse(EARLIEST_FIXTURE).utc + ONE_HOUR
+    config = OpenStruct.new(sites: { 'test' => { 'url' => 'http://localhost:3333/oai' }})
+    OAI::Harvester::Harvest.new(config, nil, nil, until_value).start
+    last = config.sites.dig('test', 'last')
+    assert_kind_of Time, last
+    assert_equal last, until_value
+  end
 end
 

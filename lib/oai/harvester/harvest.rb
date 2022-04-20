@@ -33,7 +33,7 @@ module OAI
       def harvest(site)
         opts = build_options_hash(@config.sites[site])
         if @until
-          harvest_time = @until.to_time.utc.iso8601
+          harvest_time = @until.to_time.utc
         else
           harvest_time = Time.now.utc
         end

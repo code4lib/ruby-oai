@@ -54,7 +54,7 @@ module OAI
   # <http://www.openarchives.org/OAI/openarchivesprotocol.html>.
 
   class Client
-
+    UNESCAPED_AMPERSAND = /&(?!(?:amp|lt|gt|quot|apos|\#\d+);)/
     # The constructor which must be passed a valid base url for an oai
     # service:
     #
@@ -198,12 +198,9 @@ module OAI
       do_resumable(OAI::ListSetsResponse, 'ListSets', opts)
     end
 
-    private
-
-    def do_request(verb, opts = nil)
-      # fire off the request and return appropriate DOM object
-      uri = build_uri(verb, opts)
-      xml = strip_invalid_utf_8_chars(get(uri))
+    def sanitize_xml(xml)
+      xml = strip_invalid_utf_8_chars(xml)
+      xml = strip_invalid_xml_chars(xml)
       if @parser == 'libxml'
         # remove default namespace for oai-pmh since libxml
         # isn't able to use our xpaths to get at them
@@ -211,7 +208,15 @@ module OAI
         xml = xml.gsub(
           /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
       end
-      return load_document(xml)
+      xml
+    end
+
+    private
+
+    def do_request(verb, opts = nil)
+      # fire off the request and return appropriate DOM object
+      uri = build_uri(verb, opts)
+      return load_document(get(uri))
     end
 
     def do_resumable(responseClass, verb, opts)
@@ -241,6 +246,7 @@ module OAI
     end
 
     def load_document(xml)
+      xml = sanitize_xml(xml)
       case @parser
       when 'libxml'
         begin
@@ -251,7 +257,6 @@ module OAI
         end
       when 'rexml'
         begin
-          xml = strip_invalid_xml_chars(xml)
           return REXML::Document.new(xml)
         rescue REXML::ParseException => e
           raise OAI::Exception, 'response not well formed XML: '+e.message, caller
@@ -356,17 +361,8 @@ module OAI
     end
 
     def strip_invalid_xml_chars(xml)
-      invalid = false
-
-      begin
-        REXML::Document.new(xml)
-      rescue REXML::ParseException => e
-        invalid = true
-      end
-
-      return xml.gsub!(/&(?!(?:amp|lt|gt|quot|apos);)/, '&amp;') if invalid
-      return xml
+      return xml unless xml =~ UNESCAPED_AMPERSAND
+      xml.gsub(UNESCAPED_AMPERSAND, '&amp;')
     end
-
   end
 end

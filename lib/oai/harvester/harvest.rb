@@ -3,14 +3,16 @@
 
 module OAI
   module Harvester
-  
     class Harvest
+      DIRECTORY_LAYOUT = "%Y/%m".freeze
     
-      def initialize(config = nil, directory = nil, date = nil)
+      def initialize(config = nil, directory = nil, date = nil, to = nil)
         @config = config || Config.load
         @directory = directory || @config.storage
         @from = date
         @from.freeze
+        @until = to
+        @until.freeze
         @parser = defined?(XML::Document) ? 'libxml' : 'rexml'
       end
     
@@ -30,7 +32,11 @@ module OAI
     
       def harvest(site)
         opts = build_options_hash(@config.sites[site])
-        harvest_time = Time.now.utc
+        if @until
+          harvest_time = @until.to_time.utc
+        else
+          harvest_time = Time.now.utc
+        end
 
         if "YYYY-MM-DD" == granularity(opts[:url])
           opts[:until] = harvest_time.strftime("%Y-%m-%d")
@@ -43,22 +49,27 @@ module OAI
         # Allow a from date to be passed in
         opts[:from] = earliest(opts[:url]) unless opts[:from]
         opts.delete(:set) if 'all' == opts[:set]
-        
         begin
           # Connect, and download
           file, records = call(opts.delete(:url), opts)
       
-          # Move document to storage directory
-          dir = File.join(@directory, date_based_directory(harvest_time))
-          FileUtils.mkdir_p dir
-          FileUtils.mv(file.path, 
-            File.join(dir, "#{site}-#{filename(Time.parse(opts[:from]), 
-            harvest_time)}.xml.gz"))
+          # Move document to storage directory if configured
+          if @directory
+            directory_layout = @config.layouts[site] if @config.layouts
+            dir = File.join(@directory, date_based_directory(harvest_time, directory_layout))
+            FileUtils.mkdir_p dir
+            FileUtils.mv(file.path,
+              File.join(dir, "#{site}-#{filename(Time.parse(opts[:from]),
+              harvest_time)}.xml.gz"))
+          else
+            puts "no configured destination for temp file" if @interactive
+          end
           @config.sites[site]['last'] = harvest_time
-        rescue
-          raise $! unless $!.respond_to?(:code)
-          raise $! if not @interactive || "noRecordsMatch" != $!.code
-          puts "No new records available"
+        rescue OAI::NoMatchException
+          puts "No new records available" if @interactive
+        rescue OAI::Exception => ex
+          raise ex if not @interactive
+          puts ex.message
         end
       end
     
@@ -69,15 +80,15 @@ module OAI
         records = 0;
         client = OAI::Client.new(url, :parser => @parser)
         provider_config = client.identify
-        
+
         file = Tempfile.new('oai_data')
         gz = Zlib::GzipWriter.new(file)
         gz << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
         gz << "<records>"
         begin
           response = client.list_records(options)
-          get_records(response.doc).each do |rec|
-            gz << rec
+          response.each do |rec|
+            gz << rec._source
             records += 1
           end
           puts "#{records} records retrieved" if @interactive
@@ -89,8 +100,8 @@ module OAI
             puts "\nresumption token recieved, continuing" if @interactive
             response = client.list_records(:resumption_token => 
               response.resumption_token)
-              get_records(response.doc).each do |rec|
-                gz << rec
+              response.each do |rec|
+                gz << rec._source
                 records += 1
               end
             puts "#{records} records retrieved" if @interactive
@@ -118,8 +129,9 @@ module OAI
         options
       end
     
-      def date_based_directory(time)
-        "#{time.strftime(DIRECTORY_LAYOUT)}"
+      def date_based_directory(time, directory_layout = nil)
+        directory_layout ||= Harvest::DIRECTORY_LAYOUT
+        "#{time.strftime(directory_layout)}"
       end
 
       def filename(from_time, until_time)

@@ -1,8 +1,9 @@
 /pkg/
 /doc/
 /coverage*
+/tmp/
 /.yardoc/
-
+.DS_Store
 # Exclude Gemfile.lock (best practice for gems)
 Gemfile.lock
 

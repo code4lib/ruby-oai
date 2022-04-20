@@ -29,7 +29,7 @@ module OAI::Provider
   # see the ResumptionToken class for more details.
   #
   class Model
-    attr_reader :timestamp_field, :identifier_field
+    attr_reader :timestamp_field, :identifier_field, :limit
 
     def initialize(limit = nil, timestamp_field = 'updated_at', identifier_field = 'id')
       @limit = limit

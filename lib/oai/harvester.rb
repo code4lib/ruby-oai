@@ -9,6 +9,10 @@ require 'ostruct'
 require 'readline'
 require 'socket'
 
+if not defined?(OAI::Const::VERBS)
+  require 'oai/constants'
+end
+
 require 'oai/client'
 require 'oai/harvester/config'
 require 'oai/harvester/harvest'

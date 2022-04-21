@@ -134,9 +134,7 @@ module OAI::Provider
       if @limit < total
         select_partial(find_scope, token)
       else # end of result set
-        find_scope.where(token_conditions(token))
-          .limit(@limit)
-          .order("#{identifier_field} asc")
+        select_partial(find_scope, token).tap { |list| list.instance_variable_set(:@token, list.token.next(nil)) }
       end
     end
 

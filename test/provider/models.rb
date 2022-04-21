@@ -68,7 +68,7 @@ class TestModel < OAI::Provider::Model
           if token.last < @groups.size - 1
             PartialResult.new(@groups[token.last], token.next(token.last + 1))
           else
-            @groups[token.last]
+            PartialResult.new(@groups[token.last], token.next(nil))
           end
         rescue
           raise OAI::ResumptionTokenException.new

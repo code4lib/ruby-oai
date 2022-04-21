@@ -83,7 +83,7 @@ module OAI::Provider
       if token.last * @limit + @limit < total
         select_partial(token)
       else
-        select_partial(token).records
+        select_partial(token).tap { |list| list.instance_variable_set(:@token, list.token.next(nil)) }
       end
     end
 

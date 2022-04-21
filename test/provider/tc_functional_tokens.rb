@@ -46,9 +46,10 @@ class ResumptionTokenFunctionalTest < Test::Unit::TestCase
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
 
     doc = Document.new(@provider.list_records(:resumption_token => token))
-    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
-    assert_equal (300 % @provider.model.limit), doc.elements["/OAI-PMH/ListRecords"].to_a.size
-    token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+    # assert that ListRecords includes remaining records and an empty resumption token
+    assert_equal (301 % @provider.model.limit), doc.elements["/OAI-PMH/ListRecords"].to_a.size
+    assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
   end
 
 end

@@ -122,7 +122,7 @@ module OAI::Provider
     end
 
     def encode_conditions
-      return "" if last_str.blank?
+      return "" if last_str.nil? || last_str.to_s.strip.eql?("")
 
       encoded_token = @prefix.to_s.dup
       encoded_token << ".s(#{set})" if set

@@ -129,13 +129,7 @@ module OAI::Provider
       raise OAI::ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = find_scope.where(token_conditions(token)).count
-
-      if @limit < total
-        select_partial(find_scope, token)
-      else # end of result set
-        select_partial(find_scope, token).tap { |list| list.instance_variable_set(:@token, list.token.next(nil)) }
-      end
+      select_partial(find_scope, token)
     end
 
     # select a subset of the result set, and return it with a
@@ -145,8 +139,10 @@ module OAI::Provider
         .limit(@limit)
         .order("#{identifier_field} asc")
       raise OAI::ResumptionTokenException.new unless records
-      offset = records.last.send(identifier_field)
 
+      total = find_scope.where(token_conditions(token)).count
+      # token offset should be nil if this is the last set
+      offset = (@limit >= total) ? nil : records.last.send(identifier_field)
       PartialResult.new(records, token.next(offset))
     end
 

@@ -17,8 +17,9 @@ class CachingPagingProviderTest < TransactionalTestCase
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
     assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].size
     doc = Document.new(@provider.list_records(:resumption_token => token))
-    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
+    assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+    assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
   end
 
   def test_from_and_until
@@ -37,8 +38,9 @@ class CachingPagingProviderTest < TransactionalTestCase
     token = doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
     assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
     doc = Document.new(@provider.list_records(:resumption_token => token))
-    assert_equal 25, doc.elements["/OAI-PMH/ListRecords"].size
-    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    assert_not_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"]
+    assert_nil doc.elements["/OAI-PMH/ListRecords/resumptionToken"].text
+    assert_equal 26, doc.elements["/OAI-PMH/ListRecords"].to_a.size
   end
 
   def setup

@@ -36,7 +36,7 @@ module OAI::Provider
     attr_reader :prefix, :set, :from, :until, :last, :last_str, :expiration, :total
 
     # parses a token string and returns a ResumptionToken
-    def self.parse(token_string)
+    def self.parse(token_string, expiration = nil, total = nil)
       begin
         options = {}
         matches = /(.+):([^ :]+)$/.match(token_string)
@@ -54,7 +54,7 @@ module OAI::Provider
             options[:until] = Time.parse(part.sub(/^u\(/, '').sub(/\)$/, '')).localtime
           end
         end
-        self.new(options)
+        self.new(options, expiration, total)
       rescue => err
         raise OAI::ResumptionTokenException.new
       end
@@ -122,6 +122,8 @@ module OAI::Provider
     end
 
     def encode_conditions
+      return "" if last_str.nil? || last_str.to_s.strip.eql?("")
+
       encoded_token = @prefix.to_s.dup
       encoded_token << ".s(#{set})" if set
       encoded_token << ".f(#{self.from.utc.xmlschema})" if self.from

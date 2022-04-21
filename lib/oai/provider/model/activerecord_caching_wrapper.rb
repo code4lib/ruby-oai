@@ -78,13 +78,7 @@ module OAI::Provider
       raise ResumptionTokenException.new unless @limit
 
       token = ResumptionToken.parse(token_string)
-      total = model.where(token_conditions(token)).count
-
-      if token.last * @limit + @limit < total
-        select_partial(token)
-      else
-        select_partial(token).records
-      end
+      select_partial(token)
     end
 
     # select a subset of the result set, and return it with a
@@ -102,10 +96,13 @@ module OAI::Provider
 
       raise ResumptionTokenException.new unless oaitoken
 
+      total = model.where(token_conditions(token)).count
+      # token offset should be nil if this is the last set
+      offset = (token.last * @limit + @limit >= total) ? nil : token.last + 1
       PartialResult.new(
         hydrate_records(
           oaitoken.entries.limit(@limit).offset(token.last * @limit)),
-        token.next(token.last + 1)
+        token.next(offset)
       )
     end
 

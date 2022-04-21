@@ -46,6 +46,22 @@ For example to initiate a ListRecords request to pubmed you can:
   end
 ```
 
+### Retry-After
+This library depends on faraday, but allows a wide range of versions. Depending on the client application's installed version of faraday, there may be different middleware libraries required to support automatically retrying requests that are rate limited/denied with a `Retry-After` header. The OAI client can, however, accept an externally configured faraday http client for handling this. For example, to retry on `429 Too Many Requests`:
+
+```ruby
+require 'oai'
+require 'faraday_middleware' # if using faraday version < 2
+http_client = Faraday.new do |conn|
+    conn.request(:retry, max: 5, retry_statuses: 429)
+    conn.response(:follow_redirects, limit: 5)
+    conn.adapter :net_http
+end
+client = OAI::Client.new(base_url, http: http_client)
+opts = {from:'2012-03-01', until:'2012-04-01', metadata_prefix:'oai_dc'}
+puts client.list_records(opts).full.count
+```
+
 See {OAI::Client} for more details
 
 Server

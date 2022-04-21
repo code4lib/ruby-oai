@@ -38,7 +38,7 @@ module OAI
           harvest_time = Time.now.utc
         end
 
-        if "YYYY-MM-DD" == granularity(opts[:url])
+        if OAI::Const::Granularity::LOW == granularity(opts[:url])
           opts[:until] = harvest_time.strftime("%Y-%m-%d")
           opts[:from] = @from.strftime("%Y-%m-%d") if @from
         else
@@ -139,7 +139,7 @@ module OAI
         "#{from_time.strftime(format)}_til_#{until_time.strftime(format)}"\
         "_at_#{until_time.strftime('%H-%M-%S')}"
       end
-    
+
       def granularity(url)
         client = OAI::Client.new url
         client.identify.granularity
@@ -149,7 +149,7 @@ module OAI
       def earliest(url)
         client = OAI::Client.new url
         identify = client.identify
-        if "YYYY-MM-DD" == identify.granularity
+        if OAI::Const::Granularity::LOW == identify.granularity
           Time.parse(identify.earliest_datestamp).strftime("%Y-%m-%d")
         else
           Time.parse(identify.earliest_datestamp).xmlschema

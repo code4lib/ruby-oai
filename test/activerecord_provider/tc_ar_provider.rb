@@ -81,9 +81,9 @@ class ActiveRecordProviderTest < TransactionalTestCase
 
   def test_from
     first_id = DCField.order("id asc").first.id
-    DCField.where("id < #{first_id + 90}").update_all(updated_at: Time.parse("January 1 2005"))
+    DCField.where("dc_fields.id < #{first_id + 90}").update_all(updated_at: Time.parse("January 1 2005"))
 
-    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
+    DCField.where("dc_fields.id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
 
 
     from_param = Time.parse("January 1 2006").getutc.iso8601
@@ -92,7 +92,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
       @provider.list_records(
         :metadata_prefix => 'oai_dc', :from => from_param)
     )
-    assert_equal DCField.where(["updated_at >= ?", from_param]).size,
+    assert_equal DCField.where(["dc_fields.updated_at >= ?", from_param]).size,
       doc.elements['OAI-PMH/ListRecords'].size
 
     doc = REXML::Document.new(
@@ -103,8 +103,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_until
-    first_id = DCField.order("id asc").first.id
-    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 1 2005"))
+    first_id = DCField.order(id: :asc).first.id
+    DCField.where("dc_fields.id < ?", first_id + 10).update_all(updated_at: Time.parse("June 1 2005"))
 
     doc = REXML::Document.new(
       @provider.list_records(
@@ -114,10 +114,10 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_from_and_until
-    first_id = DCField.order("id asc").first.id
+    first_id = DCField.order(id: :asc).first.id
     DCField.update_all(updated_at: Time.parse("June 1 2005"))
-    DCField.where("id < #{first_id + 50}").update_all(updated_at: Time.parse("June 15 2005"))
-    DCField.where("id < #{first_id + 10}").update_all(updated_at: Time.parse("June 30 2005"))
+    DCField.where("dc_fields.id < ?", first_id + 50).update_all(updated_at: Time.parse("June 15 2005"))
+    DCField.where("dc_fields.id < ?", first_id + 10).update_all(updated_at: Time.parse("June 30 2005"))
 
     doc = REXML::Document.new(
       @provider.list_records(
@@ -129,8 +129,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
   
   def test_bad_until_raises_exception
-    DCField.order('id asc').limit(10).update_all(updated_at: 1.year.ago)
-    DCField.order('id desc').limit(10).update_all(updated_at: 1.year.from_now)
+    DCField.order(id: :asc).limit(10).update_all(updated_at: 1.year.ago)
+    DCField.order(id: :desc).limit(10).update_all(updated_at: 1.year.from_now)
     badTimes = [
       'junk',
       'February 92nd, 2015']
@@ -142,8 +142,8 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
   
   def test_bad_from_raises_exception
-    DCField.order('id asc').limit(10).update_all(updated_at: 1.year.ago)
-    DCField.order('id desc').limit(10).update_all(updated_at: 1.year.from_now)
+    DCField.order(id: :asc).limit(10).update_all(updated_at: 1.year.ago)
+    DCField.order(id: :desc).limit(10).update_all(updated_at: 1.year.from_now)
     
     badTimes = [
       'junk',

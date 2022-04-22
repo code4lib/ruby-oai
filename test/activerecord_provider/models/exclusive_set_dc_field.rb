@@ -8,4 +8,10 @@ class ExclusiveSetDCField < ActiveRecord::Base
     end
   end
 
+  belongs_to :dc_lang, class_name: "DCLang", optional: true
+
+  def language
+    dc_lang&.name
+  end
+
 end

@@ -10,6 +10,12 @@ class OaipmhTables < ActiveRecord::Migration[5.2]
       t.column :oai_token_id, :integer, :null => false
     end
 
+    create_table :dc_langs do |t|
+      t.column :name,           :string
+      t.column :updated_at,     :datetime
+      t.column :created_at,     :datetime
+    end
+
     dc_fields = proc do |t|
       t.column  :title,         :string
       t.column  :creator,       :string
@@ -21,7 +27,7 @@ class OaipmhTables < ActiveRecord::Migration[5.2]
       t.column  :type,          :string
       t.column  :format,        :string
       t.column  :source,        :string
-      t.column  :language,      :string
+      t.column  :dc_lang_id,    :integer
       t.column  :relation,      :string
       t.column  :coverage,      :string
       t.column  :rights,        :string

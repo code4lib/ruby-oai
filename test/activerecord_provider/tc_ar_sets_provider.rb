@@ -150,7 +150,8 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
     )
     disable_logging do
       fixtures.keys.sort.each do |key|
-        ExclusiveSetDCField.create(fixtures[key])
+        lang = DCLang.create(name: fixtures[key].delete('language'))
+        ExclusiveSetDCField.create(fixtures[key].merge(dc_lang: lang))
       end
     end
   end

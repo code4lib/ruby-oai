@@ -19,7 +19,8 @@ class TransactionalTestCase < Test::Unit::TestCase
     )
     disable_logging do
       fixtures.keys.sort.each do |key|
-        DCField.create(fixtures[key])
+        lang = DCLang.create(name: fixtures[key].delete('language'))
+        DCField.create(fixtures[key].merge(dc_lang: lang))
       end
     end
   end

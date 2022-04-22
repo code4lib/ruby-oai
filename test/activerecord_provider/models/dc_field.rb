@@ -7,6 +7,8 @@ class DCField < ActiveRecord::Base
 
   belongs_to :dc_lang, class_name: "DCLang", optional: true
 
+  default_scope -> { left_outer_joins(:dc_lang) }
+
   def language
     dc_lang&.name
   end

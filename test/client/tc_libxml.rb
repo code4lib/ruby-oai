@@ -7,7 +7,7 @@ class LibXMLTest < Test::Unit::TestCase
 
     uri = 'http://localhost:3333/oai'
     client = OAI::Client.new uri, :parser => 'libxml'
-    assert_raises(OAI::Exception) {client.get_record(:identifier => 'nosuchid')}
+    assert_raises(OAI::IdException) {client.get_record(:identifier => 'nosuchid')}
   end
 
   def test_list_records

@@ -25,7 +25,7 @@ class GetRecordTest < Test::Unit::TestCase
     begin
       client.get_record :metadata_prefix => 'oai_dc'
       flunk 'invalid get_record did not throw OAI::Exception'
-    rescue OAI::Exception => e
+    rescue OAI::ArgumentException => e
       assert_match /The request includes illegal arguments/, e.to_s
     end
   end

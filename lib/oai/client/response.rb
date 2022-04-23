@@ -46,7 +46,7 @@ module OAI
            end
          end
       end
-      raise OAI::Exception.new(message, code)
+      raise OAI::Exception.for(message: message, code: code)
     end
 
   end

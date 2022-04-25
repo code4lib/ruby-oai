@@ -18,7 +18,7 @@ class ExceptionTest < Test::Unit::TestCase
 
   def test_oai_error
     client = OAI::Client.new 'http://localhost:3333/oai'
-    assert_raises(OAI::Exception) do
+    assert_raises(OAI::ResumptionTokenException) do
       client.list_identifiers :resumption_token => 'bogus'
     end
   end

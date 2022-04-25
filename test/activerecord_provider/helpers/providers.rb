@@ -56,11 +56,13 @@ class ARLoader
       File.join(File.dirname(__FILE__), '..', 'fixtures', 'dc.yml')
     )
     fixtures.keys.sort.each do |key|
-      DCField.create(fixtures[key])
+      lang = DCLang.create(name: fixtures[key].delete('language'))
+      DCField.create(fixtures[key].merge(dc_lang: lang))
     end
   end
 
   def self.unload
     DCField.delete_all
+    DCLang.delete_all
   end
 end

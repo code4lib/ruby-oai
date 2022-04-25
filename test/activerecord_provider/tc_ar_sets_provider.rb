@@ -51,22 +51,22 @@ class ActiveRecordSetProviderTest < TransactionalTestCase
     set_ab = DCSet.create(:name => "Set A:B", :spec => "A:B")
 
     next_id = 0
-    DCField.limit(10).order("id asc").each do |record|
+    DCField.limit(10).order(id: :asc).each do |record|
       set_a.dc_fields << record
       next_id = record.id
     end
 
-    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    DCField.where("dc_fields.id > ?", next_id).limit(10).order(id: :asc).each do |record|
       set_b.dc_fields << record
       next_id = record.id
     end
 
-    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    DCField.where("dc_fields.id > ?", next_id).limit(10).order(id: :asc).each do |record|
       set_ab.dc_fields << record
       next_id = record.id
     end
 
-    DCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    DCField.where("dc_fields.id > ?", next_id).limit(10).order(id: :asc).each do |record|
       set_a.dc_fields << record
       set_c.dc_fields << record
       next_id = record.id
@@ -117,25 +117,25 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
   def define_sets
     next_id = 0
 
-    ExclusiveSetDCField.limit(10).order("id asc").each do |record|
+    ExclusiveSetDCField.limit(10).order(id: :asc).each do |record|
       record.set = "A"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    ExclusiveSetDCField.where("id > ?", next_id).limit(10).order(id: :asc).each do |record|
       record.set = "B"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    ExclusiveSetDCField.where("id > ?", next_id).limit(10).order(id: :asc).each do |record|
       record.set = "A:B"
       record.save!
       next_id = record.id
     end
 
-    ExclusiveSetDCField.where("id > #{next_id}").limit(10).order("id asc").each do |record|
+    ExclusiveSetDCField.where("id > ?", next_id).limit(10).order(id: :asc).each do |record|
       record.set = "A"
       record.save!
       next_id = record.id
@@ -150,7 +150,8 @@ class ActiveRecordExclusiveSetsProviderTest < TransactionalTestCase
     )
     disable_logging do
       fixtures.keys.sort.each do |key|
-        ExclusiveSetDCField.create(fixtures[key])
+        lang = DCLang.create(name: fixtures[key].delete('language'))
+        ExclusiveSetDCField.create(fixtures[key].merge(dc_lang: lang))
       end
     end
   end

@@ -43,10 +43,10 @@ class SimpleResumptionProviderTest < TransactionalTestCase
 
   def test_from_and_until
     first_id = DCField.order("id asc").first.id
-    DCField.where("id < #{first_id + 25}").update_all(updated_at: Time.parse("September 15 2005"))
-    DCField.where("id <= #{first_id + 50} and id > #{first_id + 25}").update_all(updated_at: Time.parse("November 1 2005"))
+    DCField.where("dc_fields.id < ?", first_id + 25).update_all(updated_at: Time.parse("September 15 2005"))
+    DCField.where(["dc_fields.id <= ? and dc_fields.id > ?", first_id + 50, first_id + 25]).update_all(updated_at: Time.parse("November 1 2005"))
 
-    total = DCField.where(["updated_at >= ? AND updated_at <= ?", Time.parse("September 1 2005"), Time.parse("November 30 2005")]).count
+    total = DCField.where(["dc_fields.updated_at >= ? AND dc_fields.updated_at <= ?", Time.parse("September 1 2005"), Time.parse("November 30 2005")]).count
 
     # Should return 50 records broken into 2 groups of 25.
     doc = Document.new(

@@ -125,4 +125,4 @@ That may make changes to appraisal gemfiles that you should commit to repo.
 License
 -------
 
-[![CC0 - Public Domain](http://i.creativecommons.org/p/zero/1.0/88x15.png)](http://creativecommons.org/publicdomain/zero/1.0/)
+[MIT](./LICENSE)

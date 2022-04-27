@@ -2,7 +2,7 @@ ruby-oai
 ========
 [![Build Status](https://github.com/code4lib/ruby-oai/workflows/CI/badge.svg)](https://github.com/code4lib/ruby-oai/actions)
 
-[![Gem Version](https://badge.fury.io/rb/kithe.svg)](https://badge.fury.io/rb/oai)
+[![Gem Version](https://badge.fury.io/rb/oai.svg)](https://badge.fury.io/rb/oai)
 
 ruby-oai is a Open Archives Protocol for Metadata Harvesting (OAI-PMH)
 library for Ruby. [OAI-PMH](http://openarchives.org) is a somewhat

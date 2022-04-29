@@ -40,6 +40,21 @@ module OAI
         yield @builder
       end
     end
+
+    protected
+
+    def self.parse_date(value)
+      return value if value.respond_to?(:strftime)
+
+      if value[-1] == "Z"
+        Time.strptime(value, "%Y-%m-%dT%H:%M:%S%Z").utc
+      else
+        Date.strptime(value, "%Y-%m-%d")
+      end
+    rescue ArgumentError => e
+      raise OAI::ArgumentException.new, "unparsable date: '#{value}'"
+    end
+
     private
 
     def header
@@ -89,15 +104,7 @@ module OAI
     end
 
     def parse_date(value)
-      return value if value.respond_to?(:strftime)
-      
-      if value[-1] == "Z"
-        Time.strptime(value, "%Y-%m-%dT%H:%M:%S%Z").utc
-      else
-        Date.strptime(value, "%Y-%m-%d")
-      end
-    rescue ArgumentError => e
-      raise OAI::ArgumentException.new, "unparsable date: '#{value}'"
+      self.class.parse_date(value)
     end
 
     def internalize(hash = {})

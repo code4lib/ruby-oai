@@ -49,6 +49,22 @@ class TestSimpleProvider < Test::Unit::TestCase
     assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
   end
 
+  def test_list_records_with_from_constraints
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_records(:metadata_prefix => 'oai_dc')) }
+
+    total = @model.find(:all).size
+    doc = REXML::Document.new(@simple_provider.list_records(:metadata_prefix => 'oai_dc', from: "2002-10-05"))
+    assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
+  end
+
+  def test_list_records_with_until_constraints
+    assert_nothing_raised { REXML::Document.new(@simple_provider.list_records(:metadata_prefix => 'oai_dc')) }
+
+    total = @model.find(:all).size
+    doc = REXML::Document.new(@simple_provider.list_records(:metadata_prefix => 'oai_dc', until: "2002-11-05"))
+    assert_equal total, doc.elements['OAI-PMH/ListRecords'].size
+  end
+
   def test_list_records_with_set_equal_a
     total = @model.find(:all, :set => 'A').size
     doc = REXML::Document.new(@simple_provider.list_records(:metadata_prefix => 'oai_dc', :set => 'A'))

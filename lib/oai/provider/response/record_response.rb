@@ -3,8 +3,26 @@ module OAI::Provider::Response
     def self.inherited(klass)
       klass.valid_parameters    :metadata_prefix, :from, :until, :set
       klass.default_parameters  :metadata_prefix => "oai_dc",
-           :from => Proc.new {|x| Time.parse(x.provider.model.earliest.to_s) }, #-- OAI 2.0 hack - UTC
-           :until => Proc.new {|x| Time.parse(x.provider.model.latest.to_s) }   #-- OAI 2.0 hack - UTC
+           :from => method(:default_from).to_proc,
+           :until => method(:default_until).to_proc
+    end
+
+    def self.default_from(response)
+      value = Time.parse(response.provider.model.earliest.to_s).utc
+      if response.options[:until]
+        u = parse_date(response.options[:until])
+        value = value.to_date if u.is_a? Date
+      end
+      value
+    end
+
+    def self.default_until(response)
+      value = Time.parse(response.provider.model.latest.to_s).utc
+      if response.options[:from]
+        f = parse_date(response.options[:from])
+        value = value.to_date if f.is_a? Date
+      end
+      value
     end
 
     # emit record header

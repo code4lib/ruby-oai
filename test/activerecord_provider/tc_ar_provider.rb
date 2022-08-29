@@ -53,8 +53,10 @@ class ActiveRecordProviderTest < TransactionalTestCase
   end
 
   def test_list_identifiers
-    assert_nothing_raised { REXML::Document.new(@provider.list_identifiers) }
-    doc = REXML::Document.new(@provider.list_identifiers)
+    assert_nothing_raised do
+      REXML::Document.new(@provider.list_identifiers(:metadata_prefix => 'oai_dc'))
+    end
+    doc = REXML::Document.new(@provider.list_identifiers(:metadata_prefix => 'oai_dc'))
     assert_equal 100, doc.elements['OAI-PMH/ListIdentifiers'].to_a.size
   end
 
@@ -163,7 +165,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
     test_metadata_formats
     # ListIdentifiers and ListRecords should return "noRecordsMatch" error code
     assert_raises(OAI::NoMatchException) do
-      REXML::Document.new(@provider.list_identifiers)
+      REXML::Document.new(@provider.list_identifiers(:metadata_prefix => 'oai_dc'))
     end
     assert_raises(OAI::NoMatchException) do
       REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))

@@ -1,7 +1,8 @@
 module OAI::Provider::Response
   
   class ListIdentifiers < RecordResponse
-    
+    required_parameters :metadata_prefix
+
     def to_xml
       result = provider.model.find(:all, options)
 

@@ -18,11 +18,13 @@ module OAI
   # ```
   class Response
     include OAI::XPath
-    attr_reader :doc, :resumption_token, :resumption_block
+    attr_reader :doc, :resumption_token, :resumption_block, :complete_list_size
 
     def initialize(doc, &resumption_block)
       @doc = doc
-      @resumption_token = xpath(doc, './/resumptionToken')
+      rt_node = xpath_first(doc, './/resumptionToken')
+      @resumption_token = get_text(rt_node)
+      @complete_list_size = get_attribute(rt_node, 'completeListSize')
       @resumption_block = resumption_block
 
       # throw an exception if there was an error

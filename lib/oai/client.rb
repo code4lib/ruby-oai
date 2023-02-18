@@ -205,7 +205,7 @@ module OAI
         # remove default namespace for oai-pmh since libxml
         # isn't able to use our xpaths to get at them
         # if you know a way around thins please let me know
-        xml = xml.gsub(
+        xml.gsub!(
           /xmlns=\"http:\/\/www.openarchives.org\/OAI\/.\..\/\"/, '')
       end
       xml
@@ -216,6 +216,7 @@ module OAI
     def do_request(verb, opts = nil)
       # fire off the request and return appropriate DOM object
       uri = build_uri(verb, opts)
+      debug(uri)
       return load_document(get(uri))
     end
 
@@ -270,7 +271,8 @@ module OAI
         req.url uri
         req.headers.merge! @headers
       end
-
+      # Keep cookie session. Needed for old & buggy OAI-PMH provider
+      @headers['Cookie'] ||= response['set-cookie']
       response.body
     end
 

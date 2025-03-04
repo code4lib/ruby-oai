@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
     s.add_dependency("rexml") # rexml becomes bundled gem in ruby 3.0
 
 
-    s.add_development_dependency "activerecord", ">= 5.2.0", "< 7.1"
+    s.add_development_dependency "activerecord", ">= 5.2.0", "< 8.1"
     s.add_development_dependency "appraisal"
     s.add_development_dependency "webrick"
 

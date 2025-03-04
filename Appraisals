@@ -21,6 +21,6 @@ appraise "rails-70" do
   gem "concurrent-ruby", "< 1.3.5"
 end
 
-appraise "rails-72" do
-  gem 'activerecord', '~> 7.2.0'
+appraise "rails-71" do
+  gem 'activerecord', '~> 7.1.0'
 end

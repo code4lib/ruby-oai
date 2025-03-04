@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['2.7.6', 'jruby-9.3.0.0']
+        ruby-version: ['2.7.6', 'jruby-9.4.11.0']
         gemfile:
           - rails_60
           - rails_61

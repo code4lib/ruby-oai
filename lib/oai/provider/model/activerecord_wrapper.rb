@@ -44,7 +44,7 @@ module OAI::Provider
     # returns all the sets the model supports.  See the
     # activerecord_provider tests for an example.
     def sets
-      model.sets if model.respond_to?(:sets)
+      model.respond_to?(:sets) ? model.sets : []
     end
 
     def find(selector, options={})
@@ -177,7 +177,7 @@ module OAI::Provider
         sql << "#{model.base_class.table_name}.#{timestamp_field} < :until"
         esc_values[:until] = parse_to_local(opts[:until]) { |t| t + 1 }
       end
-      
+
       return [sql.join(" AND "), esc_values]
     end
 
@@ -197,7 +197,7 @@ module OAI::Provider
           raise OAI::ArgumentException.new, "unparsable date: '#{time}'"
         end
       end
-        
+
       time_obj = yield(time_obj) if block_given?
 
       if time_obj.kind_of?(Date)

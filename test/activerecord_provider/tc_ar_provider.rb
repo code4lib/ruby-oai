@@ -40,6 +40,11 @@ class ActiveRecordProviderTest < TransactionalTestCase
     assert_equal expected_count, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
 
+  def test_invalid_set_raises_no_match
+    assert_raises(OAI::NoMatchException) do
+      @provider.list_records(:metadata_prefix => 'oai_dc', :set => "invalid_does_not_exist")
+    end
+  end
 
   def test_get_record_alternate_identifier_column
     @provider = ARProviderCustomIdentifierField.new
@@ -127,7 +132,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
       )
     assert_equal 40, doc.elements['OAI-PMH/ListRecords'].to_a.size
   end
-  
+
   def test_bad_until_raises_exception
     DCField.order(id: :asc).limit(10).update_all(updated_at: 1.year.ago)
     DCField.order(id: :desc).limit(10).update_all(updated_at: 1.year.from_now)
@@ -140,11 +145,11 @@ class ActiveRecordProviderTest < TransactionalTestCase
       end
     end
   end
-  
+
   def test_bad_from_raises_exception
     DCField.order(id: :asc).limit(10).update_all(updated_at: 1.year.ago)
     DCField.order(id: :desc).limit(10).update_all(updated_at: 1.year.from_now)
-    
+
     badTimes = [
       'junk',
       'February 92nd, 2015']
@@ -169,7 +174,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
       REXML::Document.new(@provider.list_records(:metadata_prefix => 'oai_dc'))
     end
   end
-  
+
   def test_bad_id_raises_exception
     badIdentifiers = [
       'invalid"id',
@@ -183,7 +188,7 @@ class ActiveRecordProviderTest < TransactionalTestCase
       end
     end
   end
-  
+
 
   def setup
     @provider = ARProvider.new

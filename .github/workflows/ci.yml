@@ -21,6 +21,9 @@ jobs:
             gemfile: rails_71
           - ruby-version: 3.2.7
             gemfile: rails_72
+          - ruby-version: 3.3.7
+            gemfile: rails_80
+
 
 
     env:

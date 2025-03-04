@@ -14,5 +14,5 @@ group :test do
   gem 'test-unit'
 
   # This version of sqlite3 oughta be good for activerecord 5.1+ hopefully
-  gem 'sqlite3', ">= 1.4.0", "< 2.0", :platform => [:ruby, :mswin]
+  gem 'sqlite3', ">= 1.4.0", "< 3.0", :platform => [:ruby, :mswin]
 end

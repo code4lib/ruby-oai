@@ -13,7 +13,7 @@ group :test do
   gem "redcarpet", platform: :ruby
   gem "kramdown", platform: :jruby
   gem "test-unit"
-  gem "sqlite3", ">= 1.4.0", "< 2.0", platform: [:ruby, :mswin]
+  gem "sqlite3", ">= 1.4.0", "< 3.0", platform: [:ruby, :mswin]
 end
 
 gemspec path: "../"

@@ -24,3 +24,8 @@ end
 appraise "rails-71" do
   gem 'activerecord', '~> 7.1.0'
 end
+
+appraise "rails-72" do
+  gem 'activerecord', '~> 7.2.0'
+end
+

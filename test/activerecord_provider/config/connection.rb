@@ -17,10 +17,14 @@ if ActiveRecord.version < Gem::Version.new("6.0.0")
   ActiveRecord::MigrationContext.new(
     File.join(File.dirname(__FILE__), '..', 'database')
   ).migrate
-else
+elsif ActiveRecord.version < Gem::Version.new("7.2.0")
   ActiveRecord::MigrationContext.new(
     File.join(File.dirname(__FILE__), '..', 'database'),
     ActiveRecord::Base.connection.schema_migration
+  ).migrate
+else
+  ActiveRecord::MigrationContext.new(
+    File.join(File.dirname(__FILE__), '..', 'database')
   ).migrate
 end
 

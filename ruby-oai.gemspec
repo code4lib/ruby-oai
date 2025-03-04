@@ -15,10 +15,12 @@ Gem::Specification.new do |s|
     s.add_dependency('builder', '>=3.1.0')
     s.add_dependency('faraday', "< 3")
     s.add_dependency("faraday-follow_redirects", ">= 0.3.0", "< 2")
+    s.add_dependency("rexml") # rexml becomes bundled gem in ruby 3.0
 
 
-    s.add_development_dependency "activerecord", ">= 5.2.0", "< 7.1"
+    s.add_development_dependency "activerecord", ">= 5.2.0", "< 8.1"
     s.add_development_dependency "appraisal"
+    s.add_development_dependency "webrick"
 
 
     s.files = %w(README.md Rakefile) +

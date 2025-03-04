@@ -12,7 +12,4 @@ group :test do
   gem 'redcarpet', :platform => :ruby # For fast, Github-like Markdown
   gem 'kramdown', :platform => :jruby # For Markdown without a C compiler
   gem 'test-unit'
-
-  # This version of sqlite3 oughta be good for activerecord 5.1+ hopefully
-  gem 'sqlite3', ">= 1.4.0", "< 2.0", :platform => [:ruby, :mswin]
 end

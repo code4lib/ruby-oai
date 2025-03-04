@@ -3,7 +3,8 @@
 source "http://rubygems.org"
 
 gem "jruby-openssl", platform: :jruby
-gem "activerecord", "~> 5.2.0"
+gem "activerecord", "~> 8.0.0"
+gem "sqlite3", ">= 1.4.0", "< 3.0", platform: [:ruby, :mswin]
 
 group :test do
   gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby]
@@ -13,7 +14,6 @@ group :test do
   gem "redcarpet", platform: :ruby
   gem "kramdown", platform: :jruby
   gem "test-unit"
-  gem "sqlite3", ">= 1.4.0", "< 2.0", platform: [:ruby, :mswin]
 end
 
 gemspec path: "../"

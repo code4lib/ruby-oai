@@ -3,9 +3,8 @@
 source "http://rubygems.org"
 
 gem "jruby-openssl", platform: :jruby
-gem "activerecord", "~> 7.0.0"
-gem "concurrent-ruby", "< 1.3.5"
-gem "sqlite3", ">= 1.4.0", "< 2", platform: [:ruby, :mswin]
+gem "activerecord", "~> 7.1.0"
+gem "sqlite3", ">= 1.4.0", "< 3.0", platform: [:ruby, :mswin]
 
 group :test do
   gem "activerecord-jdbcsqlite3-adapter", platform: [:jruby]

@@ -8,6 +8,7 @@ jobs:
   test_matrix:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ruby-version: ['2.7.6', 'jruby-9.4.11.0']
         gemfile:

@@ -11,15 +11,11 @@ jobs:
       matrix:
         ruby-version: ['2.6.9', '2.7.6', 'jruby-9.3.0.0']
         gemfile:
-          - rails_52
           - rails_60
           - rails_61
         include:
           - ruby-version: 2.7.6
             gemfile: rails_70
-        exclude:
-          - ruby-version: 2.7.6
-            gemfile: rails_52
 
     env:
       RAILS_ENV: test

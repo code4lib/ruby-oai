@@ -15,7 +15,8 @@ class OaiTest < Test::Unit::TestCase
   end
 
   def test_list_identifiers_for_correct_xml
-    doc = REXML::Document.new(@mapped_provider.list_identifiers)
+    doc = REXML::Document.new(
+      @mapped_provider.list_identifiers(:metadata_prefix => 'oai_dc'))
     assert_not_nil doc.elements['OAI-PMH/request']
     assert_not_nil doc.elements['OAI-PMH/request/@verb']
     assert_not_nil doc.elements['OAI-PMH/ListIdentifiers']
